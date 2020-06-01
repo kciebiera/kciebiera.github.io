@@ -8,9 +8,12 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.2/css/bulma.min.css">
 </head>
 
-<body>
+<body class="has-navbar-fixed-top">
     <div id="app">
         <div class="container">
+	    <nav class="navbar is-fixed-top">
+             {{ penaltyFormatted }}
+	    </nav>
             <div>
                 <table class="table">
                     <thead>
@@ -30,7 +33,7 @@
                             </td>
                         </tr>
                     </tbody>
-                    <caption>{{ penaltyFormatted }}</caption>
+                    <caption>Oceny filmów, predykcje, błędy</caption>
                 </table>
                 <input type="radio" name="mode" v-model="display" value="penalty">Błąd
                 <input type="radio" name="mode" v-model="display" value="prediction">Predykcja
