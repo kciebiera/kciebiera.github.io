@@ -13,7 +13,7 @@ class Movie {
     constructor(name, ratings) {
         this.name = name;
         this.bias = 0;
-        this.factor1 = 0;
+        this.factor1 = 0.1;
         this.ratings = ratings;
     }
 }
