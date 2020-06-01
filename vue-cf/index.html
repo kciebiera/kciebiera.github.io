@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>CF w VUE</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.2/css/bulma.min.css">
+</head>
+
+<body>
+    <div id="app">
+        <div class="container">
+            <div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th v-for="person in persons">{{ person.name }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="movie in movies">
+                            <th> {{ movie.name }}</th>
+                            <td v-for="rating in movie.ratings">
+                                <span v-if="display=='actual' && rating.actualValue >= 0"
+                                    v-bind:title="rating.displayedValue">{{ rating.actualValue.toFixed(3) }}</span>
+                                <span v-if="display=='prediction'">{{ rating.prediction }}</span>
+                                <span v-if="display=='penalty'">{{ rating.penalty.toFixed(3) }}</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <caption>{{ penaltyFormatted }}</caption>
+                </table>
+                <input type="radio" name="mode" v-model="display" value="penalty">Błąd
+                <input type="radio" name="mode" v-model="display" value="prediction">Predykcja
+                <input type="radio" name="mode" v-model="display" value="actual">Rzeczywista
+                <button v-on:click="optimize">Zgaduj wagi</button>
+            </div>
+            <div class="columns">
+                <div class="column">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>obciążenie</th>
+                                <th>cecha 1</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="movie in movies">
+                                <th> {{ movie.name }}</th>
+                                <td><input v-model="movie.bias" type="number" step="0.01" size="2"></td>
+                                <td><input v-model="movie.factor1" type="number" step="0.01" size="2"></td>
+                            </tr>
+                        </tbody>
+                        <caption>Filmy</caption>
+                    </table>
+                </div>
+                <div class="column">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>obciążenie</th>
+                                <th>cecha 1</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="person in persons">
+                                <th> {{ person.name }}</th>
+                                <td><input v-model="person.bias" type="number" step="0.01" size="2"></td>
+                                <td><input v-model="person.factor1" type="number" step="0.01" size="2"></td>
+                            </tr>
+                        </tbody>
+                        <caption>Widzowie</caption>
+                    </table>
+                </div>
+                <div class="column">
+                    <ul>
+                        <li>W tabeli na górze można zobaczyć co widz myśli o filmie (jaką mu dał ocenę), jaką ocenę
+                            system przewiduje i jak bardzo jest to złe</li>
+                        <li>Kolumna obciążenie (bias) mówi o tym jak bardzo coś jest "bezwzględnie" dobre albo złe.</li>
+                        <li>Kolumna cecha 1 oznacza o tym jak bardzo film posiada cechę pierwszą (np. jest to film
+                            wojenny),
+                            a widz jak bardzo lubi cechę pierwszą.</li>
+                        <li>Przycisk zgaduj wagi próbuje dodawać +0,01 albo -0,01 do losowo wybranych wag, i jak
+                            całkowita kara po dodaniu się zmniejsza, to akceptuje swoją zmianę. Jedno naciśnięcie
+                            przycisku to 1000 takich prób.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script type="module" src="script.js"></script>
+</body>
+
+</html>

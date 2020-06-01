@@ -27,7 +27,7 @@ class Rating {
     }
     set nice(value) {
         this.prediction = (1 / (1 + Math.exp(-value))).toFixed(3);
-        if (this.actualValue > -1) {
+        if (this.actualValue >= 0) {
             this.penalty = (this.prediction - this.actualValue) ** 2;
             this.displayedValue = `pred: ${this.prediction}, act: ${this.actualValue}`;
         } else {
@@ -42,11 +42,12 @@ var app = new Vue({
     data: {
       persons: [],
       movies: [],
-      penalty: 0
+      penalty: 0,
+      display: 'actual',
     },
     computed: {
-      p1: function( ){
-          return this.persons;
+      penaltyFormatted: function( ){
+          return `całkowity błąd  ${this.penalty} (im mniej tym lepiej)`;
       }
     },
     watch: {
@@ -114,7 +115,7 @@ var app = new Vue({
             }
         },
         optimize: function() {
-            for(let i = 0;  i < 10000; i++)
+            for(let i = 0;  i < 1000; i++)
                 this.optimizeStep();
         }
     }
