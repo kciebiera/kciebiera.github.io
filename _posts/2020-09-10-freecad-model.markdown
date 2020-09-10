@@ -2,7 +2,6 @@
 layout: post
 title:  "FreeCad model"
 date:   2020-09-10 08:00:00 +0200
-categories: vue
 ---
 
 How to make a Freecad model.

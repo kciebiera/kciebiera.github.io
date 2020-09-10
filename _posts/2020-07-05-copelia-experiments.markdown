@@ -2,12 +2,10 @@
 layout: post
 title:  "UR5 Inverse Kinematics in CoppeliaSim"
 date:   2020-07-05 12:00:00 +0200
-categories: vue
 ---
 
-## Introductions ##
 
-I want to describe how to pickup an object using a robotic arm simmulator in a few selected envirnoments. I will start with the easiest option in my opinion, namely CoppeliaSim (formerly V-Rep).
+How to pickup an object using a robotic arm simmulator in a CoppeliaSim (formerly V-Rep).
 
 ## Running Coppelia ##
 
