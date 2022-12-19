@@ -9,6 +9,7 @@ date:   2022-07-05 12:00:00 +0200
 # Camera coordinates calculations 
 
 ## Problem 1
+{% katexmm %}
 
 Determine the matrix that describes the intrinsic parameters of the two identical pinhole cameras, which have focal lengths of 1 and optical centers at `(300.5, 300.5)`.
 
@@ -58,3 +59,5 @@ In the following system you can assume $-\pi \le \theta \le \pi$
 $$\dot{r} = r^2 - r$$
 
 $$\dot{\theta} = \sin^2(\theta / 2)$$
+
+{% endkatexmm %}
