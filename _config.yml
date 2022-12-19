@@ -27,6 +27,7 @@ markdown: kramdown
 theme: minima
 plugins:
   - jekyll-feed
+  - jekyll-katex
 minima:
   date_format: "%Y-%m-%d"
   language: pl
