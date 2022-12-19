@@ -1,6 +1,7 @@
 ---
 title: Lab 9
 title:  "test"
+usemathjax: true
 date:   2022-07-05 12:00:00 +0200
 ---
 
