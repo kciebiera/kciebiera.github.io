@@ -9,7 +9,7 @@ date:   2022-07-05 12:00:00 +0200
 # Camera coordinates calculations 
 
 ## Problem 1
-{% katexmm %}
+
 
 Determine the matrix that describes the intrinsic parameters of the two identical pinhole cameras, which have focal lengths of 1 and optical centers at `(300.5, 300.5)`.
 
@@ -31,9 +31,13 @@ Find fixed points of the following system and linearize its dynamics around thos
 
 ## System 1
 
+{% katexmm %}
+
 Consider the following 1-dimensional system that can be used to model population growth (x is the population size, $P_{max}$ is population limit above which the environment becomes resource scarse.
 
 $$\dot{x} = f(x) = x(P_{max}-x)$$
+
+{% endkatexmm %}
 
 ## System 2
 
@@ -60,4 +64,4 @@ $$\dot{r} = r^2 - r$$
 
 $$\dot{\theta} = \sin^2(\theta / 2)$$
 
-{% endkatexmm %}
+
