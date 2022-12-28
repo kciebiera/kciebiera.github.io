@@ -33,7 +33,7 @@ Find fixed points of the following system and linearize its dynamics around thos
 
 ## System 1
 
-Consider the following 1-dimensional system that can be used to model population growth (x is the population size, \\(P_{max}\\) is population limit above which the environment becomes resource scarse.
+Consider the following 1-dimensional system that can be used to model population growth \\(x\\) is the population size, \\(P_{max}\\) is population limit above which the environment becomes resource scarse.
 
 $$\dot{x} = f(x) = x(P_{max}-x)$$
 
