@@ -6,12 +6,16 @@ date:   2022-07-05 12:00:00 +0200
 ---
 
 <script type="text/javascript" id="MathJax-script" async
-  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  src="https://bug_cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
 </script>
 # Camera coordinates calculations 
 
 ## Problem 1
 
+
+![](robot2.png)
+
+When $𝑑_0=1$ and  $𝑑_1=1$ location of end effector wrt base is  (0,1,2) 
 
 Determine the matrix that describes the intrinsic parameters of the two identical pinhole cameras, which have focal lengths of 1 and optical centers at `(300.5, 300.5)`.
 
