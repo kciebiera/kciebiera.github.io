@@ -1,6 +1,6 @@
 ---
 title: Note on address sanitization in C/C++
-date:   2023-01-13 12:00:00 +0200
+date:   2023-01-13 9:00:00 +0200
 ---
 
 Memory that is allocated using new or malloc should be freed after use, especially within classes. To detect memory leaks easily, you can use a compiler flag such as `-fsanitize=address -g` when compiling your code. As an example, in the following C++ code, the variable a is not freed, but the program runs without error:
