@@ -1,0 +1,42 @@
+---
+title: Note on address sanitization in C/C++
+date:   2023-01-13 12:00:00 +0200
+---
+
+Memory that is allocated using new or malloc should be freed after use, especially within classes. To detect memory leaks easily, you can use a compiler flag such as `-fsanitize=address -g` when compiling your code. As an example, in the following C++ code, the variable a is not freed, but the program runs without error:
+
+```cpp
+struct A {};
+
+int main()
+{
+   A *a = new A();
+   return 0;
+}
+```
+
+Variable `a` is never deleted, but the program runs perfectly.
+
+```bash
+$ g++ a.cpp -o a
+$ ./a
+$
+```
+
+When compiling this code with the -fsanitize=address -g flag, the compiler will detect the memory leak in line 5 and report it as an error.
+
+```bash
+$ g++ -fsanitize=address -g a.cpp -o a
+$ ./a
+
+=================================================================
+==1254433==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 1 byte(s) in 1 object(s) allocated from:
+    #0 0x7ff10f5ed647 in operator new(unsigned long) ../../../../src/libsanitizer/asan/asan_new_delete.cpp:99
+    #1 0x56265164d166 in main /[cut]/a.cpp:5
+    #2 0x7ff10f390d09 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x23d09)
+
+SUMMARY: AddressSanitizer: 1 byte(s) leaked in 1 allocation(s).
+```
+
