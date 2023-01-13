@@ -20,7 +20,6 @@ Variable `a` is never deleted, but the program runs perfectly.
 ```bash
 $ g++ a.cpp -o a
 $ ./a
-$
 ```
 
 When compiling this code with the `-fsanitize=address -g` flag, the compiler will detect the memory leak in line 5 and report it as an error.
