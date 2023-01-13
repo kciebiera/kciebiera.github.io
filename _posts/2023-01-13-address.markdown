@@ -23,7 +23,7 @@ $ ./a
 $
 ```
 
-When compiling this code with the -fsanitize=address -g flag, the compiler will detect the memory leak in line 5 and report it as an error.
+When compiling this code with the `-fsanitize=address -g` flag, the compiler will detect the memory leak in line 5 and report it as an error.
 
 ```bash
 $ g++ -fsanitize=address -g a.cpp -o a
