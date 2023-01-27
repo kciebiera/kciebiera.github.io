@@ -4,6 +4,11 @@ title:  "FreeCad model"
 date:   2020-09-10 08:00:00 +0200
 ---
 
+- [2022_1_theory](2022_1_theory.ipynb)
+- [2022_1_practice](2022_1_practice.ipynb)
+- [2022_2_theory](2022_2_theory.ipynb)
+- [2022_2_practice](2022_2_practice.ipynb)
+  
 How to make a Freecad model.
 
 ## Step by step ##
