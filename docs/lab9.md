@@ -27,7 +27,7 @@ $$ t_{k} = A_k t_{k-1} + v_k  $$
 
 Kalman filter has 3 matrix parameters:
 
-- measurement matrix \\(H\)) which denotes how states are mapped to the observation. To be precise 
+- measurement matrix \\(H\\) which denotes how states are mapped to the observation. To be precise 
   $$ z_k = H t_k + w_k $$
 - process covariance matrix \\(Q\\) which is the covariance of the random noise \\(v_k\\) (\\(v_k\\) comes from distribution \\(N(0, Q)\\))
 - measurement covariance matrix \\(R\\) which is the covariance of the random noise \\(w_k\\) (\\(w_k\\) comes from distribution \\(N(0, R)\\)) 
