@@ -27,10 +27,10 @@ $$ t_{k} = A_k t_{k-1} + v_k  $$
 
 Kalman filter has 3 matrix parameters:
 
-- measurement matrix $H$ which denotes how states are mapped to the observation. To be precise 
+- measurement matrix \\(H\)) which denotes how states are mapped to the observation. To be precise 
   $$ z_k = H t_k + w_k $$
-- process covariance matrix $Q$ which is the covariance of the random noise \\(v_k\\) (\\(v_k\\) comes from distribution \\(N(0, Q)\\))
-- measurement covariance matrix $R$ which is the covariance of the random noise $w_k$ ($w_k$ comes from distribution $N(0, R)$) 
+- process covariance matrix \\(Q\\) which is the covariance of the random noise \\(v_k\\) (\\(v_k\\) comes from distribution \\(N(0, Q)\\))
+- measurement covariance matrix \\(R\\) which is the covariance of the random noise \\(w_k\\) (\\(w_k\\) comes from distribution \\(N(0, R)\\)) 
 
 Kalman filter has two phases:
 
@@ -45,7 +45,7 @@ Kalman filter has two phases:
   $$ x_k = x'_k + Ky$$
   $$ P_k = (I - KH)P'_k  $$
 
-If we don't have an observation from current timestep, then $x_k = x'_k$ and $P_k = P'_k$.
+If we don't have an observation from current timestep, then \\(_k = x'_k\\) and \\(P_k = P'_k\\).
 
 ## Example calculation
 
@@ -72,7 +72,7 @@ P = [[3288.01907438  1115.25715518]
      [1115.25715518  693.39189069]]
 ```
 
-Next, we make a prediction. If the time elapsed from last step is $0.002541$, then the A matrix looks as follows:
+Next, we make a prediction. If the time elapsed from last step is `0.002541``, then the A matrix looks as follows:
 ```
 A = [[1.       0.002541]
      [0.       1.      ]]
@@ -85,7 +85,7 @@ P' = A @ P'@ A.T + Q = [[3294.69128825  1117.01906397]
                         [1117.01906397  694.39189069]]
 
 ```
-At this step, we measured $z = 313$.
+At this step, we measured `z = 313``.
 We correct the state to include the observation
 
 ```
@@ -124,7 +124,7 @@ Then implement predicting the next state
         P = ...
         ###
 ```
-$A$ should be a state transition matrix with the assumption that velocity is constant.
+\\(A\\) should be a state transition matrix with the assumption that velocity is constant.
 
 Finally, implement update of the state and covarience matrix after measurement.
 ```python
