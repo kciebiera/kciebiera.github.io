@@ -12,13 +12,13 @@ In this class, you will implement a basic [Kalman filter](https://en.wikipedia.o
 
 Kalman filter is used to approximate true state of the world given noisy observations (e.g. sensor noise). 
 
-Some notation: at timestep $k$:
-- \\$$z_k$$ denotes the observation
+Some notation: at timestep \\(k\\):
+- \\(z_k\\) denotes the observation
 - \\(t_k\\) denotes the true state of the world
-- $x_k$ denotes the estimate of the state of the world
-- $P_k$ denotes the  covariance of the estimate of the state of the world
-- $A_k$ is a matrix that denotes the state transition model (note that since we are dealing with discrete model, this matrix might depent on time elapsed from previous timestep)
-- $v_k$ and $w_k$ denote random (gaussian and independent) noise
+- \\(x_k\\) denotes the estimate of the state of the world
+- \\(P_k\\) denotes the  covariance of the estimate of the state of the world
+- \\(A_k\\) is a matrix that denotes the state transition model (note that since we are dealing with discrete model, this matrix might depent on time elapsed from previous timestep)
+- \\(v_k\\) and \\(w_k\\) denote random (gaussian and independent) noise
 
 Kalman filter assumes that world state transitions in a following manner:
 
@@ -29,7 +29,7 @@ Kalman filter has 3 matrix parameters:
 
 - measurement matrix $H$ which denotes how states are mapped to the observation. To be precise 
   $$ z_k = H t_k + w_k $$
-- process covariance matrix $Q$ which is the covariance of the random noise $v_k$ ($v_k$ comes from distribution $N(0, Q)$)
+- process covariance matrix $Q$ which is the covariance of the random noise \\(v_k\\) (\\(v_k\\) comes from distribution \\(N(0, Q)\\))
 - measurement covariance matrix $R$ which is the covariance of the random noise $w_k$ ($w_k$ comes from distribution $N(0, R)$) 
 
 Kalman filter has two phases:
