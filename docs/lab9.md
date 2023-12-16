@@ -13,11 +13,11 @@ In this class, you will implement a basic [Kalman filter](https://en.wikipedia.o
 Kalman filter is used to approximate true state of the world given noisy observations (e.g. sensor noise). 
 
 Some notation: at timestep $k$:
-- $z_k$ denotes the observation
-- $t_k$ denotes the true state of the world
-- $x_k$ denotes the estimate of the state of the world
-- $P_k$ denotes the  covariance of the estimate of the state of the world
-- $A_k$ is a matrix that denotes the state transition model (note that since we are dealing with discrete model, this matrix might depent on time elapsed from previous timestep)
+- \$$z_k$$ denotes the observation
+- \$$t_k$$ denotes the true state of the world
+- \$$x_k$$ denotes the estimate of the state of the world
+- \$$P_k$$ denotes the  covariance of the estimate of the state of the world
+- \$$A_k$$ is a matrix that denotes the state transition model (note that since we are dealing with discrete model, this matrix might depent on time elapsed from previous timestep)
 - $v_k$ and $w_k$ denote random (gaussian and independent) noise
 
 Kalman filter assumes that world state transitions in a following manner:
