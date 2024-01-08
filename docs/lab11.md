@@ -238,7 +238,7 @@ no_force()
 When you run the code, you should see the cartpole system in action. Since there is no controller, the system will fall down (the pole angle will be greater than 45 degrees) as seen on a video below.
 
 
-<video width="500" height="400" controls>
+<video width="512" height="208" controls>
   <source src="simple-free.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
@@ -300,7 +300,7 @@ controlled()
 After filling in the missing parts (marked by comments and TODOs), you should see the cartpole system stabilized to the origin as seen on a video below.
 
 
-<video width="500" height="400" controls>
+<video width="512" height="208" controls>
   <source src="simple-controlled.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
@@ -341,7 +341,6 @@ In this part, we will use the cartpole system from MuJoCo. Cartpole XML is a mod
 Using the following stub code, you should be able to stabilize the cartpole system using MuJoCo.
 
 ```python
-
 def sim_reset():
     global model, data, viewer_window
     if "viewer_window" in globals():
@@ -393,7 +392,7 @@ run()
 print(model.body_mass)
 ```
 
-You should see the cartpole system stabilized to the origin as seen on a video below. Please note, that
+You should see the cartpole system stabilized to the origin as seen on a video below. Note, that
 at the beginning the system is not stabilized in the center because it takes 50 steps with force 0.03 as
 in provided code.
 
