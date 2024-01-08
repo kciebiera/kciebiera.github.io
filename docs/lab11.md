@@ -235,9 +235,13 @@ def no_force():
 no_force()
 ```
 
-When you run the code, you should see the cartpole system in action. Since there is no controller, the system will fall down (the pole angle will be greater than 45 degrees) as seen on a screenshot below.
+When you run the code, you should see the cartpole system in action. Since there is no controller, the system will fall down (the pole angle will be greater than 45 degrees) as seen on a video below.
 
-![cartpole](cartpole.png)
+
+<video width="500" height="400" controls>
+  <source src="simple-free.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 Check what happens if you change the initial cart position and pole angle. What happens if you remove the noise from the force? What happens if you change the mass of the cart or the pole? What happens if you change the length of the pole? What happens if you change the gravity constant (ok, it's a joke)?
 
@@ -294,7 +298,7 @@ def controlled():
 controlled()
 ```
 
-After filling in the missing parts, you should see the cartpole system stabilized to the origin as seen on a video below.
+After filling in the missing parts (marked by comments and TODOs), you should see the cartpole system stabilized to the origin as seen on a video below.
 
 
 <video width="500" height="400" controls>
