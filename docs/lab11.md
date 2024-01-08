@@ -245,9 +245,8 @@ When you run the code, you should see the cartpole system in action. Since there
 
 Check what happens if you change the initial cart position and pole angle. What happens if you remove the noise from the force? What happens if you change the mass of the cart or the pole? What happens if you change the length of the pole? What happens if you change the gravity constant (ok, it's a joke)?
 
-Your task is to design a controller that stabilizes the cartpole system to the origin. You can use the linearized dynamics of the cartpole system. The linearization should be done at a fixed point. You should write a function that returns the matrices `A` and `B` of the linearized system. 
-
-You should know how to linearize the system from the previous classes. 
+Your task is to design an LQR controller that stabilizes the cartpole system to the origin.The linearization should be done at a fixed point.
+You should write a function that returns the matrices `A` and `B` of the linearized system.  You should know how to linearize the system from the previous classes. 
 
 ```python
 def linearize(): # you can add arguments if you want
@@ -305,6 +304,8 @@ After filling in the missing parts (marked by comments and TODOs), you should se
   <source src="simple-controlled.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
+
+Please note, that system starts in -3 position, so it is not stabilized in the center. Also note, that we limit the force to be between -1 and 1.
 
 ## Part 3: Cartpole system - using MuJoCo
 
@@ -392,6 +393,11 @@ run()
 print(model.body_mass)
 ```
 
-You should see the cartpole system stabilized to the origin as seen on a screenshot below.
+You should see the cartpole system stabilized to the origin as seen on a video below. Please note, that
+at the beginning the system is not stabilized in the center because it takes 50 steps with force 0.03 as
+in provided code.
 
-![cartpole](cartpole_controlled_mujoco.png)
+<video width="500" height="400" controls>
+  <source src="mujoco-controlled.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
