@@ -1,7 +1,12 @@
+<script type="text/javascript"
+
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+
+</script>
 # LQR control
 
-$$
-\ddot{\theta} = \frac{(M+m)g\sin\theta - \cos\theta \left[ F + ml\dot{\theta}^2 \sin\theta \right]}{\left( \frac{4}{3} \right)(M+m) - ml\cos^2\theta}$$
+
+$$\ddot{\theta} = \frac{(M+m)g\sin\theta - \cos\theta \left[ F + ml\dot{\theta}^2 \sin\theta \right]}{\left( \frac{4}{3} \right)(M+m) - ml\cos^2\theta}$$
 
 
 
