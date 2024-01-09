@@ -6,8 +6,10 @@
 # LQR control
 
 
+
 $$\ddot{\theta} = \frac{(M+m)g\sin\theta - \cos\theta \left[ F + ml\dot{\theta}^2 \sin\theta \right]}{\left( \frac{4}{3} \right)(M+m) - ml\cos^2\theta}$$
 
+$$\ddot{x} = \frac{ \left\{ F + ml \left[ \dot{\theta}^2 \sin\theta - \ddot{\theta}\cos\theta \right] \right\} }{M+m}$$
 
 
 In this class we will implement LQR control for a cartpole system. We will use the [control](https://python-control.readthedocs.io/) library to design the controller and simulate the system.
