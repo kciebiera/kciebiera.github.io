@@ -20,7 +20,7 @@ The lab consists of three parts:
 2. We will use the `control` library for a cartpole system. We will use the linearized dynamics of the cartpole system. The system will be simulated using  https://github.com/microsoft/cartpole-py/blob/main/cartpole.py which is a Python implementation of the cartpole system from the Microsoft.
 3. We will use the `control` library for a cartpole system simmulated using MuJoCo.
 
-![Image description](x2.png){ width=400 }
+![Image description](x2.png){: width=400 }
 
 In the second step, you need to linearize the cartpole system at a fixed point using the basic simulation source code you have. Then, employ this linearization in the third step.
 
