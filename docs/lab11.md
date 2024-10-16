@@ -22,17 +22,14 @@ A significant portion of robotics work involves using simulators like MuJoCo. Th
    ```
 
 3. Run the simulator:
-
 - Run the MuJoCo simulator either by running exe or using the command: `python -m mujoco.viewer`
 - You should see a window similar to this: ![MuJoCo Simulator Window](mujoco_1.png)
-
 4. Load the World:
 
 - Drag and drop `world1.xml` into the simulator window. Make sure `4x4_1000-0.png` is in the same directory as `world1.xml`.
 - You should now see the world loaded in the simulator:
 ![MuJoCo World Loaded](mujoco_2.png)
 - Explore the MuJoCo interface. Learn how to move the camera, zoom in and out, and rotate the view.
-
 5. Detect Aruco Codes:
 
 - Take a screenshot of the simulator window.
