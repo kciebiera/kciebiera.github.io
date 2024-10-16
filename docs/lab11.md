@@ -23,24 +23,27 @@ Do you expect the matrices representing these transformations to be the same?
 
 *Hint:* Remember that it is sometimes easier to describe a transformation using a different coordinate system (e.g., by choosing a different basis). If you use a new coordinate system, then describing the transformation in the original coordinates requires only finding the transformation between your two coordinate systems and then composing the appropriate transformations in the correct order.
 
-## Different representations of transformations
+## Different Representations of Transformations
 
-Familirize yourself with the Rodrigues Formula: <https://mathworld.wolfram.com/RodriguesRotationFormula.html>.
+Familiarize yourself with the Rodrigues Formula: https://mathworld.wolfram.com/RodriguesRotationFormula.html
 
-8. Use the Rodrigues Formula to create a matrix M6 from the previous exercise. Compare the results and make sure they are the same.
-9. Use the Rodrigues Formula to create a matrix M7 that rotates 3D space around the (1, 1, 1) vector by 90 degrees.
+1. Use the Rodrigues Formula to create matrix `M6` from the previous exercise (rotating 3D space around the vector (1, 1, 0) by a given angle). Compare the results with your previous method and ensure they are the same.
+2. Use the Rodrigues Formula to create a matrix `M7` that rotates 3D space around the vector (1, 1, 1) by 90 degrees.
+If you want to learn more about the Rodrigues Formula and its derivation, check out these videos:
 
-If you want to know more about Rodrigues Formula and how it is derived you can check out these videos: <https://www.youtube.com/watch?v=UaK2q22mMEg> and <https://www.youtube.com/watch?v=q-ESzg03mQc>.
+- https://www.youtube.com/watch?v=UaK2q22mMEg
+- https://www.youtube.com/watch?v=q-ESzg03mQc
 
-10. We have the following rotation matrix:
-
+3. We have the following rotation matrix:
 ```python
 R = [[0.966496, -0.214612, 0.14081],
      [0.241415, 0.946393, -0.214612],
      [-0.0872034, 0.241415, 0.966496]]
 ```
 
-What is the axis and the angle of rotation R? *Hint:* consider a vector parallel to the axis of rotation. How the matrix R should act on this vector?
+What is the axis and angle of rotation for R?
+
+*Hint:* Consider a vector parallel to the axis of rotation. How should matrix R act on this vector?
 
 # Camera Callibration and Stereo
 
