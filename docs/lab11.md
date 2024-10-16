@@ -1,27 +1,27 @@
-In today's laboratory session, we will be focusing on 3D transformations, the pinhole camera model, and the fundamentals of stereo vision. We'll start with introductory exercises related to these topics. Then, the acquired knowledge will be applied to capture a video of a moving car in MuJoCo.
+In this laboratory session, we will explore 3D transformations, the pinhole camera model, and the fundamentals of stereo vision. We will begin with introductory exercises to solidify our understanding of these concepts.  Then, we will apply this knowledge to capture a video of a moving car in MuJoCo.
 
 # 3D Transformations
 
-## Basic transformations
+## Basic Transformations
 
-1. Create a matrix M1 that rotates 3D space around the x axis by 90 degrees.
-2. Create a matrix M2 that rotates 3D space around the y axis by 90 degrees.
-3. Create a matrix M3 that translates 3D space by 1 unit along the x axis.
+1. Create a matrix M1 that rotates 3D space around the x-axis by 90 degrees.
+2. Create a matrix M2 that rotates 3D space around the y-axis by 90 degrees.
+3. Create a matrix M3 that translates 3D space by 1 unit along the x-axis.
 
 ## Composition of transformations
 
-4. Consider two transformations:
+1. Consider these two transformations:   
 
-- first one which translates 3D space by 1 unit along the x axis and then rotates it around the y axis by 90 degrees,
-- second one which rotates 3D space around the y axis by 90 degrees and then moves it by 1 unit along the x axis.
+- **Transformation 1:** Translates 3D space by 1 unit along the x-axis and then rotates it around the y-axis by 90 degrees.
+- **Transformation 2:** Rotates 3D space around the y-axis by 90 degrees and then translates it by 1 unit along the x-axis.
 
-    Do you expect the matrices representing the above transformations to be the same?
+Do you expect the matrices representing these transformations to be the same?
 
-5. Consider the results of two multiplications: M4 = M2 *M3 and M5 = M3* M2. Do you expect to get the same results? Check computationally if your predictions were correct.
-6. Consider two multiplications: M4 *M5 and M5* M4. Do you expect to get the same results? Check computationally if your predictions were correct.
-7. Create a matrix M6 that rotates a 3D space around the (1, 1, 0) vector by any given number of degrees.
-*Hint:* remember that sometimes it is easier to describe a transformation using different coordinates (e.g. choosing a different basis).
-If you have such new coordinate system, then describing the transformation in original coordinates requires only finding the transformation between your two coordinate systems and then composing appropriate transformations in correct order.
+2. Consider the results of these two multiplications: `M4 = M2 * M3` and `M5 = M3 * M2`. Do you expect the results to be the same? Check computationally if your predictions were correct.
+
+3. Create a matrix `M6` that rotates 3D space around the vector (1, 1, 0) by any given number of degrees.
+
+*Hint:* Remember that it is sometimes easier to describe a transformation using a different coordinate system (e.g., by choosing a different basis). If you use a new coordinate system, then describing the transformation in the original coordinates requires only finding the transformation between your two coordinate systems and then composing the appropriate transformations in the correct order.
 
 ## Different representations of transformations
 
