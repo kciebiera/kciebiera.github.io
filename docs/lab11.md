@@ -49,13 +49,13 @@ What is the axis and angle of rotation for R?
 
 ## Intrinsic camera parameters
 
-11. Determine the intrinsic camera matrix of a pinhole cameras which has focal length of 1 and optical center at `(300.5, 300.5)`.
+1. Determine the intrinsic camera matrix of a pinhole cameras which has focal length of 1 and optical center at `(300.5, 300.5)`.
 
-12. Find 2D coordinates of the projection of the 3D point `(10, 10, 5)` onto an image captured by the camera from the previous exercise.
+2. Find 2D coordinates of the projection of the 3D point `(10, 10, 5)` onto an image captured by the camera from the previous exercise.
 
 ## Basic triangulation
 
-13. Imagine that you have two cameras like in the previous exercises. The optical axes of both cameras are parallel. The axis of the second camera is displaced by `(x=1, y=0, z=0)` relative to the first camera. Estimate the distance from the first camera to a point whose coordinates are `(303, 303)` on an image captured by the first camera and `(298, 303)` on the image captured by the second camera.
+1. Imagine that you have two cameras like in the previous exercises. The optical axes of both cameras are parallel. The axis of the second camera is displaced by `(x=1, y=0, z=0)` relative to the first camera. Estimate the distance from the first camera to a point whose coordinates are `(303, 303)` on an image captured by the first camera and `(298, 303)` on the image captured by the second camera.
 
 # MuJoCo Simulation
 
