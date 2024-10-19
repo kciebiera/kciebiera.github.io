@@ -1,61 +1,63 @@
-In this laboratory session, we will explore 3D transformations, the pinhole camera model, and the fundamentals of stereo vision. We will begin with introductory exercises to solidify our understanding of these concepts.  Then, we will apply this knowledge to capture a video of a moving car in MuJoCo.
+In today's laboratory session, we will be focusing on 3D transformations, the pinhole camera model, and the fundamentals of stereo vision. We'll start with introductory exercises related to these topics. Then, the acquired knowledge will be applied to capture a video of a moving car in MuJoCo.
 
 # 3D Transformations
 
-## Basic Transformations
+## Basic transformations
 
-1. Create a matrix M1 that rotates 3D space around the x-axis by 90 degrees.
-2. Create a matrix M2 that rotates 3D space around the y-axis by 90 degrees.
-3. Create a matrix M3 that translates 3D space by 1 unit along the x-axis.
+1. Create a matrix M1 that rotates 3D space around the x axis by 90 degrees.
+2. Create a matrix M2 that rotates 3D space around the y axis by 90 degrees.
+3. Create a matrix M3 that translates 3D space by 1 unit along the x axis.
 
 ## Composition of transformations
 
-1. Consider these two transformations:   
+{:start="4"}
+4. Consider two transformations:
 
-- **Transformation 1:** Translates 3D space by 1 unit along the x-axis and then rotates it around the y-axis by 90 degrees.
-- **Transformation 2:** Rotates 3D space around the y-axis by 90 degrees and then translates it by 1 unit along the x-axis.
+- first one which translates 3D space by 1 unit along the x axis and then rotates it around the y axis by 90 degrees,
+- second one which rotates 3D space around the y axis by 90 degrees and then moves it by 1 unit along the x axis.
 
-Do you expect the matrices representing these transformations to be the same?
+    Do you expect the matrices representing the above transformations to be the same?
 
-2. Consider the results of these two multiplications: `M4 = M2 * M3` and `M5 = M3 * M2`. Do you expect the results to be the same? Check computationally if your predictions were correct.
+{:start="5"}
+5. Consider the results of two multiplications: M4 = M2 *M3 and M5 = M3* M2. Do you expect to get the same results? Check computationally if your predictions were correct.
+6. Consider two multiplications: M4 *M5 and M5* M4. Do you expect to get the same results? Check computationally if your predictions were correct.
+7. Create a matrix M6 that rotates a 3D space around the (1, 1, 0) vector by any given number of degrees.
+*Hint:* remember that sometimes it is easier to describe a transformation using different coordinates (e.g. choosing a different basis).
+If you have such new coordinate system, then describing the transformation in original coordinates requires only finding the transformation between your two coordinate systems and then composing appropriate transformations in correct order.
 
-3. Create a matrix `M6` that rotates 3D space around the vector (1, 1, 0) by any given number of degrees.
+## Different representations of transformations
 
-*Hint:* Remember that it is sometimes easier to describe a transformation using a different coordinate system (e.g., by choosing a different basis). If you use a new coordinate system, then describing the transformation in the original coordinates requires only finding the transformation between your two coordinate systems and then composing the appropriate transformations in the correct order.
+Familirize yourself with the Rodrigues Formula: <https://mathworld.wolfram.com/RodriguesRotationFormula.html>.
 
-## Different Representations of Transformations
+{:start="8"}
+8. Use the Rodrigues Formula to create a matrix M6 from the previous exercise. Compare the results and make sure they are the same.
+9. Use the Rodrigues Formula to create a matrix M7 that rotates 3D space around the (1, 1, 1) vector by 90 degrees.
 
-Familiarize yourself with the Rodrigues Formula: https://mathworld.wolfram.com/RodriguesRotationFormula.html
+If you want to know more about Rodrigues Formula and how it is derived you can check out these videos: <https://www.youtube.com/watch?v=UaK2q22mMEg> and <https://www.youtube.com/watch?v=q-ESzg03mQc>.
 
-1. Use the Rodrigues Formula to create matrix `M6` from the previous exercise (rotating 3D space around the vector (1, 1, 0) by a given angle). Compare the results with your previous method and ensure they are the same.
-2. Use the Rodrigues Formula to create a matrix `M7` that rotates 3D space around the vector (1, 1, 1) by 90 degrees.
-If you want to learn more about the Rodrigues Formula and its derivation, check out these videos:
+{:start="10"}
+10. We have the following rotation matrix:
 
-- https://www.youtube.com/watch?v=UaK2q22mMEg
-- https://www.youtube.com/watch?v=q-ESzg03mQc
-
-3. We have the following rotation matrix:
 ```python
 R = [[0.966496, -0.214612, 0.14081],
      [0.241415, 0.946393, -0.214612],
      [-0.0872034, 0.241415, 0.966496]]
 ```
 
-What is the axis and angle of rotation for R?
-
-*Hint:* Consider a vector parallel to the axis of rotation. How should matrix R act on this vector?
+What is the axis and the angle of rotation R? *Hint:* consider a vector parallel to the axis of rotation. How the matrix R should act on this vector?
 
 # Camera Callibration and Stereo
 
 ## Intrinsic camera parameters
 
-1. Determine the intrinsic camera matrix of a pinhole cameras which has focal length of 1 and optical center at `(300.5, 300.5)`.
-
-2. Find 2D coordinates of the projection of the 3D point `(10, 10, 5)` onto an image captured by the camera from the previous exercise.
+{:start="11"}
+11. Determine the intrinsic camera matrix of a pinhole cameras which has focal length of 1 and optical center at `(300.5, 300.5)`.
+12. Find 2D coordinates of the projection of the 3D point `(10, 10, 5)` onto an image captured by the camera from the previous exercise.
 
 ## Basic triangulation
 
-1. Imagine that you have two cameras like in the previous exercises. The optical axes of both cameras are parallel. The axis of the second camera is displaced by `(x=1, y=0, z=0)` relative to the first camera. Estimate the distance from the first camera to a point whose coordinates are `(303, 303)` on an image captured by the first camera and `(298, 303)` on the image captured by the second camera.
+{:start="13"}
+13. Imagine that you have two cameras like in the previous exercises. The optical axes of both cameras are parallel. The axis of the second camera is displaced by `(x=1, y=0, z=0)` relative to the first camera. Estimate the distance from the first camera to a point whose coordinates are `(303, 303)` on an image captured by the first camera and `(298, 303)` on the image captured by the second camera.
 
 # MuJoCo Simulation
 
@@ -89,13 +91,13 @@ Let's start with the following XML file describing the world:
 
 You can view the world in MuJoCo simulator. You can also install mujoco `pip install mujoco`, and run:
 
-```
+```python
 python -m mujoco.viewer
 ```
 
 Whichever method you choose, you should see something like this:
 
-![](lab_2_1.png)
+![MuJoCo world with x and y arrows](lab_2_1.png)
 
 As you can see we represent unit vectors along x and y axes using narrow boxes and call them "arrows".
 Now add a third arrow for the unit vector along the z-axis.
@@ -103,7 +105,7 @@ Now add a third arrow for the unit vector along the z-axis.
 Note, that the arrows we have created are indeed unit vectors.
 This is because MuJoCo uses half-sizes for the bodies of a box type as stated in the documentation:
 
-```
+```txt
 Three size parameters are required, corresponding to the half-sizes of the box along the X, Y and Z axes of the geom’s frame.
 ```
 
@@ -148,7 +150,7 @@ You can read more about it here: <https://mujoco.readthedocs.io/en/stable/modeli
 Rotate the wheel to position it correctly.
 Your result should look like this:
 
-![](lab_2_2.png)
+![Correctly positioned wheel](lab_2_2.png)
 
 ### Adding missing wheels
 
@@ -176,7 +178,7 @@ Initially this is obtained by rotating the radar by 30 degrees about the x axis.
 Check the snippet above to make sure that this is the case.
 The final result should look like this:
 
-![](lab_2_3.png)
+![Final result of the radar](lab_2_3.png)
 
 ## Video of a driving car
 
@@ -257,4 +259,4 @@ If the scene doesn't fit in the camera frame, you can change the world size in t
 
 The output of the program might look like this:
 
-![](car_moving.gif)
+![Car moving in a circle](car_moving.gif)
