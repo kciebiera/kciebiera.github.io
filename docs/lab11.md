@@ -1,37 +1,41 @@
-In today's laboratory session, we will be focusing on 3D transformations, the pinhole camera model, and the fundamentals of stereo vision. We'll start with introductory exercises related to these topics. Then, the acquired knowledge will be applied to capture a video of a moving car in MuJoCo.
+# Robot Control lab 2
 
-# 3D Transformations
+In this lab session, we will focus on 3D transformations, the pinhole camera model, and the fundamentals of stereo vision. We'll start with introductory exercises on these topics. Then, you'll apply this knowledge to capture a video of a moving car in MuJoCo.
 
-## Basic transformations
+## 3D Transformations
 
-1. Create a matrix M1 that rotates 3D space around the x axis by 90 degrees.
-2. Create a matrix M2 that rotates 3D space around the y axis by 90 degrees.
+Do it using pen and paper.
+
+### Basic transformations
+
+1. Create a matrix M1 that rotates 3D space around the x-axis by 90 degrees.
+2. Create a matrix M2 that rotates 3D space around the y-axis by 90 degrees.
 3. Create a matrix M3 that translates 3D space by 1 unit along the x axis.
 
-## Composition of transformations
+### Composition of transformations
 
 {:start="4"}
 4. Consider two transformations:
 
-- first one which translates 3D space by 1 unit along the x axis and then rotates it around the y axis by 90 degrees,
-- second one which rotates 3D space around the y axis by 90 degrees and then moves it by 1 unit along the x axis.
+- First, translate 3D space by 1 unit along the x-axis and then rotate it around the y-axis by 90 degrees.
+- Second, rotate 3D space around the y-axis by 90 degrees and then translate it by 1 unit along the x-axis.
 
-    Do you expect the matrices representing the above transformations to be the same?
+Do you expect the matrices representing the above transformations to be the same?
 
 {:start="5"}
-5. Consider the results of two multiplications: M4 = M2 *M3 and M5 = M3* M2. Do you expect to get the same results? Check computationally if your predictions were correct.
-6. Consider two multiplications: M4 *M5 and M5* M4. Do you expect to get the same results? Check computationally if your predictions were correct.
-7. Create a matrix M6 that rotates a 3D space around the (1, 1, 0) vector by any given number of degrees.
-*Hint:* remember that sometimes it is easier to describe a transformation using different coordinates (e.g. choosing a different basis).
-If you have such new coordinate system, then describing the transformation in original coordinates requires only finding the transformation between your two coordinate systems and then composing appropriate transformations in correct order.
+5. Consider the results of two multiplications: `M4 = M2 * M3` and `M5 = M3 * M2`. Do you expect to get the same results? Check computationally if your predictions were correct.
+6. Consider two multiplications: `M4 * M5` and `M5 * M4`. Do you expect to get the same results? Check computationally if your predictions were correct.
+7. Create a matrix `M6` that rotates a 3D space around the `(1, 1, 0)` vector by any given number of degrees.
 
-## Different representations of transformations
+*Hint:* Sometimes it is easier to describe a transformation using different coordinates (e.g., choosing a different basis). If you have a new coordinate system, then describing the transformation in the original coordinates requires only finding the transformation between your two coordinate systems and composing the appropriate transformations in the correct order.
+
+### Different representations of transformations
 
 Familirize yourself with the Rodrigues Formula: <https://mathworld.wolfram.com/RodriguesRotationFormula.html>.
 
 {:start="8"}
-8. Use the Rodrigues Formula to create a matrix M6 from the previous exercise. Compare the results and make sure they are the same.
-9. Use the Rodrigues Formula to create a matrix M7 that rotates 3D space around the (1, 1, 1) vector by 90 degrees.
+8. Use the Rodrigues Formula to create a matrix `M6` from the previous exercise. Compare the results and make sure they are the same.
+9. Use the Rodrigues Formula to create a matrix `M7` that rotates 3D space around the (1, 1, 1) vector by 90 degrees.
 
 If you want to know more about Rodrigues Formula and how it is derived you can check out these videos: <https://www.youtube.com/watch?v=UaK2q22mMEg> and <https://www.youtube.com/watch?v=q-ESzg03mQc>.
 
@@ -46,20 +50,20 @@ R = [[0.966496, -0.214612, 0.14081],
 
 What is the axis and the angle of rotation R? *Hint:* consider a vector parallel to the axis of rotation. How the matrix R should act on this vector?
 
-# Camera Callibration and Stereo
+## Camera Callibration and Stereo
 
-## Intrinsic camera parameters
+### Intrinsic camera parameters
 
 {:start="11"}
 11. Determine the intrinsic camera matrix of a pinhole cameras which has focal length of 1 and optical center at `(300.5, 300.5)`.
 12. Find 2D coordinates of the projection of the 3D point `(10, 10, 5)` onto an image captured by the camera from the previous exercise.
 
-## Basic triangulation
+### Basic triangulation
 
 {:start="13"}
 13. Imagine that you have two cameras like in the previous exercises. The optical axes of both cameras are parallel. The axis of the second camera is displaced by `(x=1, y=0, z=0)` relative to the first camera. Estimate the distance from the first camera to a point whose coordinates are `(303, 303)` on an image captured by the first camera and `(298, 303)` on the image captured by the second camera.
 
-# MuJoCo Simulation
+## MuJoCo Simulation
 
 We are going to:
 
@@ -67,7 +71,7 @@ We are going to:
 - learn how to teleport the car to any position
 - write a python program that creates a video of the car driving in a circle
 
-## Coordinate frames
+### Coordinate frames
 
 Let's start with the following XML file describing the world:
 
@@ -99,8 +103,10 @@ Whichever method you choose, you should see something like this:
 
 ![MuJoCo world with x and y arrows](lab_2_1.png)
 
-As you can see we represent unit vectors along x and y axes using narrow boxes and call them "arrows".
-Now add a third arrow for the unit vector along the z-axis.
+We represent unit vectors along the x and y axes using narrow boxes and call them "arrows".
+
+{:start="14"}
+14. Now add a third arrow for the unit vector along the z-axis.
 
 Note, that the arrows we have created are indeed unit vectors.
 This is because MuJoCo uses half-sizes for the bodies of a box type as stated in the documentation:
@@ -113,7 +119,7 @@ Therefore in our case the boxes have length equal to 1 and width and depth equal
 
 You can find full documentation of different body types here: <https://mujoco.readthedocs.io/en/stable/XMLreference.html#body-geom>.
 
-## Car body and wheels
+### Car body and wheels
 
 We provide you with the following, **imperfect** car body XML description:
 
@@ -132,10 +138,10 @@ We provide you with the following, **imperfect** car body XML description:
 Add it to your XML file and check how the result looks like.
 As you can see there are two deffects:
 
-1. one of the wheels has an incorrect pose,
-2. the car has only two wheels and we need four.
+- one of the wheels has an incorrect pose,
+- the car has only two wheels and we need four.
 
-### Correct pose of the wheels
+#### Correct pose of the wheels
 
 What is wrong with the `wheel_2`? It's incorrectly rotated.
 The rotation is defined by the `axisangle` attribute with four numbers:
@@ -147,20 +153,27 @@ The axis is defined in the local coordinate frame of the body.
 The angle is measured in degrees.
 You can read more about it here: <https://mujoco.readthedocs.io/en/stable/modeling.html#corientation>
 
-Rotate the wheel to position it correctly.
+{:start="15"}
+15. Rotate the wheel to position it correctly.
+
 Your result should look like this:
 
 ![Correctly positioned wheel](lab_2_2.png)
 
-### Adding missing wheels
+#### Adding missing wheels
 
 Another problem we have is that there are only two wheels and we need four.
-Add the other two wheels.
+
+{:start="16"}
+16. Add the other two wheels.
+
 Experiment with different positions, rotations and sizes of the wheels.
 
-## Radar
+### Radar
 
-The last step is to add a radar to the car.
+{:start="17"}
+17. The last step is to add a radar to the car.
+
 You can do it by adding the following description to your XML file:
 
 ```xml
@@ -180,7 +193,7 @@ The final result should look like this:
 
 ![Final result of the radar](lab_2_3.png)
 
-## Video of a driving car
+### Video of a driving car
 
 Take a look at the following python code:
 
@@ -214,7 +227,7 @@ for i in range(10):
 After a short inspection you can probably realize that it produces consecutive frames of a video.
 You can run the script and then use the `ffmpeg` command to produce the video:
 
-```
+```bash
 ffmpeg -framerate 30 -pattern_type glob -i 'frame*.png' -c:v libx264 -pix_fmt yuv420p output.mp4
 ```
 
@@ -223,9 +236,11 @@ The car will be driving on a circle.
 Simultanously we will also rotate the radar, so that it points all the time to the center of the circle.
 Let's divide the task into two parts.
 
-### Generating a driving car
+#### Generating a driving car
 
-First write a python program which will generate a world scene with the car in specified positions and orientations.
+{:start="18"}
+18. First write a python program which will generate a world scene with the car in specified positions and orientations.
+
 We will worry about rendering frames in a minute.
 
 The program should take four parameters:
@@ -234,6 +249,7 @@ The program should take four parameters:
 - the y coordinate of the position of the car
 - the orientation of the car described by a clockwise rotation about the z axis
 - the orientation of the radar described by a clockwise rotation about the z axis.
+
 Remember that the angle between the radar and the z axis is constant (30 degrees).
 Therefore this parameter determines only the direction of the XY projection of the radar.
 
@@ -242,9 +258,11 @@ You can use the file you have created in the previous part as a template.
 The file describes a world with the car and its radar in a given pose.
 The XML file should be saved as `car.xml`.
 
-### Rendering frames
+#### Rendering frames
 
-Write a python program which renders video frames of a moving car.
+{:start="19"}
+19. Write a python program which renders video frames of a moving car.
+
 The car should start at coordinates (-1,-1) and point in the (1, 0) direction.
 Then it should drive on a circle with radius 1 and a center at (-1, 0).
 Looking from the top, the car moves in the counterclockwise direction and finishes at the point (0, 0).
