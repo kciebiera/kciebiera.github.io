@@ -184,10 +184,6 @@ As discussed above, the drone changes its orientation with roll, pitch and yaw t
 In this task your goal is to change the yaw angle of the drone.
 However, naivly changing only this angle will not suffice, because the drone will quickly loose balance:
 
-<video width="512" height="208" controls>
-  <source src="yaw-failure.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
 
 This is because we are not making sure that the roll and pitch angles are not changed.
 Hence, you have to tune 3 PID controlles - one for each angle.
@@ -200,10 +196,6 @@ Hint:
 
 Here's a video with an example working solution:
 
-<video width="512" height="208" controls>
-  <source src="yaw-solution.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
 
 ## Task 3 - Position Control (8 points)
 
@@ -214,10 +206,6 @@ You should use the controllers defined in the previous task and the following:
 
 Here's an example solution:
 
-<video width="512" height="208" controls>
-  <source src="drone-complete-solution.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
 
 Note that we assume that the yaw angle is kept fixed around zero when changing the position of the drone.
 In other words, you can assume that changing the roll angle moves the drone right and left
