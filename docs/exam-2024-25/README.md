@@ -1,2 +1,2 @@
 
-* [practice task 2](practical-2)
+* [practice task 2](practical)
