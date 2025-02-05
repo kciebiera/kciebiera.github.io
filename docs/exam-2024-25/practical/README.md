@@ -1,7 +1,3 @@
----
-title: Robot Control - Practical Exam - 2024 / 25
----
-
 # Updates:
 None yet
 
