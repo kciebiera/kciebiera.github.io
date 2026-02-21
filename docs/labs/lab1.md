@@ -30,8 +30,10 @@ We recommend using uv to manage your Python environment. It ensures you are runn
 
     ```bash
     uv run server.py
-    Using nc (Netcat)
     ```
+
+Using nc (Netcat)
+
 Browsers are "too smart"—they hide errors and retry connections automatically. For this lab, we will use Netcat (nc) to act as a "dumb client." It allows us to manually type HTTP requests and see exactly what your server sends back (bytes and all).
 
 - Command: nc localhost 8000 (Mac/Linux) or ncat localhost 8000 (Windows).
