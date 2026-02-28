@@ -10,6 +10,7 @@ style: |
   .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
   code { background: #f5f5f5; padding: 0.1em 0.3em; border-radius: 3px; }
 ---
+{% raw %}
 
 # Lecture 5
 ## Django — Models, ORM & Forms
@@ -1245,3 +1246,4 @@ uv run python manage.py runserver
 **Next lecture:** Django — Class-Based Views, URL namespaces, and Authentication
 
 ---
+{% endraw %}

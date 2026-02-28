@@ -10,6 +10,7 @@ style: |
   .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
   code { background: #f5f5f5; padding: 0.1em 0.3em; border-radius: 3px; }
 ---
+{% raw %}
 
 # Lecture 7
 ## Django — REST APIs & JSON
@@ -1509,3 +1510,4 @@ Useful tools:
 - **DRF Browsable API** — install DRF and visit `/api/` in the browser for a clickable interface
 
 ---
+{% endraw %}

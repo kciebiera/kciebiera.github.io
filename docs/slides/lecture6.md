@@ -10,6 +10,7 @@ style: |
   .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
   code { background: #f5f5f5; padding: 0.1em 0.3em; border-radius: 3px; }
 ---
+{% raw %}
 
 # Lecture 6
 ## Django — Authentication & Authorisation
@@ -1710,3 +1711,4 @@ uv run python manage.py runserver
 > - OWASP Authentication Cheat Sheet — cheatsheetseries.owasp.org
 > - RFC 6749 — The OAuth 2.0 Authorization Framework
 > - django-allauth docs — docs.allauth.org
+{% endraw %}

@@ -10,6 +10,7 @@ style: |
   .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
   code { background: #f5f5f5; padding: 0.1em 0.3em; border-radius: 3px; }
 ---
+{% raw %}
 
 # Lecture 4
 ## Django — Views, URLs & Templates
@@ -1284,3 +1285,4 @@ Returns `HttpResponseRedirect` (302) by default; pass `permanent=True` for 301.
 <br>
 
 **Next lecture:** Django Models & the ORM — defining database schemas in Python, QuerySets, filtering, ordering, and relations.
+{% endraw %}
