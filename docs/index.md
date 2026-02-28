@@ -17,6 +17,10 @@
 | [Lab 1](labs/lab1.md)  | HTTP from Scratch | Sockets, HTTP request/response, threading |
 | [Lab 2](labs/lab2.md)  | HTML | Semantic elements, tables, forms |
 | [Lab 3](labs/lab3.md)  | CSS | Box model, Flexbox, Grid, responsive design |
+| [Lab 4](labs/lab4.md)  | Django — Views, URLs & Templates | MVT pattern, URL routing, template inheritance |
+| [Lab 5](labs/lab5.md)  | Django — Models, ORM & Forms | Database models, migrations, admin, form validation |
+| [Lab 6](labs/lab6.md)  | Django — Authentication | Registration, login/logout, sessions, permissions |
+| [Lab 7](labs/lab7.md)  | Django — REST API | JSON endpoints, CRUD, consuming API with fetch() |
 
 
 ## Previous edition
