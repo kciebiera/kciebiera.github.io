@@ -21,28 +21,69 @@ The browser turns this tree into the DOM (Document Object Model). DevTools let y
 
 Extend your `server.py` from Lab 1. Instead of returning a hardcoded `<h1>` string, we will serve `.html` files from disk.
 
-Add a helper to your server:
+Add the following imports at the top of `server.py`:
 
 ```python
+import os
+from urllib.parse import unquote_plus
+```
+
+Add a MIME-type map and a secure `read_file` helper:
+
+```python
+MIME_TYPES = {
+    ".html": "text/html",
+    ".css":  "text/css",
+    ".js":   "application/javascript",
+    ".png":  "image/png",
+    ".jpg":  "image/jpeg",
+    ".ico":  "image/x-icon",
+}
+
 def read_file(path):
+    public_root = os.path.abspath("public")
+    abs_path    = os.path.abspath(os.path.join("public", path.lstrip("/")))
+
+    # 🔒 Security: reject paths that escape public/
+    if not abs_path.startswith(public_root + os.sep):
+        return b"<h1>403 Forbidden</h1>", "403 Forbidden", "text/html"
+
+    ext  = os.path.splitext(abs_path)[1].lower()
+    mime = MIME_TYPES.get(ext, "application/octet-stream")
+
     try:
-        with open("." + path, "r") as f:
-            return f.read(), "200 OK"
+        with open(abs_path, "rb") as f:   # binary mode works for text AND images
+            return f.read(), "200 OK", mime
     except FileNotFoundError:
-        return "<h1>404 Not Found</h1>", "404 Not Found"
+        return b"<h1>404 Not Found</h1>", "404 Not Found", "text/html"
+```
+
+> **Why binary mode?**  Opening a `.png` in text mode raises `UnicodeDecodeError`. Binary mode (`"rb"`) is safe for every file type — the browser interprets the bytes using the `Content-Type` header you set.
+
+> **Why `os.path.abspath`?**  Without this check, a browser request for `/../../../etc/passwd` would let an attacker read any file on your machine — a classic *path traversal* vulnerability.
+
+Update `generate_response` to accept and forward the MIME type:
+
+```python
+def generate_response(content, status, mime="text/html"):
+    if isinstance(content, str):
+        content = content.encode()
+    response_line    = f"HTTP/1.1 {status}\r\n"
+    response_headers = f"Content-Type: {mime}\r\nContent-Length: {len(content)}\r\n\r\n"
+    return response_line.encode() + response_headers.encode() + content
 ```
 
 Update your request handler loop:
 
 ```python
 path = parse_request(request_data)
-content, status = read_file(path if path != "/" else "/index.html")
-response = generate_response(content, status)
+content, status, mime = read_file(path if path != "/" else "/index.html")
+response = generate_response(content, status, mime)
 client_connection.sendall(response)
 client_connection.close()
 ```
 
-Create a folder `public/` next to `server.py`. All HTML files will live there. Adjust `read_file` to look inside `public/`.
+Create a folder `public/` next to `server.py`. All HTML files will live there.
 
 ## Phase 1: The Skeleton
 
@@ -93,7 +134,10 @@ Replace your `<body>` content with a properly structured page:
         </article>
 
         <aside>
-            <!-- TODO: Add a fun fact about yourself in a <p> tag. -->
+            <details>
+                <summary>Fun Fact</summary>
+                <!-- TODO: Replace this comment with a <p> containing a fun fact about yourself. -->
+            </details>
         </aside>
     </main>
 
@@ -156,17 +200,21 @@ Forms are how users send data to the server. Create `public/contact.html`:
     <h1>Contact Me</h1>
 
     <form action="/submit" method="POST">
+        <fieldset>
+            <legend>Your Details</legend>
 
-        <!-- TODO: Add a label + text input for "Name"
-             Hint: <label for="name">Name</label>
-                   <input type="text" id="name" name="name" required> -->
+            <!-- TODO: Add a label + text input for "Name"
+                 Hint: <label for="name">Name</label>
+                       <input type="text" id="name" name="name" required> -->
 
-        <!-- TODO: Add a label + email input for "Email" -->
+            <!-- TODO: Add a label + email input for "Email" -->
 
-        <!-- TODO: Add a label + <textarea> for "Message" (rows=5, cols=40) -->
+            <!-- TODO: Add a label + <textarea> for "Message" (rows=5, cols=40) -->
 
-        <!-- TODO: Add a label + <select> dropdown for "Subject"
-             with options: General, Bug Report, Feature Request -->
+            <!-- TODO: Add a label + <select> dropdown for "Subject"
+                 with options: General, Bug Report, Feature Request -->
+
+        </fieldset>
 
         <!-- TODO: Add a submit button -->
 
@@ -184,8 +232,10 @@ def parse_post_body(request_data):
     if len(parts) < 2:
         return {}
     body = parts[1]
-    # TODO: Split body by '&', then each pair by '=',
-    # return a dict like {"name": "Alice", "email": "..."}
+    # TODO: Split body by '&', then each pair by '='.
+    # Apply unquote_plus() to both key and value — browsers encode
+    # spaces as '+' and special chars as %XX (e.g. "Hello+World%21").
+    # Return a dict like {"name": "Alice", "email": "..."}
     return {}
 ```
 
