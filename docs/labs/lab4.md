@@ -2,6 +2,8 @@
 render_with_liquid: false
 ---
 
+{% raw %}
+
 # Lab 4: Django — Views, URLs & Templates
 
 ## Introduction
@@ -294,3 +296,5 @@ Final checks:
 
 **Exploration:** Use `{% include %}` to extract the project table row into a partial file `pages/templates/pages/_project_row.html` and include it from the loop with `{% include "pages/_project_row.html" %}`. The page should render identically.
 
+
+{% endraw %}
