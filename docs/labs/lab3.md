@@ -32,31 +32,17 @@ Create `public/style.css`. Link it in the `<head>` of **all three** HTML files f
 <link rel="stylesheet" href="/style.css">
 ```
 
-Update `read_file` in your server to also serve `.css` files with the correct `Content-Type`:
+`.css` files are already handled — the `MIME_TYPES` dict you built in Lab 2 includes `".css": "text/css"` and `read_file` picks the right type automatically. No server changes needed for serving the stylesheet.
+
+Update `generate_response` to inject a `Cache-Control` header (add one line to what you wrote in Lab 2):
 
 ```python
-def read_file(path):
-    try:
-        with open("public" + path, "rb") as f:
-            content = f.read()
-        if path.endswith(".css"):
-            content_type = "text/css"
-        else:
-            content_type = "text/html"
-        return content, "200 OK", content_type
-    except FileNotFoundError:
-        return b"<h1>404</h1>", "404 Not Found", "text/html"
-```
-
-Update `generate_response` to accept a `content_type` argument and inject a `Cache-Control` header:
-
-```python
-def generate_response(content, status, content_type="text/html"):
+def generate_response(content, status, mime="text/html"):
     if isinstance(content, str):
         content = content.encode()
     response_line    = f"HTTP/1.1 {status}\r\n"
     response_headers = (
-        f"Content-Type: {content_type}\r\n"
+        f"Content-Type: {mime}\r\n"
         f"Cache-Control: no-store, must-revalidate\r\n"
         f"Content-Length: {len(content)}\r\n\r\n"
     )
