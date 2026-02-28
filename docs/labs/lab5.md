@@ -342,6 +342,133 @@ Create `blog/templates/blog/post_detail.html`:
 
 🧪 Submit a comment with valid data — it should appear. Try submitting with an empty author — you should see your validation error message.
 
+## Phase 5: Debug Toolbar & Query Optimisation
+
+### 5.1 Install Django Debug Toolbar
+
+```bash
+uv add django-debug-toolbar
+```
+
+Add to `mysite/settings.py`:
+
+```python
+INSTALLED_APPS += ["debug_toolbar"]
+MIDDLEWARE = ["debug_toolbar.middleware.DebugToolbarMiddleware"] + MIDDLEWARE
+INTERNAL_IPS = ["127.0.0.1"]
+```
+
+Add the toolbar URLs at the top of `mysite/urls.py`:
+
+```python
+from django.conf import settings
+
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns = [
+        path("__debug__/", include(debug_toolbar.urls)),
+    ] + urlpatterns
+```
+
+🧪 Restart the dev server and open `http://127.0.0.1:8000/blog/`. A dark panel should appear on the right side of the page. Click the **SQL** tab — you will see every query fired to render that page, its duration, and a Python stack trace.
+
+### 5.2 Spot the N+1 Problem
+
+Look at the SQL panel on the post list page. You will see something like:
+
+```
+SELECT * FROM blog_post WHERE published = 1  — 1 query
+SELECT * FROM blog_category WHERE id = 1     — for post 1
+SELECT * FROM blog_category WHERE id = 2     — for post 2
+…
+```
+
+One extra query per post — the N+1 problem.
+
+**Fix it** — update `post_list` in `blog/views.py`:
+
+```python
+def post_list(request):
+    posts = Post.objects.filter(published=True).select_related("category")
+    # Now: 1 JOIN query instead of N+1
+    categories = Category.objects.all()
+    return render(request, "blog/post_list.html", {
+        "posts": posts, "categories": categories,
+    })
+```
+
+🧪 Reload the page and check the SQL panel again — the category queries should have disappeared, replaced by a single JOIN.
+
+### 5.3 `prefetch_related` for Reverse FK
+
+Open the post detail page in the SQL panel. Notice that accessing `post.comments.filter(active=True)` fires a separate query. For the *list* view you might want to show a comment count per post without an extra query per row.
+
+**Option A — annotate in the QuerySet (no extra Python-side batching):**
+
+```python
+from django.db.models import Count
+
+def post_list(request):
+    posts = (
+        Post.objects.filter(published=True)
+        .select_related("category")
+        .annotate(comment_count=Count("comments"))
+    )
+    ...
+```
+
+Now use `{{ post.comment_count }}` in the template instead of `{{ post.comments.count }}`.
+
+**Option B — prefetch filtered comments for the detail page:**
+
+```python
+from django.db.models import Prefetch
+
+def post_detail(request, slug):
+    active_comments = Comment.objects.filter(active=True)
+    post = get_object_or_404(
+        Post.objects.prefetch_related(
+            Prefetch("comments", queryset=active_comments, to_attr="active_comments")
+        ),
+        slug=slug,
+    )
+    comments = post.active_comments   # already loaded, no extra query
+    ...
+```
+
+🧪 Check the detail page SQL panel before and after — the comment query should remain exactly one query but now scoped to `active=True`.
+
+### 5.4 Advanced Filtering Exercises
+
+Open `uv run python manage.py shell` and try the following:
+
+```python
+from blog.models import Post, Category
+from django.db.models import Count, F, Q
+
+# 1. All categories that have at least 2 published posts
+Category.objects.annotate(n=Count("posts")).filter(n__gte=2)
+
+# 2. Atomically increment a view counter (no race condition)
+Post.objects.filter(pk=1).update(view_count=F("view_count") + 1)
+
+# 3. Posts where title length is greater than body length
+#    (contrived, but shows F() across columns)
+Post.objects.filter(title__gt=F("body"))
+
+# 4. Complex OR + date filter
+Post.objects.filter(
+    Q(title__icontains="django") | Q(body__icontains="django"),
+    pub_date__year=2024,
+)
+
+# 5. Aggregate: average number of comments per post
+from django.db.models import Avg
+Post.objects.aggregate(avg_comments=Avg("comments__id"))
+```
+
+**TODO:** Add a `view_count = models.PositiveIntegerField(default=0)` field to the `Post` model, run `makemigrations` + `migrate`, and update the `post_detail` view to increment it on every GET request using `F()`.
+
 ## Submission
 
 Final checks:
@@ -351,21 +478,8 @@ Final checks:
 3. Submitting a valid comment saves it and redirects (refresh doesn't double-submit).
 4. Submitting an invalid comment re-renders the form with inline error messages.
 5. The `{% csrf_token %}` tag is present in the POST form.
-
-**Exploration:** Add a search view using `Q` objects:
-
-```python
-from django.db.models import Q
-
-def search(request):
-    query   = request.GET.get("q", "")
-    results = Post.objects.filter(
-        Q(title__icontains=query) | Q(body__icontains=query)
-    ) if query else []
-    return render(request, "blog/search.html", {"results": results, "query": query})
-```
-
-A search form uses `method="GET"` — no CSRF token needed, and the query appears in the URL so the page is bookmarkable.
+6. Django Debug Toolbar is visible on all pages and the SQL panel shows query counts.
+7. The post list view uses `select_related("category")` — verify in the SQL panel that no per-row category queries appear.
 
 
 {% endraw %}

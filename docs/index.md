@@ -7,6 +7,10 @@
 | 1 | HTTP from First Principles | [slides](slides/lecture1.md) |
 | 2 | HTML — Structuring the Web | [slides](slides/lecture2.md) |
 | 3 | CSS — Making the Web Look Good | [slides](slides/lecture3.md) |
+| 4 | Django — Views, URLs & Templates | [slides](slides/lecture4.md) |
+| 5 | Django — Models, ORM & Forms | [slides](slides/lecture5.md) |
+| 6 | Django — Authentication | [slides](slides/lecture6.md) |
+| 7 | Django — REST APIs & JSON | [slides](slides/lecture7.md) |
 
 ### Labs
 

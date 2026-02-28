@@ -240,6 +240,8 @@ Final checks:
 2. `GET /api/posts/<id>/` returns one post or `404`.
 3. `POST /api/posts/<id>/comments/` creates a comment and returns `201`.
 4. The API demo page loads posts dynamically via `fetch()`.
+5. `GET /drf/posts/` works via DRF and returns the same data.
+6. `http://127.0.0.1:8000/api/swagger/` opens Swagger UI and shows all endpoints.
 
 **Exploration:** Add a `?search=` query parameter to `PostListView.get()`:
 
@@ -250,6 +252,140 @@ if query:
 ```
 
 Test: `curl "http://127.0.0.1:8000/api/posts/?search=django"`
+
+## Phase 5: Django REST Framework, OpenAPI & Swagger
+
+So far you have built the API by hand. **Django REST Framework (DRF)** is the de-facto standard library that handles serialisation, validation, authentication, and routing for you — in a fraction of the code.
+
+### Setup
+
+```bash
+uv add djangorestframework drf-spectacular
+```
+
+Add both to `INSTALLED_APPS` in `settings.py`:
+
+```python
+INSTALLED_APPS = [
+    ...
+    "rest_framework",
+    "drf_spectacular",
+]
+```
+
+Configure DRF and point it at `drf-spectacular` for schema generation:
+
+```python
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
+    ],
+}
+```
+
+### Serializer
+
+A **serializer** replaces your hand-written `post_to_dict()` helper. It also handles validation on write. Create `blog/serializers.py`:
+
+```python
+from rest_framework import serializers
+from .models import Post, Comment
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model  = Comment
+        fields = ["id", "author", "body", "created"]
+
+class PostSerializer(serializers.ModelSerializer):
+    comments = CommentSerializer(many=True, read_only=True)
+
+    class Meta:
+        model  = Post
+        fields = ["id", "title", "slug", "body", "pub_date", "category", "comments"]
+```
+
+### ViewSet
+
+A **ViewSet** replaces your four separate class-based views. Create `blog/drf_views.py`:
+
+```python
+from rest_framework import viewsets, permissions
+from .models import Post
+from .serializers import PostSerializer
+
+class PostViewSet(viewsets.ModelViewSet):
+    queryset           = Post.objects.all()
+    serializer_class   = PostSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+```
+
+`ModelViewSet` automatically provides `list`, `create`, `retrieve`, `update`, `partial_update`, and `destroy` — all five REST operations.
+
+### Router
+
+A **Router** auto-generates URLs for the ViewSet. Create `blog/drf_urls.py`:
+
+```python
+from rest_framework.routers import DefaultRouter
+from .drf_views import PostViewSet
+
+router = DefaultRouter()
+router.register("posts", PostViewSet)
+
+urlpatterns = router.urls
+```
+
+Include it in `mysite/urls.py`:
+
+```python
+path("drf/", include("blog.drf_urls")),
+```
+
+🧪 Visit `http://127.0.0.1:8000/drf/` in the browser — DRF renders a **browsable API**: a clickable HTML interface where you can make GET/POST requests without curl.
+
+### OpenAPI Schema
+
+`drf-spectacular` introspects your ViewSets and generates a standard **OpenAPI 3.0** YAML schema automatically. Add the schema and UI endpoints to `mysite/urls.py`:
+
+```python
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
+urlpatterns += [
+    path("api/schema/",  SpectacularAPIView.as_view(),      name="schema"),
+    path("api/swagger/", SpectacularSwaggerView.as_view(url_name="schema"),
+                                                             name="swagger-ui"),
+]
+```
+
+🧪 Visit:
+- `http://127.0.0.1:8000/api/schema/` — downloads the raw `openapi.yaml` file.
+- `http://127.0.0.1:8000/api/swagger/` — opens **Swagger UI**: an interactive browser where you can read docs, inspect request/response shapes, and execute real API calls.
+
+You can also generate the schema as a file on disk:
+
+```bash
+uv run python manage.py spectacular --file schema.yaml
+```
+
+Open `schema.yaml` — it describes every endpoint, method, parameter, and response model in a machine-readable format that other tools (code generators, API clients, testing suites) can consume.
+
+### Comparing hand-rolled vs DRF
+
+| | Hand-rolled (Phases 1–3) | DRF (Phase 5) |
+|---|---|---|
+| Serialisation | `post_to_dict()` by hand | `ModelSerializer` |
+| Validation | `if "title" not in data` | `.is_valid()` + field types |
+| 5 CRUD endpoints | ~80 lines | `ModelViewSet` (~5 lines) |
+| Browsable UI | No | Built-in |
+| OpenAPI docs | No | `drf-spectacular` auto-generates |
+
+> **Why learn both?** Writing the raw version first gives you intuition for what DRF does under the hood. In practice, you would use DRF from day one.
+
+
 
 
 {% endraw %}

@@ -285,6 +285,155 @@ Create `pages/static/pages/style.css` and paste the CSS from your Lab 3 styleshe
 
 🧪 Verify in DevTools → Network that `style.css` loads with status 200.
 
+## Phase 5: A Second App & Multi-App Routing
+
+A Django project can host many apps, each owning its own models, views, URLs, and templates. Right now your project has one app (`pages`). In this phase you will add a second app — `blog` — and see how the root URL router delegates to each.
+
+### 5.1 Create the `blog` App
+
+```bash
+uv run python manage.py startapp blog
+```
+
+Register it in `mysite/settings.py`:
+
+```python
+INSTALLED_APPS = [
+    ...
+    'pages',
+    'blog',   # ← add this
+]
+```
+
+### 5.2 Add App-Level URLs
+
+Create `blog/urls.py`:
+
+```python
+from django.urls import path
+from . import views
+
+app_name = "blog"   # URL namespace — required for {% url 'blog:…' %}
+
+urlpatterns = [
+    path("",             views.post_list,   name="post-list"),
+    path("<int:pk>/",    views.post_detail, name="post-detail"),
+]
+```
+
+Wire both apps into `mysite/urls.py`:
+
+```python
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path("admin/",  admin.site.urls),
+    path("",        include("pages.urls")),   # handles /  /about/  /greet/…
+    path("blog/",   include("blog.urls")),    # handles /blog/  /blog/42/
+]
+```
+
+Everything under `/blog/` is now owned by `blog/urls.py`. Django strips the `blog/` prefix before forwarding to the app — the app patterns only see the remaining part.
+
+### 5.3 Add Two Views to `blog`
+
+Open `blog/views.py`:
+
+```python
+from django.http import HttpResponse
+from django.shortcuts import render
+
+POSTS = [
+    {"pk": 1, "title": "Hello Django",    "body": "My first post."},
+    {"pk": 2, "title": "URL Routing",     "body": "How include() works."},
+    {"pk": 3, "title": "Template Tricks", "body": "Extends and blocks."},
+]
+
+def post_list(request):
+    return render(request, "blog/post_list.html", {"posts": POSTS})
+
+def post_detail(request, pk):
+    post = next((p for p in POSTS if p["pk"] == pk), None)
+    if post is None:
+        return HttpResponse("Post not found", status=404)
+    return render(request, "blog/post_detail.html", {"post": post})
+```
+
+### 5.4 Create Templates
+
+Create the directory structure:
+```
+blog/
+    templates/
+        blog/              ← namespace subdirectory (same as app name)
+            post_list.html
+            post_detail.html
+```
+
+`blog/templates/blog/post_list.html` — extend your existing `pages/base.html`:
+
+```html
+{% extends "pages/base.html" %}
+{% block title %}Blog{% endblock %}
+
+{% block content %}
+<h1>Blog Posts</h1>
+<ul>
+    {% for post in posts %}
+    <li>
+        <a href="{% url 'blog:post-detail' pk=post.pk %}">{{ post.title }}</a>
+    </li>
+    {% empty %}
+    <li>No posts yet.</li>
+    {% endfor %}
+</ul>
+{% endblock %}
+```
+
+`blog/templates/blog/post_detail.html`:
+
+```html
+{% extends "pages/base.html" %}
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block content %}
+<h1>{{ post.title }}</h1>
+<p>{{ post.body }}</p>
+<a href="{% url 'blog:post-list' %}">← All posts</a>
+{% endblock %}
+```
+
+Note the namespace prefix `blog:` in every `{% url %}` tag. Without it Django would raise `NoReverseMatch` once two apps both have a pattern named `post-list`.
+
+### 5.5 Add a Blog Link to the Nav
+
+In `pages/templates/pages/base.html`, add a link to the blog:
+
+```html
+<nav>
+    <a href="{% url 'home' %}">Home</a>
+    <a href="{% url 'about' %}">About</a>
+    <a href="{% url 'blog:post-list' %}">Blog</a>
+</nav>
+```
+
+🧪 Visit `http://127.0.0.1:8000/blog/` — you should see the post list. Click a title to go to the detail page. The `<nav>` should work on both the `pages` and `blog` templates since they both extend the same `base.html`.
+
+### 5.6 Confirm Namespace Isolation
+
+Open `uv run python manage.py shell` and verify that both namespaces resolve correctly without colliding:
+
+```python
+from django.urls import reverse
+
+reverse("home")                           # → "/"
+reverse("blog:post-list")                 # → "/blog/"
+reverse("blog:post-detail", kwargs={"pk": 2})  # → "/blog/2/"
+```
+
+Try `reverse("post-list")` (no namespace) — it will raise `NoReverseMatch` because the name is only registered under the `blog` namespace.
+
 ## Submission
 
 Final checks:
@@ -293,6 +442,9 @@ Final checks:
 2. Every page extends `base.html` — zero duplicated `<html>/<head>/<body>` tags in child templates.
 3. The `projects` page uses `{% for %}`, `{% if %}`, `{% empty %}`, and at least two filters.
 4. CSS from Lab 3 is served as a static file.
+5. `/blog/` lists all posts and `/blog/<pk>/` shows a single post.
+6. `{% url %}` tags use the `blog:` namespace prefix — no hard-coded URLs anywhere.
+7. Both apps coexist in `INSTALLED_APPS` and `mysite/urls.py`.
 
 **Exploration:** Use `{% include %}` to extract the project table row into a partial file `pages/templates/pages/_project_row.html` and include it from the loop with `{% include "pages/_project_row.html" %}`. The page should render identically.
 
