@@ -1,3 +1,7 @@
+---
+render_with_liquid: false
+---
+
 # Lab 4: Django — Views, URLs & Templates
 
 ## Introduction
