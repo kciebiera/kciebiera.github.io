@@ -182,10 +182,11 @@ h2 ~ p { }
 Pseudo-classes select elements based on **state** or **position**.
 
 ```css
+a:link   { color: blue; }                   /* unvisited link */
+a:visited { color: purple; }
 a:hover  { text-decoration: underline; }   /* mouse over it */
 a:focus  { outline: 2px solid blue; }      /* keyboard focused */
 a:active { opacity: 0.7; }                 /* being clicked */
-a:visited { color: purple; }
 
 input:invalid { border-color: red; }       /* fails HTML validation */
 input:required { border-left: 3px solid orange; }
@@ -363,7 +364,6 @@ h1 {
 }
 
 p {
-  text-decoration: underline;
   text-align: justify;
   max-width: 65ch;           /* ch = width of "0" — great for readability */
 }
@@ -561,10 +561,12 @@ article { flex: 1; }          /* take remaining space */
 
 ```
 ┌─────────┬─────────────┬─────────────┐
+│         header (auto)               │
+├─────────┬─────────────┬─────────────┤
 │ sidebar │    main     │    extra    │
 │ 250px   │    1fr      │    1fr      │
 ├─────────┴─────────────┴─────────────┤
-│              footer                  │
+│              footer (auto)           │
 └─────────────────────────────────────┘
 ```
 
@@ -585,7 +587,7 @@ article { flex: 1; }          /* take remaining space */
 
 .sidebar {
   grid-column: 1;
-  grid-row: 2 / 4;         /* span rows 2–3 */
+  grid-row: 2 / 3;         /* span row 2 only */
 }
 
 .main {
