@@ -228,52 +228,42 @@ Refactor `home.html`, `about.html`, and `greet.html` to extend the base:
 
 ## Phase 4: Template Tags, Filters & Static Files
 
-Add a `projects` view. In `pages/views.py`:
+Add a `projects` view. Use the expanded dataset below and implement search. In `pages/views.py`:
 
 ```python
+ALL_PROJECTS = [
+    {"name": "Socket Server",    "lang": "Python",     "year": 2025, "done": True},
+    {"name": "HTML Profile",     "lang": "HTML",       "year": 2025, "done": True},
+    {"name": "CSS Layout",       "lang": "CSS",        "year": 2025, "done": True},
+    {"name": "Django App",       "lang": "Python",     "year": 2025, "done": False},
+    {"name": "REST API",         "lang": "Python",     "year": 2024, "done": True},
+    {"name": "React Dashboard",  "lang": "JavaScript", "year": 2024, "done": True},
+    {"name": "SQL Queries Lab",  "lang": "SQL",        "year": 2024, "done": True},
+    {"name": "CLI Tool",         "lang": "Python",     "year": 2023, "done": True},
+]
+
 def projects(request):
-    project_list = [
-        {"name": "Socket Server",  "lang": "Python", "year": 2025, "done": True},
-        {"name": "HTML Profile",   "lang": "HTML",   "year": 2025, "done": True},
-        {"name": "CSS Layout",     "lang": "CSS",    "year": 2025, "done": True},
-        {"name": "Django App",     "lang": "Python", "year": 2025, "done": False},
-    ]
+    q = request.GET.get("q", "")
+    # TODO: if q is non-empty, filter ALL_PROJECTS so only entries whose name
+    #       or lang contains q (case-insensitive) are kept; otherwise show all
+    project_list = ALL_PROJECTS  # replace this line
     context = {
-        # TODO: pass project_list and a count of done projects
+        # TODO: pass project_list, done_count, and q
     }
     return render(request, "pages/projects.html", context)
 ```
 
-Create `pages/templates/pages/projects.html` extending the base:
+**Your task:** Create `pages/templates/pages/projects.html` yourself. Requirements:
 
-```html
-{% extends "pages/base.html" %}
-{% block title %}Projects{% endblock %}
+- Extend `pages/base.html`.
+- Show a heading with the number of completed projects.
+- Use `{% for %}` with `{% empty %}` to render the project list.
+- Use `{% if %}` to display ✅ or 🔄 per project.
+- Apply at least two template filters (e.g. `|lower`, `|upper`, `|length`, `{{ project.year|add:1 }}`).
+- Add a search `<form method="GET">` with a text input named `q`. Pre-fill it with the current `q` value from context so the search term persists after submission.
+- If `q` is non-empty, show a line like *Showing results for "python"*.
 
-{% block content %}
-<h1>Projects ({{ done_count }} complete)</h1>
-
-<table>
-    <thead>
-        <tr><th>Name</th><th>Language</th><th>Year</th><th>Status</th></tr>
-    </thead>
-    <tbody>
-        {% for project in project_list %}
-        <tr>
-            <td>{{ project.name }}</td>
-            <td>{{ project.lang|lower }}</td>
-            <td>{{ project.year }}</td>
-            <td>{% if project.done %}✅ Done{% else %}🔄 In progress{% endif %}</td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="4">No projects yet.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% endblock %}
-```
-
-The `|lower` is a **filter** — it transforms the value before displaying it. Try a few more in your template: `|upper`, `|length`, `{{ project.year|add:1 }}`.
+📖 Refer to [Template tags and filters](https://docs.djangoproject.com/en/stable/ref/templates/builtins/) in the Django docs.
 
 Now wire up static files. In `mysite/settings.py`, confirm:
 
@@ -305,106 +295,38 @@ INSTALLED_APPS = [
 ]
 ```
 
-### 5.2 Add App-Level URLs
+### 5.2–5.4 Implement the Blog App
 
-Create `blog/urls.py`:
+Your task is to build the blog app **without copy-pasting** — figure out the details from the Django documentation.
 
-```python
-from django.urls import path
-from . import views
+**Requirements:**
 
-app_name = "blog"   # URL namespace — required for {% url 'blog:…' %}
+1. Create `blog/urls.py` with `app_name = "blog"` and two URL patterns:
+   - `""` → a list view named `"post-list"`
+   - `"<int:pk>/"` → a detail view named `"post-detail"`
 
-urlpatterns = [
-    path("",             views.post_list,   name="post-list"),
-    path("<int:pk>/",    views.post_detail, name="post-detail"),
-]
-```
+2. Wire the blog app into `mysite/urls.py` under the `blog/` prefix. Everything under `/blog/` should be owned by `blog/urls.py`.
 
-Wire both apps into `mysite/urls.py`:
+3. In `blog/views.py`, use this in-memory dataset:
+   ```python
+   POSTS = [
+       {"pk": 1, "title": "Hello Django",    "body": "My first post."},
+       {"pk": 2, "title": "URL Routing",     "body": "How include() works."},
+       {"pk": 3, "title": "Template Tricks", "body": "Extends and blocks."},
+   ]
+   ```
+   Write `post_list(request)` and `post_detail(request, pk)`. The detail view must return a `404` response when the `pk` is not found.
 
-```python
-from django.contrib import admin
-from django.urls import path, include
+4. Create the template directory structure:
+   ```
+   blog/templates/blog/post_list.html
+   blog/templates/blog/post_detail.html
+   ```
+   Both templates must extend `pages/base.html`. The list template must link each post to its detail page using `{% url 'blog:post-detail' pk=post.pk %}`. Use the `blog:` namespace prefix in every `{% url %}` tag — without it Django raises `NoReverseMatch` when two apps share a pattern name.
 
-urlpatterns = [
-    path("admin/",  admin.site.urls),
-    path("",        include("pages.urls")),   # handles /  /about/  /greet/…
-    path("blog/",   include("blog.urls")),    # handles /blog/  /blog/42/
-]
-```
-
-Everything under `/blog/` is now owned by `blog/urls.py`. Django strips the `blog/` prefix before forwarding to the app — the app patterns only see the remaining part.
-
-### 5.3 Add Two Views to `blog`
-
-Open `blog/views.py`:
-
-```python
-from django.http import HttpResponse
-from django.shortcuts import render
-
-POSTS = [
-    {"pk": 1, "title": "Hello Django",    "body": "My first post."},
-    {"pk": 2, "title": "URL Routing",     "body": "How include() works."},
-    {"pk": 3, "title": "Template Tricks", "body": "Extends and blocks."},
-]
-
-def post_list(request):
-    return render(request, "blog/post_list.html", {"posts": POSTS})
-
-def post_detail(request, pk):
-    post = next((p for p in POSTS if p["pk"] == pk), None)
-    if post is None:
-        return HttpResponse("Post not found", status=404)
-    return render(request, "blog/post_detail.html", {"post": post})
-```
-
-### 5.4 Create Templates
-
-Create the directory structure:
-```
-blog/
-    templates/
-        blog/              ← namespace subdirectory (same as app name)
-            post_list.html
-            post_detail.html
-```
-
-`blog/templates/blog/post_list.html` — extend your existing `pages/base.html`:
-
-```html
-{% extends "pages/base.html" %}
-{% block title %}Blog{% endblock %}
-
-{% block content %}
-<h1>Blog Posts</h1>
-<ul>
-    {% for post in posts %}
-    <li>
-        <a href="{% url 'blog:post-detail' pk=post.pk %}">{{ post.title }}</a>
-    </li>
-    {% empty %}
-    <li>No posts yet.</li>
-    {% endfor %}
-</ul>
-{% endblock %}
-```
-
-`blog/templates/blog/post_detail.html`:
-
-```html
-{% extends "pages/base.html" %}
-{% block title %}{{ post.title }}{% endblock %}
-
-{% block content %}
-<h1>{{ post.title }}</h1>
-<p>{{ post.body }}</p>
-<a href="{% url 'blog:post-list' %}">← All posts</a>
-{% endblock %}
-```
-
-Note the namespace prefix `blog:` in every `{% url %}` tag. Without it Django would raise `NoReverseMatch` once two apps both have a pattern named `post-list`.
+📖 Refer to:
+- [URL dispatcher](https://docs.djangoproject.com/en/stable/topics/http/urls/)
+- [URL namespaces](https://docs.djangoproject.com/en/stable/topics/http/urls/#url-namespaces)
 
 ### 5.5 Add a Blog Link to the Nav
 
@@ -434,6 +356,96 @@ reverse("blog:post-detail", kwargs={"pk": 2})  # → "/blog/2/"
 
 Try `reverse("post-list")` (no namespace) — it will raise `NoReverseMatch` because the name is only registered under the `blog` namespace.
 
+## Phase 6: POST Requests & Forms
+
+Views can handle both GET and POST. Before models are introduced, `request.POST` and in-memory data are enough to practise the full HTTP request cycle.
+
+### 6.1 Add a Note Form to the Greet Page
+
+Modify the `greet` view in `pages/views.py`:
+
+```python
+def greet(request, name):
+    message = ""
+    if request.method == "POST":
+        # TODO: read request.POST.get("note") and build a message string
+        # e.g. 'Thanks, Alice! Your note: "great lab"'
+        pass
+    return render(request, "pages/greet.html", {"name": name, "message": message})
+```
+
+In `pages/templates/pages/greet.html`, add the form inside `{% block content %}`:
+
+```html
+{% if message %}<p>{{ message }}</p>{% endif %}
+
+<form method="POST">
+    {% csrf_token %}
+    <label for="note">Leave a note:</label>
+    <input type="text" id="note" name="note" required>
+    <button type="submit">Send</button>
+</form>
+```
+
+`{% csrf_token %}` inserts a hidden token Django verifies on every POST. Without it, Django raises a `403 Forbidden` — this is protection against **Cross-Site Request Forgery** attacks, where a malicious site could otherwise submit a form on behalf of an authenticated user.
+
+🧪 Visit `/greet/Alice/`, submit the form, and confirm the message appears. Then temporarily remove `{% csrf_token %}` and observe the 403.
+
+### 6.2 Challenge: In-Memory Guestbook
+
+**Your task (no code provided):** Add a route `/guestbook/` that:
+
+1. Displays all past entries stored in a module-level list (e.g. `ENTRIES = []`).
+2. Shows a `<form method="POST">` with `name` and `message` fields.
+3. On POST: validates both fields are non-empty, appends `{"name": …, "message": …}` to `ENTRIES`, then **redirects** back to `/guestbook/` using `HttpResponseRedirect` (this is the **Post/Redirect/Get** pattern — look it up).
+
+> **Hint:** `from django.http import HttpResponseRedirect`; `from django.urls import reverse`
+
+## Phase 7: Automated Testing
+
+Django ships with a test client that issues HTTP requests without a real server. Writing tests alongside code is a core engineering discipline.
+
+Open `pages/tests.py`:
+
+```python
+from django.test import TestCase
+
+class PagesTests(TestCase):
+
+    def test_home_status(self):
+        response = self.client.get("/")
+        # TODO: assert the status code is 200
+
+    def test_about_uses_correct_template(self):
+        response = self.client.get("/about/")
+        # TODO: assert "pages/about.html" was used (hint: assertTemplateUsed)
+
+    def test_about_has_four_skills(self):
+        response = self.client.get("/about/")
+        # TODO: assert len(response.context["skills"]) == 4
+
+    def test_greet_contains_name(self):
+        response = self.client.get("/greet/Alice/")
+        # TODO: assert b"Alice" in response.content
+
+    def test_projects_search_filters(self):
+        response = self.client.get("/projects/?q=python")
+        # TODO: assert every project in response.context["project_list"]
+        #       has lang == "Python" or name containing "python" (case-insensitive)
+```
+
+Run your tests:
+
+```bash
+uv run python manage.py test pages
+```
+
+All tests should pass. If one fails, fix the view or template — never weaken a test to make it green.
+
+🧪 Intentionally remove a skill from the `about` view's list. Re-run the tests and observe the failure message. Then restore it and confirm all tests pass again.
+
+📖 Refer to: [Writing and running tests](https://docs.djangoproject.com/en/stable/topics/testing/overview/)
+
 ## Submission
 
 Final checks:
@@ -441,12 +453,26 @@ Final checks:
 1. Routes `/`, `/about/`, `/greet/<name>/`, and `/projects/` all work.
 2. Every page extends `base.html` — zero duplicated `<html>/<head>/<body>` tags in child templates.
 3. The `projects` page uses `{% for %}`, `{% if %}`, `{% empty %}`, and at least two filters.
-4. CSS from Lab 3 is served as a static file.
-5. `/blog/` lists all posts and `/blog/<pk>/` shows a single post.
-6. `{% url %}` tags use the `blog:` namespace prefix — no hard-coded URLs anywhere.
-7. Both apps coexist in `INSTALLED_APPS` and `mysite/urls.py`.
+4. Visiting `/projects/?q=python` returns only Python-related projects; visiting `/projects/` with no `q` returns all projects.
+5. CSS from Lab 3 is served as a static file.
+6. `/blog/` lists all posts and `/blog/<pk>/` shows a single post.
+7. `{% url %}` tags use the `blog:` namespace prefix — no hard-coded URLs anywhere.
+8. Both apps coexist in `INSTALLED_APPS` and `mysite/urls.py`.
+9. The `greet` page handles POST and shows the submitted note; `{% csrf_token %}` is present.
+10. `uv run python manage.py test pages` passes all five tests.
 
 **Exploration:** Use `{% include %}` to extract the project table row into a partial file `pages/templates/pages/_project_row.html` and include it from the loop with `{% include "pages/_project_row.html" %}`. The page should render identically.
+
+**Session State (stretch):** Django sessions let you persist small amounts of per-user data server-side across requests without a database. In any view, read and write `request.session["key"]`:
+
+```python
+count = request.session.get("visit_count", 0) + 1
+request.session["visit_count"] = count
+```
+
+**Your task:** Add a visit counter to the home page so the heading reads *"Welcome! You have visited this page N time(s) this session."* Navigating away and back should keep incrementing the count; opening an Incognito window should start at 1.
+
+📖 Refer to: [How to use sessions](https://docs.djangoproject.com/en/stable/topics/http/sessions/)
 
 
 {% endraw %}
