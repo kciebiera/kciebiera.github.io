@@ -14,6 +14,50 @@ The browser applies styles in a predictable order called the **cascade**. Three 
 - **Inheritance**: text properties (color, font) flow down the tree; layout properties do not.
 - **The Box Model**: every element is a rectangle — `content + padding + border + margin`.
 
+### Specificity in Practice
+
+Every CSS selector has a **specificity score** calculated as three numbers `(IDs, classes, tags)`. The browser picks the rule with the highest score when multiple rules target the same element and property.
+
+| Selector | IDs | Classes | Tags | Score |
+|---|---|---|---|---|
+| `p` | 0 | 0 | 1 | 0-0-1 |
+| `.intro` | 0 | 1 | 0 | 0-1-0 |
+| `p.intro` | 0 | 1 | 1 | 0-1-1 |
+| `#hero` | 1 | 0 | 0 | 1-0-0 |
+| `#hero p.intro` | 1 | 1 | 1 | 1-1-1 |
+
+**Example — which rule wins?**
+
+```html
+<p id="hero" class="intro">Hello</p>
+```
+
+```css
+p            { color: black; }   /* 0-0-1 — loses */
+.intro       { color: blue;  }   /* 0-1-0 — loses */
+#hero        { color: green; }   /* 1-0-0 — wins  */
+```
+
+The text will be **green** because the `#id` selector has the highest specificity.
+
+**Example — combining selectors raises the score:**
+
+```css
+.card a          { color: blue;   }   /* 0-1-1 */
+.card nav a      { color: orange; }   /* 0-2-1 — wins, more classes */
+```
+
+A link inside `.card nav` will be **orange** even though both rules target `<a>` inside `.card`.
+
+**Example — same score: last rule wins:**
+
+```css
+.btn { background: blue; }
+.btn { background: red;  }   /* same score, declared later — wins */
+```
+
+> **Avoid `!important`:** It overrides all specificity and makes debugging painful. Fix cascade problems by writing more specific selectors instead.
+
 ```
 ┌──────────── margin ─────────────┐
 │  ┌───────── border ──────────┐  │

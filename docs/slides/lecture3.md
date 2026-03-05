@@ -104,6 +104,28 @@ p              { color: black; }    /* 0,0,0,1 */
 
 Higher points win; points don't "carry over" across columns.
 
+**Combining selectors raises the score:**
+
+```html
+<a class="btn" id="cta">Click me</a>
+```
+
+```css
+a          { color: black;  }   /* 0,0,0,1 */
+.btn       { color: blue;   }   /* 0,0,1,0 */
+a.btn      { color: orange; }   /* 0,0,1,1 — wins over .btn alone */
+#cta       { color: green;  }   /* 0,1,0,0 — wins over everything above */
+```
+
+**Same score → last rule wins:**
+
+```css
+.btn { background: blue; }
+.btn { background: red;  }   /* same score, declared later — wins */
+```
+
+> Avoid `!important` — it bypasses the entire cascade and makes bugs hard to trace. Fix conflicts with more specific selectors instead.
+
 ---
 
 # Inheritance
@@ -123,6 +145,72 @@ You can force inheritance:
 ```css
 button { font-family: inherit; }   /* buttons don't inherit by default */
 ```
+
+---
+
+# Assigning `id` and `class` to HTML Elements
+
+Every HTML element can carry two key targeting attributes:
+
+```html
+<!-- id — unique identifier, must appear only once per page -->
+<h1 id="hero-title">Welcome</h1>
+<section id="about">…</section>
+
+<!-- class — reusable label, multiple elements can share a class -->
+<p class="intro">First paragraph.</p>
+<p class="intro highlight">Second paragraph (two classes).</p>
+
+<!-- both together -->
+<article id="post-42" class="card featured">…</article>
+```
+
+- An **`id`** must be **unique** on the page — use it for a single, distinctive element.
+- A **`class`** can be applied to **many elements** and an element can have **multiple classes** (space-separated).
+
+---
+
+# `id` vs `class` — When to Use Which
+
+<div class="columns">
+<div>
+
+**Use `id` when…**
+- The element is unique on the page
+- You need a URL anchor (`#about`)
+- JavaScript must grab exactly one element
+
+```html
+<nav id="main-nav">…</nav>
+<footer id="site-footer">…</footer>
+```
+
+```css
+#main-nav { position: sticky; top: 0; }
+```
+
+</div>
+<div>
+
+**Use `class` when…**
+- The same style applies to many elements
+- You want reusable, composable styles
+
+```html
+<button class="btn btn-primary">Save</button>
+<button class="btn btn-danger">Delete</button>
+```
+
+```css
+.btn         { padding: 0.5rem 1rem; border-radius: 4px; }
+.btn-primary { background: #0a7c59; color: white; }
+.btn-danger  { background: #c0392b; color: white; }
+```
+
+</div>
+</div>
+
+> **Rule of thumb:** reach for `class` by default; use `id` only when uniqueness is genuinely required.
 
 ---
 
