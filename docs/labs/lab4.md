@@ -31,7 +31,7 @@ Template inheritance adds one more idea:
 
 ```bash
 uv add django
-django-admin startproject mysite .
+uv run django-admin startproject mysite .
 uv run python manage.py runserver
 ```
 
