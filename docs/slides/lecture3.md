@@ -12,6 +12,7 @@ style: |
 ---
 
 # Lecture 3
+
 ## CSS — Making the Web Look Good
 
 **WWW 25/26**
@@ -42,11 +43,13 @@ A **declaration** = a **property** + a **value**, separated by `:`.
 # Three Ways to Add CSS
 
 **1. External stylesheet (always preferred):**
+
 ```html
 <link rel="stylesheet" href="/static/style.css">
 ```
 
 **2. Embedded in `<style>` tag:**
+
 ```html
 <head>
   <style>
@@ -56,6 +59,7 @@ A **declaration** = a **property** + a **value**, separated by `:`.
 ```
 
 **3. Inline style (avoid except for dynamic JS):**
+
 ```html
 <p style="color: red;">Text</p>
 ```
@@ -64,11 +68,80 @@ A **declaration** = a **property** + a **value**, separated by `:`.
 
 ---
 
+# Assigning `id` and `class` to HTML Elements
+
+Every HTML element can carry two key targeting attributes:
+
+```html
+<!-- id — unique identifier, must appear only once per page -->
+<h1 id="hero-title">Welcome</h1>
+<section id="about">…</section>
+
+<!-- class — reusable label, multiple elements can share a class -->
+<p class="intro">First paragraph.</p>
+<p class="intro highlight">Second paragraph (two classes).</p>
+
+<!-- both together -->
+<article id="post-42" class="card featured">…</article>
+```
+
+- An **`id`** must be **unique** on the page — use it for a single, distinctive element.
+- A **`class`** can be applied to **many elements** and an element can have **multiple classes** (space-separated).
+
+---
+
+# `id` vs `class` — When to Use Which
+
+<div class="columns">
+<div>
+
+**Use `id` when…**
+
+- The element is unique on the page
+- You need a URL anchor (`#about`)
+- JavaScript must grab exactly one element
+
+```html
+<nav id="main-nav">…</nav>
+<footer id="site-footer">…</footer>
+```
+
+```css
+#main-nav { position: sticky; top: 0; }
+```
+
+</div>
+<div>
+
+**Use `class` when…**
+
+- The same style applies to many elements
+- You want reusable, composable styles
+
+```html
+<button class="btn btn-primary">Save</button>
+<button class="btn btn-danger">Delete</button>
+```
+
+```css
+.btn         { padding: 0.5rem 1rem; border-radius: 4px; }
+.btn-primary { background: #0a7c59; color: white; }
+.btn-danger  { background: #c0392b; color: white; }
+```
+
+</div>
+</div>
+
+> **Rule of thumb:** reach for `class` by default; use `id` only when uniqueness is genuinely required.
+
+---
+
 # The Cascade
 
 CSS = **C**ascading Style Sheets — "cascading" means rules from multiple sources combine.
 
 Sources in **ascending priority order** (last wins):
+
 1. Browser default stylesheet (user-agent styles)
 2. External stylesheets (`<link>`)
 3. `<style>` block in `<head>`
@@ -103,6 +176,10 @@ p              { color: black; }    /* 0,0,0,1 */
 ```
 
 Higher points win; points don't "carry over" across columns.
+
+---
+
+# Specificity
 
 **Combining selectors raises the score:**
 
@@ -142,75 +219,10 @@ body { font-family: sans-serif; color: #333; }
 **Not inherited:** `background`, `border`, `margin`, `padding`, `width`, `display`
 
 You can force inheritance:
+
 ```css
 button { font-family: inherit; }   /* buttons don't inherit by default */
 ```
-
----
-
-# Assigning `id` and `class` to HTML Elements
-
-Every HTML element can carry two key targeting attributes:
-
-```html
-<!-- id — unique identifier, must appear only once per page -->
-<h1 id="hero-title">Welcome</h1>
-<section id="about">…</section>
-
-<!-- class — reusable label, multiple elements can share a class -->
-<p class="intro">First paragraph.</p>
-<p class="intro highlight">Second paragraph (two classes).</p>
-
-<!-- both together -->
-<article id="post-42" class="card featured">…</article>
-```
-
-- An **`id`** must be **unique** on the page — use it for a single, distinctive element.
-- A **`class`** can be applied to **many elements** and an element can have **multiple classes** (space-separated).
-
----
-
-# `id` vs `class` — When to Use Which
-
-<div class="columns">
-<div>
-
-**Use `id` when…**
-- The element is unique on the page
-- You need a URL anchor (`#about`)
-- JavaScript must grab exactly one element
-
-```html
-<nav id="main-nav">…</nav>
-<footer id="site-footer">…</footer>
-```
-
-```css
-#main-nav { position: sticky; top: 0; }
-```
-
-</div>
-<div>
-
-**Use `class` when…**
-- The same style applies to many elements
-- You want reusable, composable styles
-
-```html
-<button class="btn btn-primary">Save</button>
-<button class="btn btn-danger">Delete</button>
-```
-
-```css
-.btn         { padding: 0.5rem 1rem; border-radius: 4px; }
-.btn-primary { background: #0a7c59; color: white; }
-.btn-danger  { background: #c0392b; color: white; }
-```
-
-</div>
-</div>
-
-> **Rule of thumb:** reach for `class` by default; use `id` only when uniqueness is genuinely required.
 
 ---
 
@@ -743,9 +755,11 @@ A responsive site works well on any screen size.
 3. **Flexible images** — `img { max-width: 100%; height: auto; }`
 
 The **viewport meta tag** in HTML is mandatory:
+
 ```html
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 ```
+
 Without it, mobile browsers pretend they have a 980px screen and scale down.
 
 ---
@@ -984,6 +998,7 @@ F12 → Elements → select an element → Styles panel:
 CSS controls appearance through a **cascade** of rules resolved by **specificity** and **source order**.
 
 Key ideas:
+
 - The **box model** describes every element as content + padding + border + margin
 - **Flexbox** — one-dimensional layout (nav bars, rows, columns)
 - **CSS Grid** — two-dimensional layout (page structure, galleries)
@@ -996,6 +1011,7 @@ Key ideas:
 # Lab 3 Preview
 
 **What you'll build:**
+
 - A single `style.css` shared across all three Lab 2 pages
 - Responsive two-column layout (article + aside) using Flexbox
 - A card grid on the projects page using CSS Grid with `auto-fill`
@@ -1003,6 +1019,7 @@ Key ideas:
 - CSS custom property for the primary colour
 
 **Check your understanding:**
+
 1. What is the difference between `justify-content` and `align-items`?
 2. Why does `box-sizing: border-box` make layouts easier?
 3. What does `1fr` mean in a grid template?
@@ -1014,6 +1031,7 @@ Key ideas:
 **Next lecture:** Django — a framework that handles HTTP, routing, templates, and databases for you.
 
 Recommended tools before Lab 3:
+
 - Firefox DevTools → Grid inspector (highlights grid lines)
 - Chrome DevTools → Flexbox inspector
 - CSS-Tricks Flexbox Guide: css-tricks.com/snippets/css/a-guide-to-flexbox

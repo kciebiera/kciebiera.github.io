@@ -10,9 +10,9 @@ style: |
   .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
   code { background: #f5f5f5; padding: 0.1em 0.3em; border-radius: 3px; }
 ---
-{% raw %}
 
 # Lecture 5
+
 ## Django — Models, ORM & Forms
 
 **WWW 25/26**
@@ -24,8 +24,8 @@ ORM · Migrations · Admin · ModelForms · Validation · CSRF
 
 ## The Persistence Problem
 
-Every Python variable you create lives in **RAM**.  
-When the process stops — server restart, crash, redeploy — it is **gone**.
+Every Python variable lives in **RAM**.  
+Server restart, crash, redeploy → it is **gone**.
 
 ```python
 # views.py — DO NOT do this
@@ -35,328 +35,217 @@ def create_post(request):
     posts.append({"title": request.POST["title"]})
 ```
 
-You need a place to store data that **survives** process restarts, scales beyond a single machine, and allows multiple workers to read and write simultaneously.
+You already know the solution: **a relational database**.  
+PostgreSQL in production, SQLite in development (Django switches with one setting change).
 
-**Answer: a relational database** (PostgreSQL in production, SQLite for development).
-
-Django handles the connection, query building, and schema management for you — but you need to understand what it does under the hood.
-
----
-
-# Relational Databases Recap
-
-A relational database stores data in **tables** (also called relations).
-
-| id | title            | published | category_id |
-|----|-----------------|-----------|-------------|
-| 1  | Hello Django    | true      | 2           |
-| 2  | ORM Deep Dive   | false     | 2           |
-| 3  | CSS Tricks      | true      | 1           |
-
-Key concepts:
-- **Row** — one record (one blog post, one user…)
-- **Column** — one attribute (title, published date…)
-- **Primary key** — unique identifier per row (usually `id`)
-- **Foreign key** — a column that references a primary key in **another** table (`category_id → categories.id`)
-
-Rows in different tables are **joined** on matching key values.  
-This avoids duplicating the category name in every post row.
+Django handles the connection, query building, and schema management for you — but you need to understand what it does under the hood, because the ORM can hide expensive queries.
 
 ---
 
-# What is an ORM?
+# The Object-Relational Impedance Mismatch
 
-## Object-Relational Mapper
+Relational databases store data as **flat rows in tables**. Programs work with **graphs of objects** — with behaviour, references, and inheritance. These two models do not map cleanly onto each other. This tension has a name: the **object-relational impedance mismatch**.
 
-An ORM lets you work with database rows as **Python objects** instead of writing raw SQL.
-
-<div class="columns">
-
-<div>
-
-**Without ORM (raw SQL):**
-```python
-import sqlite3
-conn = sqlite3.connect("db.sqlite3")
-cur = conn.cursor()
-cur.execute(
-    "SELECT * FROM blog_post WHERE published=1"
-)
-rows = cur.fetchall()
-```
-
-</div>
-
-<div>
-
-**With Django ORM:**
-```python
-from blog.models import Post
-
-posts = Post.objects.filter(
-    published=True
-)
-```
-
-</div>
-</div>
-
-Django maps:
-- Python **class** → SQL **table**
-- Class **attribute** → table **column**
-- Class **instance** → table **row**
-- Calling `.save()` → `INSERT` or `UPDATE`
-
-The ORM generates correct SQL for your database backend — switch from SQLite to PostgreSQL by changing one setting.
+| Relational world | Object-oriented world |
+|---|---|
+| Table (fixed schema) | Class (with methods, inheritance) |
+| Row | Object instance |
+| Foreign key (integer) | Direct object reference |
+| `NULL` | `None` / absent attribute |
+| No identity beyond primary key | Object identity (`is`) |
 
 ---
 
-# Defining a Django Model
+# Bridging the Gap — Three Strategies
 
-Create a file `blog/models.py` and subclass `models.Model`:
+1. **Raw SQL** — full control, all boilerplate on you
+2. **Query builder** — compose SQL in Python, still think in tables
+3. **Full ORM** — think in objects; hidden SQL, hidden cost
+
+Django gives you the full ORM. Understanding the mismatch explains *why* the ORM makes the design choices it does.
+
+---
+
+# What is an ORM? — Python ↔ SQL Mapping
+
+You already write SQL. The ORM lets you express the same operations as Python objects:
+
+| SQL concept | Django ORM |
+|---|---|
+| `CREATE TABLE blog_post (…)` | `class Post(models.Model): …` |
+| column | class attribute (`title = models.CharField(…)`) |
+| row | model instance (`post = Post(title="Hello")`) |
+| `INSERT INTO …` | `post.save()` (on a new instance) |
+| `UPDATE … SET …` | `post.save()` (on an existing instance) |
+| `DELETE FROM … WHERE id=1` | `post.delete()` |
+| `SELECT … WHERE …` | `Post.objects.filter(…)` |
+
+---
+
+# What is an ORM? — Why bother / the tradeoff
+
+**Why bother?** You get type safety, Python-level validation, automatic escaping (no SQL injection), and backend portability — swap SQLite for PostgreSQL by changing one setting.
+
+**The tradeoff:** the ORM hides what SQL is actually running.  
+A single innocent-looking line of Python can fire dozens of queries.  
+This is why **Django Debug Toolbar** exists — you need visibility into what the ORM actually does.
+
+---
+
+# Defining a Model — Python → SQL
 
 ```python
 from django.db import models
 
 class Post(models.Model):
-    title      = models.CharField(max_length=200)
-    slug       = models.SlugField(max_length=200, unique=True)
-    body       = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    published  = models.BooleanField(default=False)
+    title      = models.CharField(max_length=200)   # VARCHAR(200) NOT NULL
+    slug       = models.SlugField(unique=True)       # VARCHAR(50) NOT NULL UNIQUE
+    body       = models.TextField()                  # TEXT NOT NULL
+    created_at = models.DateTimeField(auto_now_add=True)  # TIMESTAMP, set on INSERT
+    updated_at = models.DateTimeField(auto_now=True)      # TIMESTAMP, set on every UPDATE
+    published  = models.BooleanField(default=False)  # BOOLEAN NOT NULL DEFAULT false
 
-    def __str__(self):
+    def __str__(self):       # controls how the object prints (admin, shell, FK dropdowns)
         return self.title
 ```
 
-Common field types:
-
-| Field class | SQL type | Use for |
-|---|---|---|
-| `CharField` | `VARCHAR` | short text, requires `max_length` |
-| `TextField` | `TEXT` | long text, no length limit |
-| `IntegerField` | `INTEGER` | whole numbers |
-| `BooleanField` | `BOOLEAN` | true/false flags |
-| `DateTimeField` | `DATETIME` | timestamps |
-| `SlugField` | `VARCHAR` | URL-friendly identifiers |
+Always define `__str__` — without it, the admin and shell show `Post object (1)` everywhere.
 
 ---
 
-# Field Options
+# Django field → SQL type cheatsheet *(reference)*
 
-Every field accepts keyword arguments that add constraints and behaviour:
+Each field encodes a **database constraint in Python code** — the interesting design decision is that schema lives alongside application logic, not in separate SQL scripts.
 
-```python
-class Article(models.Model):
-    title    = models.CharField(max_length=255, unique=True)
-    subtitle = models.CharField(max_length=255, blank=True, default="")
-    views    = models.IntegerField(default=0)
-    deleted  = models.BooleanField(default=False, db_index=True)
-    note     = models.TextField(null=True, blank=True)
-    created  = models.DateTimeField(auto_now_add=True)
-    updated  = models.DateTimeField(auto_now=True)
-```
+| Django field | SQL type | Notes |
+|---|---|---|
+| `CharField(max_length=N)` | `VARCHAR(N) NOT NULL` | `max_length` required |
+| `TextField()` | `TEXT NOT NULL` | no length limit |
+| `IntegerField()` | `INTEGER NOT NULL` | |
+| `BooleanField()` | `BOOLEAN NOT NULL` | |
+| `DateTimeField()` | `TIMESTAMP NOT NULL` | |
+| `SlugField()` | `VARCHAR(50) NOT NULL` | URL-safe subset of CharField |
 
-| Option | Meaning |
-|---|---|
-| `max_length=N` | Maximum string length (required for `CharField`) |
-| `unique=True` | Adds a `UNIQUE` constraint to the column |
-| `null=True` | Allows `NULL` in the database |
-| `blank=True` | Allows empty value in **form** validation |
-| `default=…` | Value used when not supplied |
-| `auto_now_add=True` | Set to `now()` on **create** only |
-| `auto_now=True` | Set to `now()` on every **save** |
-| `db_index=True` | Creates a database index for faster lookups |
-
-**Rule of thumb:** use `blank=True, default=""` for optional `CharField`; use `null=True, blank=True` for optional `TextField` or numeric fields.
+`null=True` → allows `NULL`. `blank=True` → allows empty in **form** validation (not the DB).  
+`unique=True` → `UNIQUE` constraint. `db_index=True` → `CREATE INDEX`.
 
 ---
 
 # Relationships — ForeignKey
 
-A `ForeignKey` creates a many-to-one relationship: many posts belong to one category.
+A `ForeignKey` = a foreign key column + an `ON DELETE` rule.
 
 ```python
-class Category(models.Model):
-    name = models.CharField(max_length=100)
-    slug = models.SlugField(unique=True)
-
-    def __str__(self):
-        return self.name
-
-
 class Post(models.Model):
     category = models.ForeignKey(
         Category,
-        on_delete=models.CASCADE,
-        related_name="posts",
+        on_delete=models.CASCADE,   # ON DELETE CASCADE
+        related_name="posts",       # reverse accessor: category.posts.all()
     )
-    title = models.CharField(max_length=200)
-    body  = models.TextField()
 ```
 
-Django adds a `category_id` column to the `post` table automatically.
+Django adds a `category_id INTEGER` column to `blog_post` automatically.
 
-**`on_delete` choices:**
+`on_delete` maps directly to SQL referential actions:
 
-| Option | Behaviour when the Category is deleted |
-|---|---|
-| `CASCADE` | Also delete all related Posts |
-| `SET_NULL` | Set `category_id` to `NULL` (requires `null=True`) |
-| `PROTECT` | Raise an error — prevents deletion |
-| `SET_DEFAULT` | Set to the field's `default` value |
+| Django | SQL | What happens when Category row is deleted |
+|---|---|---|
+| `CASCADE` | `ON DELETE CASCADE` | Also delete all related Posts |
+| `SET_NULL` | `ON DELETE SET NULL` | Set `category_id` to `NULL` (requires `null=True`) |
+| `PROTECT` | *(enforced in Python)* | Raise an error — prevents deletion |
+| `SET_DEFAULT` | `ON DELETE SET DEFAULT` | Set to the field's `default` value |
 
 ---
 
-# The Meta Class
+# Reverse access on ForeignKey
 
-Add an inner `Meta` class to control table-level behaviour:
+**Reverse access** — no extra query syntax needed:
+
+```python
+category = Category.objects.get(slug="python")
+category.posts.all()            # SELECT * FROM blog_post WHERE category_id = …
+category.posts.filter(published=True)
+```
+
+---
+
+# Model Housekeeping — `Meta` and `__str__`
+
+**`Meta`** controls table-level behaviour — things you'd write in SQL DDL or index definitions:
 
 ```python
 class Post(models.Model):
     title     = models.CharField(max_length=200)
     slug      = models.SlugField(unique=True)
-    published = models.BooleanField(default=False)
     created   = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering      = ["-created"]       # newest first by default
-        verbose_name  = "post"             # singular label in admin
-        verbose_name_plural = "posts"      # plural label in admin
-        db_table      = "blog_post"        # explicit table name
-        indexes = [
-            models.Index(fields=["slug"]),
-        ]
+        ordering  = ["-created"]    # DEFAULT ORDER BY created DESC
+        db_table  = "blog_post"     # explicit table name (default: appname_modelname)
+        indexes   = [models.Index(fields=["slug"])]  # CREATE INDEX
 
     def __str__(self):
-        return self.title
+        return self.title           # shown in admin, shell, FK dropdowns
 ```
 
-- **`ordering`** — default sort for `Post.objects.all()`. Prefix `-` for descending.
-- **`verbose_name`** — shown in the Django admin and error messages.
-- **`db_table`** — override the auto-generated name (`appname_modelname`).
-- **`indexes`** — define composite or single-column database indexes.
+`ordering` sets the default `ORDER BY` for every `Post.objects.all()` call — no need to add `.order_by()` everywhere. Prefix `-` for `DESC`.
+
+`verbose_name` / `verbose_name_plural` control the labels shown in the Django admin UI.
 
 ---
 
-# The `__str__` Method
+# Migrations — Version Control for Schema
 
-`__str__` controls the human-readable representation of a model instance.
+Your Python code and your database schema are **two separate things**.  
+If you add a `slug` column to a model but don't add it to the database, you get a runtime error.  
+In a team, every developer and every production server must apply the same changes in the same order.
 
-```python
-class Post(models.Model):
-    title = models.CharField(max_length=200)
+**Migrations are to your schema what git commits are to your code.**
 
-    def __str__(self):
-        return self.title
-```
-
-Without `__str__` you get useless output everywhere:
+This is easy in development. The hard problem is **live systems**: a production database with real data and active users cannot be taken offline to apply schema changes. Zero-downtime migrations require backward-compatible steps — add a column as nullable first, backfill data, then add the constraint. Django migrations give you the *mechanism*; knowing when to split a change into multiple safe steps requires the *judgement*.
 
 ```
-# Admin list page shows:    Post object (1)
-# Shell shows:              <Post: Post object (1)>
-# ForeignKey dropdown shows: Post object (1)
+blog/migrations/
+  0001_initial.py        ← CREATE TABLE blog_post (…)
+  0002_post_add_slug.py  ← ALTER TABLE blog_post ADD COLUMN slug VARCHAR(50)
+  0003_category.py       ← CREATE TABLE blog_category (…); ALTER TABLE blog_post ADD …
 ```
 
-With `__str__` you get:
-
-```
-# Admin list page shows:    Hello Django
-# Shell shows:              <Post: Hello Django>
-# ForeignKey dropdown shows: Hello Django
-```
-
-Always define `__str__`. It is the single highest-value method you can add to any model.
+- Commit migration files to git alongside your code changes
+- `git clone` + `migrate` → every developer gets an identical schema
+- Production deploy runs `migrate` → database catches up automatically
 
 ---
 
-# Migrations
-
-A **migration** is a Python file that describes a change to the database schema.
-
-```
-blog/
-  migrations/
-    0001_initial.py        ← create Post table
-    0002_post_add_slug.py  ← add slug column
-    0003_category.py       ← create Category, add FK
-```
+# Migrations — Commands & Workflow
 
 Two commands:
 
 ```bash
-# 1. Inspect your models and generate a new migration file
-python manage.py makemigrations
-
-# 2. Apply all unapplied migrations to the database
-python manage.py migrate
+python manage.py makemigrations   # inspect models → generate migration file
+python manage.py migrate          # apply unapplied migrations to the database
 ```
 
-**Workflow:**
-1. Edit `models.py`
-2. Run `makemigrations` → creates a migration file (commit this to git)
-3. Run `migrate` → alters the database
+**Workflow:** edit `models.py` → `makemigrations` → commit → `migrate`
 
-Django records which migrations have been applied in a `django_migrations` table.  
-If you forget to run `migrate`, your code and your database are **out of sync** and you will get errors.
+Django records applied migrations in a `django_migrations` table.
 
 ---
 
-# Reading a Migration File
+# `sqlmigrate` — Read the Generated SQL
 
-`makemigrations` generates plain Python — you can (and should) read it:
-
-```python
-# blog/migrations/0001_initial.py
-from django.db import migrations, models
-
-class Migration(migrations.Migration):
-
-    initial = True
-
-    dependencies = []
-
-    operations = [
-        migrations.CreateModel(
-            name="Post",
-            fields=[
-                ("id", models.BigAutoField(primary_key=True)),
-                ("title", models.CharField(max_length=200)),
-                ("slug", models.SlugField(unique=True)),
-                ("body", models.TextField()),
-                ("published", models.BooleanField(default=False)),
-                ("created_at", models.DateTimeField(auto_now_add=True)),
-            ],
-        ),
-    ]
-```
-
-Each migration lists its **dependencies** (which migrations must run first) and a list of **operations** (`CreateModel`, `AddField`, `AlterField`, `DeleteModel`, …).
-
-Never edit model fields directly in the database — always go through migrations.
-
----
-
-# `sqlmigrate` — Seeing the Raw SQL
-
-Curious what SQL Django will run? Use `sqlmigrate`:
+Since you know SQL, use `sqlmigrate` to verify what Django will actually run:
 
 ```bash
 python manage.py sqlmigrate blog 0001
 ```
 
-Output (SQLite):
 ```sql
 BEGIN;
---
--- Create model Post
---
 CREATE TABLE "blog_post" (
     "id"         integer NOT NULL PRIMARY KEY AUTOINCREMENT,
     "title"      varchar(200) NOT NULL,
-    "slug"       varchar(50) NOT NULL UNIQUE,
+    "slug"        varchar(50) NOT NULL UNIQUE,
     "body"       text NOT NULL,
     "published"  bool NOT NULL,
     "created_at" datetime NOT NULL
@@ -364,126 +253,99 @@ CREATE TABLE "blog_post" (
 COMMIT;
 ```
 
-This is read-only — it shows what **would** run without touching the database.  
+This is **read-only** — shows what would run without touching the database.
+
 Use it to:
-- Double-check Django generates the SQL you expect
-- Understand what `UNIQUE`, `NOT NULL`, etc. map to
-- Debug migration issues before applying them
+
+- Confirm that `unique=True` → `UNIQUE`, `db_index=True` → `CREATE INDEX`
+- Understand the exact column types Django picks for your backend
+- Catch unexpected schema changes before applying them to production
 
 ---
 
 # The Django Admin
 
-Django ships with a fully-featured admin interface.  
-Register your models to manage them through a web UI — no code beyond one line.
+**Idea:** given a model definition, Django can *introspect* the schema at runtime and generate a fully functional CRUD interface automatically — no template writing, no boilerplate views. This is the same principle behind Rails scaffolding, Swagger UI from an OpenAPI spec, or any system that generates UI from a data model.
+
+The admin is not magic — it is a practical demonstration that **a well-defined schema is itself a specification** for what a CRUD interface should look like. For developers and editors, not end users.
+
+Register your models, then visit `http://127.0.0.1:8000/admin/`:
 
 ```python
 # blog/admin.py
 from django.contrib import admin
 from .models import Post, Category
 
-admin.site.register(Category)
-admin.site.register(Post)
-```
-
-Navigate to `http://127.0.0.1:8000/admin/` after creating a superuser.
-
-The admin gives you for free:
-- **List view** — paginated table of all rows
-- **Detail/edit view** — form for every field
-- **Create** and **Delete** actions
-- **Search** and **filter** sidebar
-- Full **history** of every change
-
-It is not meant for end users — it is a **developer and editor tool**.
-
----
-
-# `@admin.register` and `ModelAdmin`
-
-Use the decorator form and a `ModelAdmin` subclass for more control:
-
-```python
-from django.contrib import admin
-from .models import Post
-
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
     list_display  = ["title", "category", "published", "created_at"]
     list_filter   = ["published", "category"]
     search_fields = ["title", "body"]
-    prepopulated_fields = {"slug": ("title",)}
+    prepopulated_fields = {"slug": ("title",)}   # JS auto-fills slug from title
     date_hierarchy = "created_at"
-    ordering       = ["-created_at"]
 ```
 
 | Option | What it does |
 |---|---|
-| `list_display` | Columns shown in the list view |
+| `list_display` | Columns in the list view |
 | `list_filter` | Right-side filter panel |
-| `search_fields` | Enables a search box; searches these fields |
+| `search_fields` | Search box (generates `WHERE … LIKE …`) |
 | `prepopulated_fields` | Auto-fills slug from title via JavaScript |
-| `date_hierarchy` | Drill-down navigation by date |
 
 ---
 
-# Creating a Superuser
+# The Django Admin — Superuser
 
-The admin requires a user with `is_staff=True` and `is_superuser=True`.
+Create the required superuser account:
 
 ```bash
 python manage.py createsuperuser
+# Username: admin  /  Password: ********
 ```
-
-```
-Username: admin
-Email address: admin@example.com
-Password: ********
-Password (again): ********
-Superuser created successfully.
-```
-
-Then start the dev server and visit `/admin/`:
-
-```bash
-python manage.py runserver
-# Open: http://127.0.0.1:8000/admin/
-```
-
-You can also create staff users (with limited permissions) in the admin under **Authentication → Users**.
 
 Superusers bypass all permission checks — never use one as the main application user in production.
 
 ---
 
-# The ORM — `Model.objects`
+# The ORM — SQL in Python
 
-Every model has a **manager** attached as `Model.objects`.  
-The manager is the entry point for all database queries.
+Every model has a **manager** (`Model.objects`) that is the entry point for queries.  
+Each ORM call maps to SQL you already know:
 
 ```python
-from blog.models import Post
+# SELECT * FROM blog_post
+Post.objects.all()
 
-# All posts
-all_posts = Post.objects.all()
+# SELECT * FROM blog_post WHERE published = true
+Post.objects.filter(published=True)
 
-# One specific post
-post = Post.objects.get(id=1)
+# SELECT * FROM blog_post WHERE NOT published = true
+Post.objects.exclude(published=True)
 
-# Posts matching a condition
-published = Post.objects.filter(published=True)
+# SELECT * FROM blog_post WHERE id = 42   (raises if 0 or 2+ rows)
+Post.objects.get(id=42)
 
-# Posts NOT matching a condition
-drafts = Post.objects.exclude(published=True)
+# SELECT COUNT(*) FROM blog_post WHERE published = true
+Post.objects.filter(published=True).count()
 
-# Count without fetching rows
-n = Post.objects.filter(published=True).count()
+# SELECT * FROM blog_post WHERE published = true LIMIT 5
+Post.objects.filter(published=True)[:5]
 
-# Does any matching row exist?
-exists = Post.objects.filter(slug="hello").exists()
+# SELECT * FROM blog_post WHERE published = true LIMIT 10 OFFSET 10
+Post.objects.filter(published=True)[10:20]
+
+# SELECT EXISTS(SELECT 1 FROM blog_post WHERE slug = 'hello')
+Post.objects.filter(slug="hello").exists()
 ```
 
-You can define **custom managers** to encapsulate common queries:
+---
+
+# The ORM — `get()` and Custom Managers
+
+`get()` raises `DoesNotExist` if no row, `MultipleObjectsReturned` if several.  
+For user-facing views, use `get_object_or_404()` instead (covered shortly).
+
+You can also define **custom managers** to encapsulate common query patterns:
 
 ```python
 class PublishedManager(models.Manager):
@@ -492,31 +354,32 @@ class PublishedManager(models.Manager):
 
 class Post(models.Model):
     objects   = models.Manager()      # default
-    published = PublishedManager()    # custom
+    published = PublishedManager()    # Post.published.all() → only published
 ```
 
 ---
 
 # QuerySets — Lazy Evaluation
 
-A `QuerySet` is **lazy** — it does not hit the database until you actually need the data.
+**Lazy (deferred) evaluation** is a general CS strategy: build a *description* of a computation, then execute it exactly once when the result is actually needed. Haskell is lazy by default. Python generators are lazy. SQL query builders are lazy. The benefit is the same in each case: you can compose and transform the description before paying the execution cost.
+
+A `QuerySet` is **lazy** — it does not hit the database until you actually need the data.  
+This lets you build up a query across multiple lines and execute it exactly once.
 
 ```python
 qs = Post.objects.filter(published=True)   # no SQL yet
-qs = qs.order_by("-created_at")            # still no SQL
-qs = qs.exclude(title__startswith="Draft") # still no SQL
+qs = qs.order_by("-created_at")            # still no SQL  (ORDER BY)
+qs = qs.exclude(title__startswith="Draft") # still no SQL  (AND NOT)
 
 # SQL fires here, when the QuerySet is evaluated:
-for post in qs:          # iteration
-    print(post.title)
-
-list(qs)                 # force evaluation
-qs[0]                    # slicing
-len(qs)                  # len()
-bool(qs)                 # bool check
+for post in qs:     # iteration
+list(qs)            # explicit conversion
+qs[0]               # index / slice
+len(qs)             # len()
+bool(qs)            # truthiness check
 ```
 
-This makes **chaining** efficient — build up a query across multiple lines, then execute once:
+Practical example — conditionally narrow the query in a view:
 
 ```python
 def post_list(request):
@@ -527,138 +390,108 @@ def post_list(request):
     return render(request, "blog/list.html", {"posts": qs})
 ```
 
----
-
-# Basic Queries
-
-```python
-# Return ALL rows — QuerySet
-Post.objects.all()
-
-# Return ONE row — raises DoesNotExist or MultipleObjectsReturned
-post = Post.objects.get(id=42)
-
-# Return rows matching conditions — QuerySet
-Post.objects.filter(published=True)
-
-# Return rows NOT matching conditions — QuerySet
-Post.objects.exclude(category__name="Drafts")
-
-# Count rows
-Post.objects.filter(published=True).count()
-
-# Order results
-Post.objects.all().order_by("title")        # A→Z
-Post.objects.all().order_by("-created_at")  # newest first
-
-# Limit results (SQL LIMIT/OFFSET)
-Post.objects.all()[:5]         # first 5
-Post.objects.all()[10:20]      # rows 11–20
-
-# Return distinct values
-Post.objects.values("category_id").distinct()
-```
-
-`get()` is for when you expect **exactly one** result.  
-For user-facing lookups always use `get_object_or_404()` (covered shortly).
+Django composes all the chained calls into **one** SQL query — not one per `.filter()` call.
 
 ---
 
-# Field Lookups
+# Field Lookups — WHERE Operators
 
-Django appends lookup operators to field names with double underscores (`__`):
+Django appends SQL operators to field names with `__` (double underscore):
 
-```python
-# Exact match (default, same as filter(title="Hello"))
-Post.objects.filter(title__exact="Hello")
-
-# Case-insensitive match
-Post.objects.filter(title__iexact="hello")
-
-# Contains substring
-Post.objects.filter(body__contains="Django")
-Post.objects.filter(body__icontains="django")   # case-insensitive
-
-# Comparison operators
-Post.objects.filter(views__gt=100)     # greater than
-Post.objects.filter(views__gte=100)    # greater than or equal
-Post.objects.filter(views__lt=10)      # less than
-Post.objects.filter(views__lte=10)     # less than or equal
-
-# Value in a list
-Post.objects.filter(id__in=[1, 2, 3])
-
-# NULL check
-Post.objects.filter(subtitle__isnull=True)
-
-# Starts / ends with
-Post.objects.filter(slug__startswith="2024-")
-Post.objects.filter(title__endswith="Guide")
-```
+| Django `filter(field__lookup=val)` | SQL equivalent |
+|---|---|
+| `title__exact="Hello"` | `WHERE title = 'Hello'` |
+| `title__iexact="hello"` | `WHERE LOWER(title) = 'hello'` |
+| `body__contains="Django"` | `WHERE body LIKE '%Django%'` |
+| `body__icontains="django"` | `WHERE LOWER(body) LIKE '%django%'` |
+| `views__gt=100` | `WHERE views > 100` |
+| `views__gte=100` | `WHERE views >= 100` |
+| `views__lt=10` / `__lte` | `WHERE views < 10` / `<= 10` |
+| `id__in=[1, 2, 3]` | `WHERE id IN (1, 2, 3)` |
+| `subtitle__isnull=True` | `WHERE subtitle IS NULL` |
+| `slug__startswith="2024-"` | `WHERE slug LIKE '2024-%'` |
+| `created__year=2025` | `WHERE EXTRACT(year FROM created) = 2025` |
 
 ---
 
-# Related Object Queries
+# Field Lookups — FK Traversal
 
-Follow `ForeignKey` relationships in filter arguments using `__`:
+The `__` syntax also **traverses FK relationships** — Django generates the `JOIN` for you:
 
 ```python
-# Posts whose category name is "Python"
+# WHERE blog_category.name = 'Python'  (implicit JOIN)
 Post.objects.filter(category__name="Python")
 
-# Case-insensitive
-Post.objects.filter(category__name__icontains="python")
-
-# Traverse multiple levels (if Category had a parent FK)
+# Traverse multiple levels (two JOINs, one query)
 Post.objects.filter(category__parent__slug="tech")
+```
 
-# Reverse relation: from Category, get posts
+SQL generated for the first example:
+
+```sql
+SELECT blog_post.*
+FROM   blog_post
+INNER JOIN blog_category ON blog_post.category_id = blog_category.id
+WHERE  blog_category.name = 'Python'
+```
+
+---
+
+# Related Object Queries — Reverse Relation
+
+**Reverse relation** — from the "one" side to the "many" side:
+
+```python
 category = Category.objects.get(slug="python")
-category.posts.all()          # uses related_name="posts"
+category.posts.all()                  # SELECT * FROM blog_post WHERE category_id = …
 category.posts.filter(published=True)
 category.posts.count()
 ```
 
-Django generates a `JOIN` automatically.  
-You never write `SELECT … JOIN … ON …` by hand.
+**Warning:** accessing a FK attribute on a single instance fires an extra query:
 
 ```python
-# Accessing the related object on an instance
 post = Post.objects.get(id=1)
-print(post.category.name)   # → "Python"  (one extra query!)
+print(post.category.name)   # ← 1 extra SELECT for category!
 ```
+
+This is the seed of the N+1 problem — covered shortly.
 
 ---
 
-# Q Objects — Complex Queries
+# Q Objects — OR / AND / NOT
 
-`filter()` chains are AND conditions. For **OR** (or negation), use `Q` objects:
+`filter()` keyword arguments are always `AND`. For SQL `OR` or `NOT`, use `Q` objects:
 
 ```python
 from django.db.models import Q
 
-# OR: published OR created this year
+# WHERE published = true OR EXTRACT(year FROM created_at) = 2025
 Post.objects.filter(
     Q(published=True) | Q(created_at__year=2025)
 )
 
-# AND explicitly (same as keyword arguments)
-Post.objects.filter(
-    Q(published=True) & Q(category__name="Python")
-)
-
-# NOT: exclude published posts
+# WHERE NOT published = true   (same as .exclude(published=True))
 Post.objects.filter(~Q(published=True))
 
-# Combine freely
+# WHERE (title ILIKE '%django%' OR body ILIKE '%django%') AND published = true
 Post.objects.filter(
     Q(title__icontains="django") | Q(body__icontains="django"),
-    published=True,       # keyword args are always AND
+    published=True,       # keyword args are AND-ed with Q objects
 )
 ```
 
-`Q` objects support `|` (OR), `&` (AND), and `~` (NOT).  
-Keyword arguments in the same `filter()` call are AND-ed with the `Q` objects.
+---
+
+# Q Objects — Operator Reference
+
+`Q` operators mirror SQL boolean operators:
+
+| Q operator | SQL |
+|---|---|
+| `Q(a) \| Q(b)` | `a OR b` |
+| `Q(a) & Q(b)` | `a AND b` *(same as two keyword args)* |
+| `~Q(a)` | `NOT a` |
 
 ---
 
@@ -667,6 +500,7 @@ Keyword arguments in the same `filter()` call are AND-ed with the `Q` objects.
 In views, you often want to fetch one object and return a 404 if it doesn't exist.
 
 **Without helper:**
+
 ```python
 from django.http import Http404
 from .models import Post
@@ -680,6 +514,7 @@ def post_detail(request, slug):
 ```
 
 **With helper (preferred):**
+
 ```python
 from django.shortcuts import get_object_or_404, render
 from .models import Post
@@ -695,34 +530,231 @@ Always use it in user-facing views — never let `DoesNotExist` propagate as a 5
 
 ---
 
-# What is a Django Form?
+# The N+1 Problem — A Query Complexity Bug
+
+Consider rendering a list of 20 posts, each with its category name:
+
+```python
+posts = Post.objects.filter(published=True)[:20]  # 1 query
+for post in posts:
+    print(post.category.name)   # 1 extra query per post → 20 more queries
+```
+
+That's **21 queries** to display 20 posts. In general, N rows → N+1 queries.
+
+| Posts shown | Queries fired |
+|---|---|
+| 20 | 21 |
+| 100 | 101 |
+| 1 000 | 1 001 |
+
+Each query has network round-trip overhead. This is an asymptotic problem: performance degrades *linearly with data size* where it should be constant. The ORM's laziness makes it easy to write N+1 bugs accidentally — you write one line, but it triggers a loop of hidden queries.
+
+**The fix:** tell the ORM to fetch related data upfront in *one* query, not lazily one-by-one.
+
+---
+
+# `select_related` — INNER JOIN
+
+`select_related` tells the ORM to do a JOIN and fetch the related row in the same query.
+
+```python
+# Before: 1 + N queries
+posts = Post.objects.filter(published=True)[:20]
+
+# After: 1 query with INNER JOIN
+posts = Post.objects.filter(published=True).select_related("category")[:20]
+```
+
+Generated SQL:
+
+```sql
+SELECT blog_post.*, blog_category.*
+FROM   blog_post
+INNER  JOIN blog_category ON blog_post.category_id = blog_category.id
+WHERE  blog_post.published = true
+LIMIT  20
+```
+
+Chain multiple levels (multiple JOINs, still one query):
+
+```python
+Post.objects.select_related("category__parent")
+```
+
+**Use for:** FK / OneToOne — you always know the related side has exactly one row.  
+**Do not use for:** reverse FK or ManyToMany — a JOIN multiplies rows. Use `prefetch_related` instead.
+
+---
+
+# `prefetch_related` — Two Queries, Python Join
+
+For **reverse FK** (all comments for a post) and **ManyToMany**, a JOIN would multiply rows.  
+`prefetch_related` fires a *separate* query and stitches results in Python:
+
+```python
+# Query 1: SELECT * FROM blog_post WHERE published = true
+# Query 2: SELECT * FROM blog_comment WHERE post_id IN (1, 2, 3, …)
+# Python:  attach comments to each post object
+posts = Post.objects.filter(published=True).prefetch_related("comments")[:20]
+```
+
+Access in the template — zero extra queries:
+
+```html
+{% for post in posts %}
+  {% for comment in post.comments.all %}
+    {{ comment.author }}: {{ comment.body }}
+  {% endfor %}
+{% endfor %}
+```
+
+---
+
+# `prefetch_related` — Custom Prefetch
+
+**Custom prefetch** — filter the related set (e.g. only active comments):
+
+```python
+from django.db.models import Prefetch
+
+active = Comment.objects.filter(active=True)
+posts  = Post.objects.prefetch_related(
+    Prefetch("comments", queryset=active, to_attr="active_comments")
+)
+# post.active_comments ← pre-filtered list, no extra queries
+```
+
+---
+
+# `F()` Expressions
+
+**Why not just `post.views += 1; post.save()`?**
+
+This is a classic **read-modify-write race condition**:
+
+```
+Request A reads:  views = 100
+Request B reads:  views = 100
+Request A writes: views = 101
+Request B writes: views = 101   ← one increment lost
+```
+
+Two concurrent requests both read the same stale value, compute the same result, and one update overwrites the other. The fix is to move the computation *into the database*, where it executes atomically without a round-trip to Python.
+
+**`F()` expressions** reference a column directly in a SQL expression:
+
+```python
+from django.db.models import F
+
+# WHERE view_count > like_count   (compare two columns — no Python round-trip)
+Post.objects.filter(view_count__gt=F("like_count"))
+
+# UPDATE blog_post SET view_count = view_count + 1 WHERE id = ?
+# Atomic — no race condition, no round-trip to Python
+Post.objects.filter(pk=post.pk).update(view_count=F("view_count") + 1)
+```
+
+---
+
+# `annotate()` — Per-Row Aggregation
+
+**`annotate()`** — SQL `GROUP BY` equivalent: add a computed column to each row:
+
+```python
+from django.db.models import Count
+
+# SELECT blog_category.*, COUNT(blog_post.id) AS post_count
+# FROM blog_category LEFT JOIN blog_post ON …
+# GROUP BY blog_category.id
+categories = Category.objects.annotate(post_count=Count("posts"))
+# Template: {{ cat.post_count }} posts
+```
+
+---
+
+# `aggregate()` — Whole-QuerySet Aggregation
+
+**`aggregate()`** returns a single dict across the whole QuerySet (no `GROUP BY`):
+
+```python
+from django.db.models import Avg, Max, Count
+
+Post.objects.filter(published=True).aggregate(
+    total=Count("id"),
+    avg_views=Avg("view_count"),
+    latest=Max("pub_date"),
+)
+# → {"total": 42, "avg_views": 1250.3, "latest": datetime(…)}
+```
+
+**Rule of thumb:** `annotate` = per-row column added to each object. `aggregate` = one dict for the whole set.
+
+---
+
+# Django Debug Toolbar
+
+An in-browser panel that shows SQL queries, timings, templates, cache hits, and more.
+
+```bash
+uv add django-debug-toolbar
+```
+
+```python
+# settings.py
+INSTALLED_APPS += ["debug_toolbar"]
+MIDDLEWARE = ["debug_toolbar.middleware.DebugToolbarMiddleware"] + MIDDLEWARE
+INTERNAL_IPS = ["127.0.0.1"]
+```
+
+```python
+# urls.py (project-level)
+if settings.DEBUG:
+    urlpatterns = [path("__debug__/", include("debug_toolbar.urls"))] + urlpatterns
+```
+
+Visit any page in dev — the toolbar appears on the right. Open the **SQL** panel to see every query and its duration.
+
+---
+
+# What is a Django Form? — Trust Boundaries
+
+`request.POST` is a dictionary of **strings from the internet**.  
+Anyone can send anything — empty strings, SQL fragments, absurdly long text, wrong types.
+
+`form.cleaned_data` is validated **Python data** you can trust.
+
+```
+request.POST["author"]  →  "'; DROP TABLE blog_post; --"   ← untrusted string
+form.cleaned_data["author"]  →  "Alice"                    ← validated, type-coerced
+```
+
+**Never** use raw `request.POST` values directly in your views or models.  
+Always pass input through a form first.
 
 A **Form** is a Python class that:
+
 1. Describes which fields to render and validate
 2. Accepts user input (from `request.POST`)
 3. Validates that input and returns clean Python values
 
-<div class="columns">
+---
 
-<div>
+# What is a Django Form? — `Form` vs `ModelForm`
 
 **`Form`** — build fields manually:
+
 ```python
 from django import forms
 
 class ContactForm(forms.Form):
     name    = forms.CharField(max_length=100)
     email   = forms.EmailField()
-    message = forms.CharField(
-        widget=forms.Textarea
-    )
+    message = forms.CharField(widget=forms.Textarea)
 ```
 
-</div>
-
-<div>
-
 **`ModelForm`** — derive fields from a model:
+
 ```python
 from django import forms
 from .models import Post
@@ -732,9 +764,6 @@ class PostForm(forms.ModelForm):
         model  = Post
         fields = ["title", "body", "published"]
 ```
-
-</div>
-</div>
 
 Use plain `Form` for things like search, login, or contact.  
 Use `ModelForm` whenever the form directly creates or updates a model instance — it eliminates redundancy.
@@ -753,24 +782,15 @@ from .models import Post
 class PostForm(forms.ModelForm):
     class Meta:
         model   = Post
-        fields  = ["title", "slug", "body", "category", "published"]
+        fields  = ["title", "slug", "body", "published"]
         widgets = {
-            "body": forms.Textarea(attrs={"rows": 10, "class": "form-control"}),
-            "title": forms.TextInput(attrs={"class": "form-control"}),
-        }
-        labels = {
-            "published": "Publish immediately",
-        }
-        help_texts = {
-            "slug": "URL-friendly identifier, auto-filled from title.",
+            "body": forms.Textarea(attrs={"rows": 6}),
         }
 ```
 
-- **`fields`** — explicit allowlist (preferred over `exclude`).  
-  Never use `fields = "__all__"` — it exposes every column including sensitive ones.
+- **`fields`** — explicit allowlist (preferred over `exclude`). Never use `"__all__"` — it exposes sensitive columns.
 - **`widgets`** — override the default HTML widget for any field.
-- **`labels`** — override the human-readable label.
-- **`help_texts`** — add `<small>` hint text below the field.
+- **`labels`** / **`help_texts`** — override labels and add hint text.
 
 ---
 
@@ -779,31 +799,24 @@ class PostForm(forms.ModelForm):
 The standard form-handling pattern in a view:
 
 ```python
-# views.py
-from django.shortcuts import render, redirect
-from .forms import PostForm
-
 def post_create(request):
     if request.method == "POST":
         form = PostForm(request.POST)
         if form.is_valid():
             form.save()
             return redirect("blog:list")
-        # form is not valid — fall through to render with errors
     else:
         form = PostForm()
-
     return render(request, "blog/post_form.html", {"form": form})
 ```
 
 What `is_valid()` does:
-1. Runs each field's built-in validators (`max_length`, `required`, type coercion)
-2. Runs any custom `clean_<field>()` methods
-3. Runs the form-wide `clean()` method
-4. Populates `form.cleaned_data` with safe Python values on success
-5. Populates `form.errors` with error messages on failure
 
-`form.cleaned_data["title"]` is always a sanitised Python value — never use raw `request.POST` values.
+1. Runs field built-in validators (`max_length`, `required`, type coercion)
+2. Runs custom `clean_<field>()` and form-wide `clean()` methods
+3. On success → `form.cleaned_data`; on failure → `form.errors`
+
+Always use `form.cleaned_data["title"]` — never raw `request.POST`.
 
 ---
 
@@ -842,13 +855,60 @@ class PostForm(forms.ModelForm):
 
 ---
 
-# CSRF Protection
+# Where Validation Lives — Three Layers
 
-**Cross-Site Request Forgery (CSRF):** an attacker tricks a logged-in user's browser into sending a forged POST request to your site.
+**Principle: never trust that an outer layer will always run.**
 
-Without protection: visiting `evil.com` could silently submit a form on your behalf.
+A form can be bypassed by a direct API call. A view can be skipped by a management command or a background job. Only database constraints are truly inescapable. This is **defence in depth** — each layer validates independently, so a bug or shortcut in one layer does not compromise data integrity.
 
-Django's defence: a **secret token** is embedded in every form and verified on submit.
+| Layer | Where | Runs when |
+|---|---|---|
+| **Database constraints** | `UNIQUE`, `NOT NULL`, `CHECK` | On every `INSERT`/`UPDATE` |
+| **Model validators** | `Model.clean()`, `validators=` | When you call `model.full_clean()` |
+| **Form validators** | `Form.clean()`, `clean_<field>()` | When you call `form.is_valid()` |
+
+---
+
+# Where Validation Lives — In Practice
+
+- **Forms** handle the web request — run first, produce user-facing error messages.
+- **Model validators** catch programmatic misuse (e.g., a background job saving invalid data).
+- **Database constraints** are the safety net if both layers above are bypassed.
+
+A `ModelForm` automatically applies the model's field-level constraints (`max_length`, `unique`) as form validation — so you rarely need to duplicate them.
+
+---
+
+# CSRF Protection — The Attack
+
+You are logged in to `bank.com`. Your browser stores a session cookie.  
+You visit `evil.com`. It contains a hidden form that auto-submits to `bank.com/transfer`.  
+Your browser sends the request — and **attaches the session cookie automatically**.  
+From `bank.com`'s perspective the request looks legitimate.
+
+```
+1. You log in to bank.com  → browser stores session cookie
+2. You visit evil.com
+3. evil.com's page silently sends:
+     POST bank.com/transfer
+     Cookie: session=abc123   ← browser adds this automatically
+     amount=10000&to=attacker
+4. bank.com processes it — you never clicked anything
+```
+
+**Cross-Site Request Forgery (CSRF):** the server cannot tell a legitimate form from a forged one — unless it adds a secret that `evil.com` cannot know.
+
+---
+
+# CSRF Protection — The Same-Origin Policy
+
+The browser enforces a **same-origin policy (SOP)**: JavaScript on `evil.com` cannot read content — cookies, HTML, responses — from `bank.com`. This is a browser security primitive, not a Django feature.
+
+The CSRF defence exploits the SOP: Django generates a secret token, embeds it in the HTML page, and verifies it on every state-changing request. Since `evil.com` cannot read `bank.com`'s HTML, it cannot extract the token and cannot forge a valid request.
+
+---
+
+# CSRF Protection — Django's Defence
 
 ```html
 <form method="post" action="/posts/create/">
@@ -859,6 +919,7 @@ Django's defence: a **secret token** is embedded in every form and verified on s
 ```
 
 `{% csrf_token %}` renders a hidden input:
+
 ```html
 <input type="hidden" name="csrfmiddlewaretoken" value="abc123…xyz">
 ```
@@ -867,26 +928,49 @@ Django's `CsrfViewMiddleware` checks this token on every `POST`, `PUT`, `PATCH`,
 If the token is missing or wrong → **403 Forbidden**.
 
 **When you don't need it:**
+
 - GET requests (search forms, filters) — no side effects, no CSRF risk
 - APIs using token-based auth (JWT, API keys) — typically disable CSRF for those endpoints
 
 ---
 
-# The POST-Redirect-GET Pattern
+# The POST-Redirect-GET Pattern — The Problem
 
-**Problem:** if the user refreshes after a `POST`, the browser resends the form.  
-This causes duplicate records — e.g., two identical posts created.
+PRG is not a Django concept — it applies to every web framework (Rails, Laravel, Flask, Express…).
+
+**Root cause — HTTP semantics:** the HTTP specification distinguishes **safe** methods (GET, HEAD — no side effects) from **unsafe** methods (POST — causes a state change). It also defines **idempotent** methods (GET, PUT, DELETE — repeating them has the same effect as doing them once). POST is *neither safe nor idempotent*: two identical POST requests are supposed to produce two separate effects. The browser is therefore correct to warn before replaying a POST.
+
+**Problem:** the browser's "last request" after a POST is the POST itself.  
+Pressing F5 (refresh) replays it — duplicate records, duplicate payments, duplicate emails.
 
 ```
-Browser                    Server
-  │─── POST /posts/create ──▶│  Creates post
-  │◀── 200 OK (HTML page) ───│
-  │
-  │  (user presses F5)
-  │─── POST /posts/create ──▶│  Creates ANOTHER post  ← bug!
+Without PRG:
+  Browser                    Server
+    │─── POST /posts/create ──▶│  Creates post, returns HTML
+    │◀── 200 OK (HTML page) ───│
+    │
+    │  (user presses F5)
+    │─── POST /posts/create ──▶│  Creates ANOTHER post  ← bug!
 ```
 
-**PRG fix:** after a successful POST, **redirect** to a GET:
+---
+
+# The POST-Redirect-GET Pattern — The Fix
+
+**PRG fix:** after a successful POST, respond with a **redirect**, not an HTML page.  
+The browser then follows the redirect with a GET. F5 replays the GET — harmless.
+
+```
+With PRG:
+  Browser                    Server
+    │─── POST /posts/create ──▶│  Creates post
+    │◀── 302 redirect ─────────│
+    │─── GET  /posts/hello/ ──▶│  Fetches detail page
+    │◀── 200 OK (HTML page) ───│
+    │
+    │  (user presses F5)
+    │─── GET  /posts/hello/ ──▶│  Fetches same page — no duplicate
+```
 
 ```python
 def post_create(request):
@@ -900,8 +984,7 @@ def post_create(request):
     return render(request, "blog/post_form.html", {"form": form})
 ```
 
-Now F5 just re-requests the detail page (GET) — harmless.  
-Always redirect after a successful POST. This is one of the most important web patterns.
+Always redirect after a successful POST. This is one of the most important patterns in web development.
 
 ---
 
@@ -926,6 +1009,7 @@ def post_create(request):
 ```
 
 Use cases for `commit=False`:
+
 - Set `author` / `owner` from `request.user` (never expose this as a form field)
 - Compute derived fields (e.g., `slug` from `title`)
 - Set server-side metadata (IP, user-agent)
@@ -1005,245 +1089,26 @@ Keep the `value="{{ request.GET.q }}"` on the input so the search term stays vis
 
 ---
 
-# The N+1 Problem
-
-Fetching a list, then hitting the DB *again* for each row = **N+1 queries**.
-
-```python
-# views.py
-posts = Post.objects.filter(published=True)[:20]   # 1 query
-```
-
-```html
-<!-- template -->
-{% for post in posts %}
-  {{ post.category.name }}   {# ← 1 extra query PER post! #}
-{% endfor %}
-```
-
-With 20 posts → **21 queries**. With 1 000 posts → **1 001 queries**.  
-The template looks innocent but is silently hammering the database.
-
----
-
-# `select_related` — SQL JOIN
-
-Use when traversing a **ForeignKey** or **OneToOneField** in a loop.
-
-```python
-# 1 query: SELECT post.*, category.* FROM blog_post
-#          INNER JOIN blog_category ON ...
-posts = Post.objects.filter(published=True).select_related("category")[:20]
-```
-
-You can chain multiple levels:
-
-```python
-# Post → Category → ParentCategory  (two JOINs, still 1 query)
-Post.objects.select_related("category__parent")
-```
-
-**When to use it:**
-- FK / OneToOne relationships
-- You *know* you will always access the related object
-- Small-to-medium number of related rows
-
-**When NOT to use it:**
-- Reverse FK (many side) — use `prefetch_related` instead
-- ManyToMany — use `prefetch_related` instead
-
----
-
-# `prefetch_related` — Separate Query + Python Join
-
-Use for **reverse ForeignKey** (all comments for a post) and **ManyToMany**.
-
-```python
-# 2 queries total:
-#   1) SELECT * FROM blog_post WHERE published = 1
-#   2) SELECT * FROM blog_comment WHERE post_id IN (1, 2, 3, …)
-#      → Django stitches results together in Python
-posts = Post.objects.filter(published=True).prefetch_related("comments")[:20]
-```
-
-Access in the template — zero extra queries:
-
-```html
-{% for post in posts %}
-  {% for comment in post.comments.all %}
-    {{ comment.author }}: {{ comment.body }}
-  {% endfor %}
-{% endfor %}
-```
-
-**Custom prefetch with `Prefetch` object** — filter the related set:
-
-```python
-from django.db.models import Prefetch
-
-active_comments = Comment.objects.filter(active=True)
-posts = Post.objects.prefetch_related(
-    Prefetch("comments", queryset=active_comments, to_attr="active_comments")
-)
-# post.active_comments ← pre-filtered list, no extra queries
-```
-
----
-
-# Advanced Filtering — `F`, `annotate`, `aggregate`
-
-**`F()` expressions** — reference another column without fetching the row:
-
-```python
-from django.db.models import F
-
-# Posts where view_count > like_count (two columns, no Python loop)
-Post.objects.filter(view_count__gt=F("like_count"))
-
-# Increment a counter atomically (avoids race conditions)
-Post.objects.filter(pk=post.pk).update(view_count=F("view_count") + 1)
-```
-
-**`annotate()`** — add a computed column to each row:
-
-```python
-from django.db.models import Count
-
-# Each category gets a post_count attribute
-categories = Category.objects.annotate(post_count=Count("posts"))
-# Template: {{ cat.post_count }} posts
-```
-
-**`aggregate()`** — compute a single value across the whole QuerySet:
-
-```python
-from django.db.models import Avg, Max, Sum
-
-Post.objects.aggregate(avg_len=Avg("body_length"), latest=Max("pub_date"))
-# → {"avg_len": 342.5, "latest": datetime(...)}
-```
-
-**Chaining filters** — each `filter()` call narrows the QuerySet:
-
-```python
-Post.objects.filter(published=True) \
-            .filter(pub_date__year=2024) \
-            .exclude(category__name="Draft") \
-            .order_by("-pub_date")[:10]
-```
-
----
-
-# Django Debug Toolbar
-
-The **Django Debug Toolbar** adds an in-browser panel showing:
-
-- Number of SQL queries (and their actual SQL)
-- Request / response headers
-- Template rendering time and context variables
-- Cache hits / misses
-- Signal calls
-
-**Install:**
-
-```bash
-uv add django-debug-toolbar
-```
-
-**Configure `settings.py`:**
-
-```python
-INSTALLED_APPS += ["debug_toolbar"]
-MIDDLEWARE  = ["debug_toolbar.middleware.DebugToolbarMiddleware"] + MIDDLEWARE
-INTERNAL_IPS = ["127.0.0.1"]   # toolbar only shows for these IPs
-```
-
-**Wire up `urls.py` (project-level):**
-
-```python
-from django.conf import settings
-
-if settings.DEBUG:
-    import debug_toolbar
-    urlpatterns = [
-        path("__debug__/", include(debug_toolbar.urls)),
-    ] + urlpatterns
-```
-
-Now visit any page in dev — the toolbar appears on the right.  
-Open the **SQL** panel: every query, its duration, and a full stack trace.
-
----
-
 # Summary
 
 Today we covered the full Django data layer:
 
 | Topic | Key takeaway |
 |---|---|
+| **Schema design** | One entity = one table; normalise by storing each fact once |
 | **Models** | Subclass `models.Model`; each attribute is a column |
 | **Field types** | `CharField`, `TextField`, `BooleanField`, `DateTimeField`, `ForeignKey` |
-| **Migrations** | `makemigrations` → generates file; `migrate` → applies to DB |
+| **Migrations** | Version control for schema: `makemigrations` → file; `migrate` → DB |
 | **Admin** | Register with `@admin.register`; customise with `ModelAdmin` |
 | **ORM queries** | `filter()`, `exclude()`, `get()`, field lookups with `__` |
 | **Q objects** | Complex OR/AND/NOT queries without raw SQL |
-| **Forms** | `ModelForm` derives fields from your model automatically |
+| **Forms as trust boundaries** | `request.POST` is untrusted; `cleaned_data` is validated Python |
+| **Validation layers** | DB constraints → model validators → form validators |
+| **ModelForm** | Derives fields from your model automatically |
 | **Validation** | `is_valid()` → `cleaned_data`; override `clean_<field>()` for custom rules |
-| **CSRF** | Always add `{% csrf_token %}` to POST forms |
-| **PRG** | Redirect after successful POST to prevent duplicate submissions |
+| **CSRF** | Secret token in form blocks cross-site forged POSTs; always `{% csrf_token %}` |
+| **PRG** | Redirect after successful POST — universal web pattern, not Django-specific |
 | **N+1** | Use `select_related` (FK/O2O JOIN) or `prefetch_related` (reverse FK/M2M) |
 | **F / annotate** | Column-level expressions and per-row computed values without Python loops |
 | **aggregate** | Whole-QuerySet computation — `Count`, `Avg`, `Max`, `Sum` |
 | **Debug Toolbar** | Install `django-debug-toolbar`; SQL panel shows every query + duration |
-
----
-
-# Lab 5 Preview
-
-## Build a Blog with Models, Admin & Forms
-
-You will:
-
-1. **Define models** — `Category` and `Post` with a `ForeignKey` relationship
-2. **Run migrations** — create the schema with `makemigrations` + `migrate`
-3. **Register in admin** — add `list_display`, `search_fields`, `prepopulated_fields`
-4. **Write ORM queries** — list published posts, filter by category, search by keyword
-5. **Create a `PostForm`** with `ModelForm`, custom slug validation, and `{% csrf_token %}`
-6. **Implement PRG** — redirect to detail view after successful creation
-7. **Add a search form** (GET) — filter posts by title/body without CSRF
-8. **Install Django Debug Toolbar** — count queries on the list page
-9. **Fix N+1** — add `select_related("category")` and `prefetch_related("comments")` to QuerySets
-
-**Starter repo:** `labs/lab5/` in the course repository.
-
-```bash
-cd labs/lab5
-uv run python manage.py migrate
-uv run python manage.py createsuperuser
-uv run python manage.py runserver
-```
-
----
-
-# Questions?
-
-## Topics covered today
-
-- Django models and field types
-- Migrations (`makemigrations`, `migrate`, `sqlmigrate`)
-- Django Admin (`@admin.register`, `ModelAdmin`)
-- ORM: QuerySets, field lookups, `Q` objects, `select_related`, `prefetch_related`
-- `F()` expressions, `annotate()`, `aggregate()`
-- Django Debug Toolbar
-- `get_object_or_404`
-- `ModelForm`, `is_valid()`, `cleaned_data`, custom validators
-- CSRF protection and `{% csrf_token %}`
-- POST-Redirect-GET pattern
-- `form.save(commit=False)`
-- Rendering forms manually in templates
-- GET search forms
-
-**Next lecture:** Django — Class-Based Views, URL namespaces, and Authentication
-
----
-{% endraw %}

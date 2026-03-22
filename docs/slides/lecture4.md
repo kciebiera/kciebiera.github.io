@@ -13,6 +13,7 @@ style: |
 {% raw %}
 
 # Lecture 4
+
 ## Django — Views, URLs & Templates
 
 **WWW 25/26**
@@ -36,6 +37,7 @@ raw = conn.recv(4096).decode()
 ```
 
 Every project would have to solve the same problems from scratch:
+
 - Parsing request headers, query strings, cookies
 - Routing URLs to the right handler
 - Escaping output to prevent XSS
@@ -69,6 +71,7 @@ Django is a **batteries-included** web framework for Python.
 <div>
 
 **Django**
+
 - URL routing ✓
 - ORM (database) ✓
 - Templating engine ✓
@@ -81,6 +84,7 @@ Django is a **batteries-included** web framework for Python.
 <div>
 
 **Flask / FastAPI**
+
 - URL routing ✓
 - ORM: choose your own
 - Templates: choose your own
@@ -139,6 +143,7 @@ uv run django-admin startproject mysite .
 The `.` at the end places files in the current directory instead of a nested folder.
 
 **Resulting structure:**
+
 ```
 mysite/
     manage.py          ← project CLI
@@ -162,6 +167,7 @@ mysite/
 | `wsgi.py` / `asgi.py` | Entry points for production servers (gunicorn, uvicorn) |
 
 **Create your first app inside the project:**
+
 ```bash
 uv run python manage.py startapp blog
 ```
@@ -303,6 +309,7 @@ Result: `Hello from Django 5!`
 Every URL in your site must appear in a `urlpatterns` list somewhere.
 
 **Root `mysite/urls.py`:**
+
 ```python
 from django.contrib import admin
 from django.urls import path, include
@@ -315,6 +322,7 @@ urlpatterns = [
 ```
 
 **App-level `blog/urls.py`:**
+
 ```python
 from django.urls import path
 from . import views
@@ -377,6 +385,7 @@ blog/views.py           def post_detail(request, pk): …
 ```
 
 **Root `mysite/urls.py` — routes per app:**
+
 ```python
 urlpatterns = [
     path("admin/",    admin.site.urls),
@@ -387,7 +396,12 @@ urlpatterns = [
 ]
 ```
 
+---
+
+# Multi-App URL Routing — The Cascade
+
 **Each app's `urls.py` declares its own `app_name`:**
+
 ```python
 # blog/urls.py
 app_name = "blog"   # namespace prefix
@@ -424,6 +438,10 @@ urlpatterns = [
 | `slug` | Letters, numbers, hyphens, underscores | `my-post` |
 | `uuid` | UUID format | `075194d3-6885-417e-a8a8-6c931e272f00` |
 | `path` | Any string including `/` | `images/2024/photo.jpg` |
+
+---
+
+# URL Parameters — Capturing Values
 
 Captured values are passed as **keyword arguments** to the view function:
 
@@ -470,12 +488,14 @@ def contact(request):
 Django templates use two kinds of special markup:
 
 **Variables** — `{{ variable }}` outputs a value:
+
 ```html
 <h1>{{ post.title }}</h1>
 <p>By {{ post.author.username }} on {{ post.created_at }}</p>
 ```
 
 **Tags** — `{% tag %}` control logic or load features:
+
 ```html
 {% if user.is_authenticated %}
   <p>Welcome, {{ user.username }}!</p>
@@ -487,6 +507,7 @@ Django templates use two kinds of special markup:
 ```
 
 **Comments** — never rendered, not sent to the browser:
+
 ```html
 {# This is a single-line comment #}
 
@@ -574,6 +595,7 @@ Hard-coding URLs in templates is fragile. Use `{% url %}` to generate URLs by na
 Django looks up the named URL pattern and builds the correct URL — if you ever change the URL pattern, all `{% url %}` tags automatically update.
 
 **In Python code**, use `reverse()` for the same thing:
+
 ```python
 from django.urls import reverse
 
@@ -613,6 +635,7 @@ If you change the nav, you must edit *every* template.
 # Template Inheritance — `{% extends %}` and `{% block %}`
 
 **`templates/base.html`** — the parent layout:
+
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -632,6 +655,7 @@ If you change the nav, you must edit *every* template.
 ```
 
 **`templates/blog/post_list.html`** — a child template:
+
 ```html
 {% extends "base.html" %}
 
@@ -708,6 +732,7 @@ The included template shares the current context automatically. Use `with` to pa
 ```
 
 **Typical use cases:**
+
 - Navigation bar shared between layouts
 - Post/product card used in lists
 - Pagination controls
@@ -720,6 +745,7 @@ The included template shares the current context automatically. Use `with` to pa
 Static files (CSS, JavaScript, images) are served separately from templates.
 
 **`settings.py`:**
+
 ```python
 STATIC_URL = "/static/"
 # optional: extra directories to search
@@ -727,6 +753,7 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 ```
 
 **Directory convention:**
+
 ```
 blog/
     static/
@@ -736,6 +763,7 @@ blog/
 ```
 
 **In a template** — always use `{% load static %}` first:
+
 ```html
 {% load static %}
 <!DOCTYPE html>
@@ -801,6 +829,7 @@ def post_list(request):
 ```
 
 In the template:
+
 ```html
 <h1>{{ page_title }}</h1>
 <p>{{ count }} post(s) found.</p>
@@ -839,6 +868,7 @@ return HttpResponse(html_string, content_type="text/html; charset=utf-8")
 ```
 
 `render()` also accepts an optional `status` argument:
+
 ```python
 return render(request, "404.html", status=404)
 return render(request, "blog/form.html", context, status=422)
@@ -887,6 +917,7 @@ STATIC_URL = "/static/"
 For Django to find templates inside your app, two things must be true:
 
 **1. Your app must be in `INSTALLED_APPS`:**
+
 ```python
 INSTALLED_APPS = [
     ...
@@ -895,6 +926,7 @@ INSTALLED_APPS = [
 ```
 
 **2. Your template must be in `app/templates/app/template.html`:**
+
 ```
 blog/
     templates/
@@ -926,6 +958,7 @@ No patterns matched the URL path: 'bolg/'
 ```
 
 **Common causes:**
+
 - Typo in the URL (note: `bolg/` vs `blog/`)
 - Forgot to `include("blog.urls")` in the root `urls.py`
 - Forgot to add a trailing slash (`/blog` instead of `/blog/`)
@@ -945,6 +978,7 @@ Reverse for 'post-detail' with keyword arguments '{'pk': 1}' not found.
 ```
 
 **Checklist:**
+
 ```python
 # 1. Is app_name set in blog/urls.py?
 app_name = "blog"
@@ -970,6 +1004,7 @@ When a template variable is missing, Django **silently outputs an empty string**
 During development, make missing variables loud:
 
 **`settings.py`:**
+
 ```python
 TEMPLATES = [{
     ...
@@ -983,6 +1018,7 @@ TEMPLATES = [{
 Now `{{ typo_variable }}` renders as `MISSING: typo_variable` — easy to spot.
 
 **Django's 500 debug page** shows:
+
 - Full Python traceback with local variables
 - Template file path and line number where the error occurred
 - All context variables passed to the template
@@ -995,6 +1031,7 @@ Only visible when `DEBUG = True` — in production it shows a generic 500 page.
 # Template Debugging — Tips
 
 **Inspect the context from inside the template:**
+
 ```html
 {% comment %}Debug block — remove before commit{% endcomment %}
 <pre>{{ request.user }}</pre>
@@ -1002,6 +1039,7 @@ Only visible when `DEBUG = True` — in production it shows a generic 500 page.
 ```
 
 **Use `{% debug %}` tag to dump all context variables:**
+
 ```html
 {% if debug %}
   {% debug %}
@@ -1009,6 +1047,7 @@ Only visible when `DEBUG = True` — in production it shows a generic 500 page.
 ```
 
 **Django shell — test view logic interactively:**
+
 ```python
 uv run python manage.py shell
 
@@ -1054,6 +1093,7 @@ True
 # A Complete Example — Blog Post List
 
 **`blog/views.py`:**
+
 ```python
 from django.shortcuts import render, get_object_or_404
 from .models import Post
@@ -1067,7 +1107,12 @@ def post_detail(request, pk):
     return render(request, "blog/post_detail.html", {"post": post})
 ```
 
+---
+
+# A Complete Example — Blog Post List
+
 **`blog/urls.py`:**
+
 ```python
 from django.urls import path
 from . import views
@@ -1080,6 +1125,7 @@ urlpatterns = [
 ```
 
 **`mysite/urls.py`:**
+
 ```python
 from django.urls import path, include
 urlpatterns = [
@@ -1092,6 +1138,7 @@ urlpatterns = [
 # A Complete Example — Templates
 
 **`templates/blog/post_list.html`:**
+
 ```html
 {% extends "base.html" %}
 {% block title %}Blog — My Site{% endblock %}
@@ -1110,6 +1157,7 @@ urlpatterns = [
 ```
 
 **`templates/blog/post_detail.html`:**
+
 ```html
 {% extends "base.html" %}
 {% block title %}{{ post.title }} — My Site{% endblock %}
@@ -1200,6 +1248,7 @@ def create_post(request):
 ```
 
 `redirect()` accepts:
+
 ```python
 redirect("/blog/")                          # hard-coded URL
 redirect("blog:post-list")                  # named URL (no args)
@@ -1217,12 +1266,14 @@ Returns `HttpResponseRedirect` (302) by default; pass `permanent=True` for 301.
 <div>
 
 **Core concepts**
+
 - Framework = reusable HTTP plumbing
 - MVT: Model · View · Template
 - `manage.py` — developer CLI
 - Request/response cycle
 
 **Views**
+
 - `HttpResponse` — raw response
 - `render()` — template + context
 - `get_object_or_404` — safe fetch
@@ -1232,6 +1283,7 @@ Returns `HttpResponseRedirect` (302) by default; pass `permanent=True` for 301.
 <div>
 
 **URLs**
+
 - `urlpatterns` + `path()`
 - `include()` for app URL files
 - Multiple apps: `pages/`, `blog/`, `shop/` …
@@ -1240,6 +1292,7 @@ Returns `HttpResponseRedirect` (302) by default; pass `permanent=True` for 301.
 - `{% url %}` / `reverse()`
 
 **Templates**
+
 - `{{ var }}` and `{% tag %}`
 - Filters: `|date`, `|truncatewords` …
 - Inheritance: `extends` / `block`
