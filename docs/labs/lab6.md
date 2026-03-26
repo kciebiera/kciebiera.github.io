@@ -10,7 +10,7 @@ render_with_liquid: false
 
 Anyone on the internet can currently post comments and read all content. Production apps need **authentication** (who are you?) and **authorisation** (what are you allowed to do?). Django ships a complete auth system — user accounts, sessions, password hashing, and permissions — all ready to use.
 
-The Goal: Restrict post creation to logged-in users. Implement registration, login, logout, and a user profile page. Understand how sessions work under the hood.
+The Goal: Protect selected views with authentication, restrict post creation to staff users, and implement registration, login, logout, and a user profile page. Understand how sessions work under the hood.
 
 ### The Theory
 
@@ -35,6 +35,11 @@ uv run python manage.py startapp accounts
 Register it in `settings.py` and add two URL settings:
 
 ```python
+INSTALLED_APPS = [
+    ...
+    "accounts",
+]
+
 LOGIN_URL          = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
@@ -90,12 +95,12 @@ def register(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)         # log in immediately after registration
+            login(request, user, backend="django.contrib.auth.backends.ModelBackend")
             return redirect("home")
     return render(request, "accounts/register.html", {"form": form})
 ```
 
-Create `accounts/templates/accounts/register.html` extending `base.html` with the form and `{% csrf_token %}`.
+Create `accounts/templates/accounts/register.html` extending `pages/base.html` with the form and `{% csrf_token %}`.
 
 ## Phase 2: Login and Logout
 
@@ -109,11 +114,14 @@ from django.contrib.auth import views as auth_views
 from . import views
 
 urlpatterns = [
-    path("register/", views.register,                                       name="register"),
-    path("login/",    auth_views.LoginView.as_view(
-                          template_name="accounts/login.html"),             name="login"),
-    path("logout/",   auth_views.LogoutView.as_view(),                      name="logout"),
-    path("profile/",  views.profile,                                        name="profile"),
+    path("register/", views.register, name="register"),
+    path(
+        "login/",
+        auth_views.LoginView.as_view(template_name="accounts/login.html"),
+        name="login",
+    ),
+    path("logout/", auth_views.LogoutView.as_view(), name="logout"),
+    path("profile/", views.profile, name="profile"),
 ]
 ```
 
@@ -146,12 +154,7 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 def profile(request):
-    comment_count = request.user.comment_set.count() \
-        if hasattr(request.user, "comment_set") else 0
-    return render(request, "accounts/profile.html", {
-        "user": request.user,
-        "comment_count": comment_count,
-    })
+    return render(request, "accounts/profile.html", {"user": request.user})
 ```
 
 `@login_required` redirects unauthenticated users to `LOGIN_URL` automatically.
@@ -159,7 +162,9 @@ def profile(request):
 Create `accounts/templates/accounts/profile.html` displaying:
 - `user.username`, `user.email`
 - `user.date_joined|date:"d M Y"`
-- The comment count
+- `user.is_staff`
+
+> In Lab 5, comments are anonymous (`author`, `email`, `body`) and are not linked to Django's `User` model yet, so a per-user comment count would require an extra schema change.
 
 🧪 Log out, then visit `/accounts/profile/` directly. You should be redirected to the login page. After login, you return to `/accounts/profile/`.
 
@@ -200,8 +205,14 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 @user_passes_test(lambda u: u.is_staff)
 def post_create(request):
     # TODO: build a PostForm (ModelForm for Post with fields title, slug, body, category)
-    # Handle GET (empty form) and POST (save + redirect to post_detail)
+    # Handle GET (empty form) and POST (save + redirect to blog:post-detail)
     pass
+```
+
+Add a URL in `blog/urls.py`:
+
+```python
+path("new/", views.post_create, name="post-create"),
 ```
 
 🧪 Log in as a regular user and try visiting `/blog/new/`. You should get a redirect to the login page (or a 403 if you customise `raise_exception=True` on `user_passes_test`).
@@ -235,6 +246,8 @@ AUTHENTICATION_BACKENDS = [
     "allauth.account.auth_backends.AuthenticationBackend", # social login
 ]
 
+MIDDLEWARE += ["allauth.account.middleware.AccountMiddleware"]
+
 LOGIN_REDIRECT_URL  = "/"
 LOGOUT_REDIRECT_URL = "/"
 
@@ -254,13 +267,20 @@ Add `import os` at the top of `settings.py`.
 
 ### Wire up URLs
 
-In `mysite/urls.py`, replace or supplement the `accounts/` include:
+Keep the top-level `path("accounts/", include("accounts.urls"))` route in `mysite/urls.py`, but update `accounts/urls.py` so your custom pages (`register/`, `profile/`) live alongside allauth's built-in login/logout/social routes:
 
 ```python
-path("accounts/", include("allauth.urls")),
+from django.urls import include, path
+from . import views
+
+urlpatterns = [
+    path("", include("allauth.urls")),
+    path("register/", views.register, name="register"),
+    path("profile/", views.profile, name="profile"),
+]
 ```
 
-> This provides `/accounts/login/`, `/accounts/logout/`, and the social callback `/accounts/github/login/callback/` automatically.
+> This keeps your custom routes while letting allauth provide `/accounts/login/`, `/accounts/logout/`, and `/accounts/github/login/callback/`.
 
 Apply the new migrations:
 
@@ -303,13 +323,20 @@ from dotenv import load_dotenv
 load_dotenv()
 ```
 
-### Add the Login button to your template
+### Update the auth links in your template
 
-In `pages/templates/pages/base.html`, add alongside your existing login link:
+In `pages/templates/pages/base.html`, update the auth part of the nav:
 
 ```html
 {% load socialaccount %}
-{% if not user.is_authenticated %}
+{% if user.is_authenticated %}
+    <span>Hello, {{ user.username }}</span>
+    <a href="{% url 'profile' %}">Profile</a>
+    <form method="POST" action="{% url 'account_logout' %}" style="display:inline">
+        {% csrf_token %}
+        <button type="submit">Logout</button>
+    </form>
+{% else %}
     <a href="{% url 'account_login' %}">Login</a>
     <a href="{% url 'register' %}">Register</a>
     <a href="{% provider_login_url 'github' %}">Login with GitHub</a>
