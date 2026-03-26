@@ -1,10 +1,10 @@
 ---
+layout: "default"
 title: "Wykład 2: Prawdopodobieństwo warunkowe"
 source_url: "http://smurf.mimuw.edu.pl/node/707"
 source_kind: "html"
+uses_math: true
 ---
-
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
 
 # Wykład 2: Prawdopodobieństwo warunkowe
 

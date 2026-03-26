@@ -1,10 +1,10 @@
 ---
+layout: "default"
 title: "Ćwiczenia 3: Niezależność zdarzeń"
 source_url: "http://smurf.mimuw.edu.pl/node/283"
 source_kind: "html"
+uses_math: true
 ---
-
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
 
 # Ćwiczenia 3: Niezależność zdarzeń
 

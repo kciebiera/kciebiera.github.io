@@ -1,10 +1,10 @@
 ---
+layout: "default"
 title: "Wykład 8: Łańcuchy Markowa"
 source_url: "http://smurf.mimuw.edu.pl/node/713"
 source_kind: "html"
+uses_math: true
 ---
-
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
 
 # Wykład 8: Łańcuchy Markowa
 

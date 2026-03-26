@@ -1,7 +1,9 @@
 ---
+layout: "default"
 title: "Wykłady"
 source_url: "http://smurf.mimuw.edu.pl/node/1179"
 source_kind: "html"
+uses_math: false
 ---
 
 # Wykłady

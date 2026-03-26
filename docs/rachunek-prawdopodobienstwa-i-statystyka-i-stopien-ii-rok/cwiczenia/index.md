@@ -1,7 +1,9 @@
 ---
+layout: "default"
 title: "Ćwiczenia"
 source_url: "http://smurf.mimuw.edu.pl/node/1180"
 source_kind: "html"
+uses_math: false
 ---
 
 # Ćwiczenia

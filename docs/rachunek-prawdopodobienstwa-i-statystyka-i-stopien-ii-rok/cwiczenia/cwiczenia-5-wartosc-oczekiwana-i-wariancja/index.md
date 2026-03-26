@@ -1,10 +1,10 @@
 ---
+layout: "default"
 title: "Ćwiczenia 5: Wartość oczekiwana i wariancja"
 source_url: "http://smurf.mimuw.edu.pl/node/539"
 source_kind: "html"
+uses_math: true
 ---
-
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
 
 # Ćwiczenia 5: Wartość oczekiwana i wariancja
 
