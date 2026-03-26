@@ -10,6 +10,7 @@ style: |
   .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
   code { background: #f5f5f5; padding: 0.1em 0.3em; border-radius: 3px; }
 ---
+{% raw %}
 
 # Lecture 5
 
@@ -1112,3 +1113,5 @@ Today we covered the full Django data layer:
 | **F / annotate** | Column-level expressions and per-row computed values without Python loops |
 | **aggregate** | Whole-QuerySet computation — `Count`, `Avg`, `Max`, `Sum` |
 | **Debug Toolbar** | Install `django-debug-toolbar`; SQL panel shows every query + duration |
+
+{% endraw %}
