@@ -37,13 +37,15 @@ Browser GET /post/slug/   → server sends updated page
 
 ## Setup
 
-Create a new app for the blog:
+Continue with the `blog` app you created in Lab 4. In this lab you will replace the in-memory `POSTS` data with real database models and switch the detail route to use a slug instead of an integer `pk`.
+
+If you did not finish Lab 4 Phase 5, create the app now:
 
 ```bash
 uv run python manage.py startapp blog
 ```
 
-Register it in `settings.py`:
+Make sure it is registered in `mysite/settings.py`:
 
 ```python
 INSTALLED_APPS = [
@@ -72,7 +74,7 @@ class Post(models.Model):
     body     = models.TextField()
     pub_date = models.DateTimeField(auto_now_add=True)
     # TODO: Add a ForeignKey to Category, with on_delete=models.SET_NULL,
-    #       null=True, blank=True
+    #       null=True, blank=True, related_name="posts"
 
     class Meta:
         ordering = ["-pub_date"]   # newest first
@@ -178,14 +180,16 @@ Create `blog/urls.py`:
 from django.urls import path
 from . import views
 
+app_name = "blog"
+
 urlpatterns = [
     path("",                      views.post_list,     name="post-list"),
     path("post/<slug:slug>/",     views.post_detail,   name="post-detail"),
-    # TODO: path for "category/<slug:slug>/" → category_posts
+    # TODO: path("category/<slug:slug>/", views.category_posts, name="category-posts")
 ]
 ```
 
-Include it in `mysite/urls.py`: `path("blog/", include("blog.urls"))`.
+Include it in `mysite/urls.py` (same as in Lab 4): `path("blog/", include("blog.urls"))`.
 
 Create `blog/templates/blog/post_list.html` extending `pages/base.html`:
 
@@ -203,7 +207,7 @@ Create `blog/templates/blog/post_list.html` extending `pages/base.html`:
     <h3>Categories</h3>
     <ul>
         {% for cat in categories %}
-        <li><a href="{% url 'category-posts' cat.slug %}">{{ cat.name }}</a></li>
+        <li><a href="{% url 'blog:category-posts' cat.slug %}">{{ cat.name }}</a></li>
         {% endfor %}
     </ul>
 </aside>
@@ -211,7 +215,7 @@ Create `blog/templates/blog/post_list.html` extending `pages/base.html`:
 <section>
     {% for post in posts %}
     <article>
-        <h2><a href="{% url 'post-detail' post.slug %}">{{ post.title }}</a></h2>
+        <h2><a href="{% url 'blog:post-detail' post.slug %}">{{ post.title }}</a></h2>
         <small>{{ post.pub_date|date:"d M Y" }}</small>
         <p>{{ post.body|truncatewords:30 }}</p>
     </article>
@@ -283,7 +287,7 @@ def post_detail(request, slug):
             comment.post = post
             comment.save()
             # TODO: Redirect to the same URL (PRG pattern):
-            # return redirect("post-detail", slug=post.slug)
+            # return redirect("blog:post-detail", slug=post.slug)
             pass
 
     return render(request, "blog/post_detail.html", {
@@ -300,12 +304,14 @@ Create `blog/templates/blog/post_detail.html`:
 {% block content %}
 <article>
     <h1>{{ post.title }}</h1>
-    <small>{{ post.pub_date|date:"d M Y" }} — {{ post.category.name }}</small>
+    <small>
+        {{ post.pub_date|date:"d M Y" }}{% if post.category %} — {{ post.category.name }}{% endif %}
+    </small>
     <div>{{ post.body|linebreaks }}</div>
 </article>
 
 <section id="comments">
-    <h2>{{ comments.count }} comment{{ comments.count|pluralize }}</h2>
+    <h2>{{ comments|length }} comment{{ comments|length|pluralize }}</h2>
     {% for comment in comments %}
     <div class="comment">
         <strong>{{ comment.author }}</strong>
@@ -336,7 +342,7 @@ Create `blog/templates/blog/post_detail.html`:
     </form>
 </section>
 
-<p><a href="{% url 'post-list' %}">← All Posts</a></p>
+<p><a href="{% url 'blog:post-list' %}">← All Posts</a></p>
 {% endblock %}
 ```
 
@@ -377,7 +383,7 @@ if settings.DEBUG:
 Look at the SQL panel on the post list page. You will see something like:
 
 ```
-SELECT * FROM blog_post WHERE published = 1  — 1 query
+SELECT * FROM blog_post  — 1 query
 SELECT * FROM blog_category WHERE id = 1     — for post 1
 SELECT * FROM blog_category WHERE id = 2     — for post 2
 …
@@ -389,7 +395,7 @@ One extra query per post — the N+1 problem.
 
 ```python
 def post_list(request):
-    posts = Post.objects.filter(published=True).select_related("category")
+    posts = Post.objects.select_related("category")
     # Now: 1 JOIN query instead of N+1
     categories = Category.objects.all()
     return render(request, "blog/post_list.html", {
@@ -410,8 +416,7 @@ from django.db.models import Count
 
 def post_list(request):
     posts = (
-        Post.objects.filter(published=True)
-        .select_related("category")
+        Post.objects.select_related("category")
         .annotate(comment_count=Count("comments"))
     )
     ...
@@ -444,17 +449,21 @@ Open `uv run python manage.py shell` and try the following:
 
 ```python
 from blog.models import Post, Category
-from django.db.models import Count, F, Q
+from django.db.models import Avg, Count, F, Q
+from django.db.models.functions import Length
 
-# 1. All categories that have at least 2 published posts
+# 1. All categories that have at least 2 posts
 Category.objects.annotate(n=Count("posts")).filter(n__gte=2)
 
 # 2. Atomically increment a view counter (no race condition)
 Post.objects.filter(pk=1).update(view_count=F("view_count") + 1)
 
 # 3. Posts where title length is greater than body length
-#    (contrived, but shows F() across columns)
-Post.objects.filter(title__gt=F("body"))
+#    (contrived, but shows database functions + F())
+Post.objects.annotate(
+    title_length=Length("title"),
+    body_length=Length("body"),
+).filter(title_length__gt=F("body_length"))
 
 # 4. Complex OR + date filter
 Post.objects.filter(
@@ -463,8 +472,9 @@ Post.objects.filter(
 )
 
 # 5. Aggregate: average number of comments per post
-from django.db.models import Avg
-Post.objects.aggregate(avg_comments=Avg("comments__id"))
+Post.objects.annotate(comment_count=Count("comments")).aggregate(
+    avg_comments=Avg("comment_count")
+)
 ```
 
 **TODO:** Add a `view_count = models.PositiveIntegerField(default=0)` field to the `Post` model, run `makemigrations` + `migrate`, and update the `post_detail` view to increment it on every GET request using `F()`.
