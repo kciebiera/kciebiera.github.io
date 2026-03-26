@@ -36,11 +36,11 @@ Zmienną losową o rozkładzie ciągłym można opisać za pomocą więcej niż 
 
 Jaki jest sens funkcji gęstości? Załóżmy, że $I$ jest odcinkiem na tyle małym, że $f_X$ jest na nim niemal stała (znalezienie takiego przedziału może czasem być niemożliwe, ale nie będziemy się tym przejmować, szukamy tylko intuicji). Wtedy  
 
-$P(X \in I) = \int_I f_X(x) dx \approx |I| f_X(x)$,  
+$P(X \in I) = \int_I f_X(x) dx \approx \vert{}I\vert{} f_X(x)$,  
 
 dla dowolnego $x \in I$, czyli  
 
-$f_X(x) \approx \frac{P(X \in I)}{|I|}$.  
+$f_X(x) \approx \frac{P(X \in I)}{\vert{}I\vert{}}$.  
 
 Innymi słowy, $f_X(x)$ mówi nam jak dużo prawdopodobieństwa przypada na przedział długości $1$ w okolicy punktu $x$, czyli jest taką "lokalną gęstością prawdopodobieństwa" w okolicy punktu $x$, co tłumaczy nazwę.
 
@@ -149,7 +149,7 @@ Ten rozkład dobrze modeluje czas oczekiwania na zdarzenie, które ma cały czas
 
 Sprawdzimy teraz, że funkcja $f_X$ z definicji rozkładu wykładniczego rzeczywiście jest gęstością (t.j. ma całkę równą 1), a przy okazji znajdziemy dystrybuantę rozkładu wykładniczego. Dla dowolnego $a \ge 0$ mamy:  
 
-$\int_{a}^{\infty} f_X(t) dt = \int_a^\infty \theta e^{-\theta t}dt = \int_a^\infty - (e^{-\theta t})' dt = (-e^{-\theta t})|_a^\infty = 0 - (-e^{-\theta a}) = e^{-\theta a}$.
+$\int_{a}^{\infty} f_X(t) dt = \int_a^\infty \theta e^{-\theta t}dt = \int_a^\infty - (e^{-\theta t})' dt = (-e^{-\theta t})\vert{}_a^\infty = 0 - (-e^{-\theta a}) = e^{-\theta a}$.
 
 Stąd  
 
@@ -197,7 +197,7 @@ $I^2 = \int_0^\infty e^{-\frac{r^2}{2}} r dr$.
 
 Funkcja pod całką szczęśliwie (ale zgodnie z planem) jest pochodną funkcji $-e^{-\frac{r^2}{2}}$, a zatem  
 
-$I^2 = (-e^{-\frac{r^2}{2}})|_0^\infty = 0 - (-1) = 1$,  
+$I^2 = (-e^{-\frac{r^2}{2}})\vert{}_0^\infty = 0 - (-1) = 1$,  
 
 czyli $I=1$, co kończy obliczenia dla rozkładu $N(0,1)$.
 
@@ -279,7 +279,7 @@ Powyższe twierdzenie jest również prawdziwe dla zmiennych dyskretnych (niekon
 
 Spróbujmy policzyć wartość oczekiwaną zmiennej $X$ o rozkładzie jednostajnym $Unif(a,b)$  
 
-$EX = \int_a^b t \frac{1}{b-a} dt = (\frac{t^2}{2(b-a)})|_a^b = \frac{b^2-a^2}{2(b-a)} = \frac{a+b}{2}$,  
+$EX = \int_a^b t \frac{1}{b-a} dt = (\frac{t^2}{2(b-a)})\vert{}_a^b = \frac{b^2-a^2}{2(b-a)} = \frac{a+b}{2}$,  
 
 czyli bez niespodzianek.
 
@@ -287,7 +287,7 @@ czyli bez niespodzianek.
 
 Niech $X \sim Exp(\theta)$. Wtedy, korzystając z twierdzenia 7.15  i wcześniejszego obliczenia $F_X$ mamy  
 
-$EX = \int_0^\infty P(X \ge  t) dt = \int_0^\infty e^{-\theta t} dt = \int_0^\infty (-\frac{e^{-\theta t}}{\theta})' dt = (-\frac{e^{-\theta t}}{\theta})|_0^\infty = 0 - (-\frac{1}{\theta}) = \frac{1}{\theta}$.  
+$EX = \int_0^\infty P(X \ge  t) dt = \int_0^\infty e^{-\theta t} dt = \int_0^\infty (-\frac{e^{-\theta t}}{\theta})' dt = (-\frac{e^{-\theta t}}{\theta})\vert{}_0^\infty = 0 - (-\frac{1}{\theta}) = \frac{1}{\theta}$.  
 
 Można też oczywiście obliczyć wartość oczekiwaną wprost z definicji.
 
@@ -433,7 +433,7 @@ Jeśli zmienna ciągła $X$ ma wariancję, to $VarX = E(X^2) - (EX)^2$.
 
 Niech $X \sim Unif(a,b)$. Spróbujmy obliczyć $Var(X)$ korzystając ze wzoru $VarX = E(X^2) - (EX)^2$. Mamy  
 
-$E(X^2) = \int_{a}^b x^2 \frac{1}{b-a} dx = (\frac{x^3}{3(b-a)})|_a^b = \frac{b^3-a^3}{3(b-a)} = \frac{a^2+ab+b^2}{3}$.  
+$E(X^2) = \int_{a}^b x^2 \frac{1}{b-a} dx = (\frac{x^3}{3(b-a)})\vert{}_a^b = \frac{b^3-a^3}{3(b-a)} = \frac{a^2+ab+b^2}{3}$.  
 
 Ponadto wiemy już, że  
 
@@ -451,7 +451,7 @@ $E(X^2) = \int_{0}^\infty x^2 \theta e^{-\theta x} dx = \int_{0}^\infty x^2 (-e^
 
 Ze wzoru na całkowanie przez części dostajemy  
 
-$E(X^2) = (-x^2 e^{-\theta x})|_0^\infty + 2\int_{0}^\infty x e^{-\theta x} dx = 0-(-0) + 2 \frac{1}{\theta}EX = \frac{2}{\theta^2}$.  
+$E(X^2) = (-x^2 e^{-\theta x})\vert{}_0^\infty + 2\int_{0}^\infty x e^{-\theta x} dx = 0-(-0) + 2 \frac{1}{\theta}EX = \frac{2}{\theta^2}$.  
 
 Stąd  
 
@@ -477,11 +477,11 @@ Dowód pierwszego z tych twierdzeń pominiemy, drugie wynika z pierwszego w spos
 
 ### Prawdopodobieństwo warunkowe
 
-W prawdopodobieństwach warunkowych zdarzeń definiowanych przez zmienne ciągłe nie ma w większości przypadków niczego niezwykłego i możemy je obliczać standardowymi sposobami, korzystając ze znanych nam definicji. Dotyczy to na przykład prawdopodobieństw postaci $P(X \in A | B)$ czy $P(X \in A | Y \in B)$, o ile $P(Y \in B) > 0$.  Możemy też korzystając z definicji z wykładu o zmiennych dyskretnych zdefiniować *warunkowy rozkład ciągłej zmiennej losowej*
+W prawdopodobieństwach warunkowych zdarzeń definiowanych przez zmienne ciągłe nie ma w większości przypadków niczego niezwykłego i możemy je obliczać standardowymi sposobami, korzystając ze znanych nam definicji. Dotyczy to na przykład prawdopodobieństw postaci $P(X \in A \vert{} B)$ czy $P(X \in A \vert{} Y \in B)$, o ile $P(Y \in B) > 0$.  Możemy też korzystając z definicji z wykładu o zmiennych dyskretnych zdefiniować *warunkowy rozkład ciągłej zmiennej losowej*
 
-Nie jest jednak jasne co zrobić z prawdopodobieństwem warunkowym postaci $P(X \in A | Y = y)$. Z jednej strony możemy często chcieć obliczać wartość tego wyrażenia. Możemy na przykład chcieć zapytać o to jakie jest prawdopodobieństwo tego, że losowa osoba waży co najmniej 80kg, jeśli wiemy, że ma 180cm wzrostu, itp. Z drugiej strony, jeśli spróbujemy obliczyć wartość tego wyrażenia za pomocą znanej nam definicji, to otrzymamy iloraz  
+Nie jest jednak jasne co zrobić z prawdopodobieństwem warunkowym postaci $P(X \in A \vert{} Y = y)$. Z jednej strony możemy często chcieć obliczać wartość tego wyrażenia. Możemy na przykład chcieć zapytać o to jakie jest prawdopodobieństwo tego, że losowa osoba waży co najmniej 80kg, jeśli wiemy, że ma 180cm wzrostu, itp. Z drugiej strony, jeśli spróbujemy obliczyć wartość tego wyrażenia za pomocą znanej nam definicji, to otrzymamy iloraz  
 
-$P(X \in A | Y=y) = \frac{P(X \in A \wedge Y=y)}{P(Y=y)}$,  
+$P(X \in A \vert{} Y=y) = \frac{P(X \in A \wedge Y=y)}{P(Y=y)}$,  
 
 w którym zarówno licznik i jak i mianownik są równe 0.
 
@@ -489,21 +489,21 @@ w którym zarówno licznik i jak i mianownik są równe 0.
 
 Niech $X$ i $Y$ będą zmiennymi o łącznym rozkładzie ciągłym z gęstością $f_{X,Y}$ i niech $f_Y$ będzie gęstością $Y$. Jeśli  $y \in \mathbb{R}$ jest taki, że $f_Y(y) \neq 0$, to gęstością warunkową $X$ pod warunkiem $Y=y$ nazywamy funkcję  
 
-$f_{X|Y=y}(x) = \frac{f_{X,Y}(x,y)}{f_Y(y)}$.
+$f_{X\vert{}Y=y}(x) = \frac{f_{X,Y}(x,y)}{f_Y(y)}$.
 
 **Definicja (prawdopodobieństwo warunkowe)**  
 
 Przy założeniach jak wyżej i dla dowolnego mierzalnego $A \subseteq \mathbb{R}$, prawdopodobieństwem warunkowym $X \in A$ pod warunkiem $Y=y$ nazywamy  
 
-$P(X \in A | Y=y) = \int_A f_{X|Y=y}(x) dx$.
+$P(X \in A \vert{} Y=y) = \int_A f_{X\vert{}Y=y}(x) dx$.
 
-Zauważmy przede wszystkim, że $f_{X|Y=y}$ jest funkcją gęstości, t.j. całka z $f_{X|Y=y}$ po całej osi rzeczywistej wynosi $1$. Wynika to natychmiast z faktu 7.20.
+Zauważmy przede wszystkim, że $f_{X\vert{}Y=y}$ jest funkcją gęstości, t.j. całka z $f_{X\vert{}Y=y}$ po całej osi rzeczywistej wynosi $1$. Wynika to natychmiast z faktu 7.20.
 
-Dlaczego tak właśnie zostało zdefiniowane prawdopodobieństwo $P(X \in A | Y=y)$? Istnieją co najmniej 2 intuicyjne sposoby "wyprowadzenia" tej definicji. Po pierwsze: jeśli wiemy, że $Y=y_0$, to patrzymy na gęstość $f_{X,Y}(x,y)$ ograniczoną do $y=y_0$, czyli po prostu $f_{X,Y}(x,y_0)$. Chcielibyśmy użyć tej funkcji jako gęstości, ale nie całkuje się ona na $\mathbb{R}$ do 1. Łatwo to jednak naprawić skalując ją czynnikiem $f_Y(y)$.
+Dlaczego tak właśnie zostało zdefiniowane prawdopodobieństwo $P(X \in A \vert{} Y=y)$? Istnieją co najmniej 2 intuicyjne sposoby "wyprowadzenia" tej definicji. Po pierwsze: jeśli wiemy, że $Y=y_0$, to patrzymy na gęstość $f_{X,Y}(x,y)$ ograniczoną do $y=y_0$, czyli po prostu $f_{X,Y}(x,y_0)$. Chcielibyśmy użyć tej funkcji jako gęstości, ale nie całkuje się ona na $\mathbb{R}$ do 1. Łatwo to jednak naprawić skalując ją czynnikiem $f_Y(y)$.
 
-Drugie intuicyjne wyprowadzenie mogłoby wyglądać tak: skoro nie wiemy jak obliczyć $P(X \in A | Y=y)$, to obliczmy $P(X \in A | Y \in I_y)$ dla małego przedziału $I_y$ zawierającego $y$. Jeśli ten przedział jest na tyle mały, żeby zarówno $f_Y$ jak i $f_{X,Y}(x,y)$ dla każdego ustalone $x$ była na nim prawie stała (pomijamy to czy taki przedział musi istnieć, w końcu szukamy tylko intuicji), to dostajemy:  
+Drugie intuicyjne wyprowadzenie mogłoby wyglądać tak: skoro nie wiemy jak obliczyć $P(X \in A \vert{} Y=y)$, to obliczmy $P(X \in A \vert{} Y \in I_y)$ dla małego przedziału $I_y$ zawierającego $y$. Jeśli ten przedział jest na tyle mały, żeby zarówno $f_Y$ jak i $f_{X,Y}(x,y)$ dla każdego ustalone $x$ była na nim prawie stała (pomijamy to czy taki przedział musi istnieć, w końcu szukamy tylko intuicji), to dostajemy:  
 
-$P(X \in A | Y \in I_y) = \frac{\int_{s \in A} \int_{t \in I_y} f_{X,Y}(s,t) dt ds}{ \int_{t \in I_y} f_Y(t) dt} \approx \frac{\int_{s \in A} |I_y| f_{X,Y}(s,y)ds}{|I_y| f_Y(y)} = \int_{s \in A} \frac{f_{X,Y}(s,y)}{f_Y(y)} ds$,  
+$P(X \in A \vert{} Y \in I_y) = \frac{\int_{s \in A} \int_{t \in I_y} f_{X,Y}(s,t) dt ds}{ \int_{t \in I_y} f_Y(t) dt} \approx \frac{\int_{s \in A} \vert{}I_y\vert{} f_{X,Y}(s,y)ds}{\vert{}I_y\vert{} f_Y(y)} = \int_{s \in A} \frac{f_{X,Y}(s,y)}{f_Y(y)} ds$,  
 
 czyli dokładnie to czego się spodziewaliśmy.
 
@@ -513,7 +513,7 @@ Zdefiniowane przez nas prawdopodobieństwo warunkowe ma własności analogiczne 
 
 Jeśli $X,Y$ są ciągłe i łącznie ciągłe, a $A \subseteq \mathbb{R}$ jest mierzalny, to zachodzi  
 
-$P(X \in A) = \int_{-\infty}^{\infty} P(X\in A | Y=y)  f_Y(y) dy$.
+$P(X \in A) = \int_{-\infty}^{\infty} P(X\in A \vert{} Y=y)  f_Y(y) dy$.
 
 Dowód wynika natychmiast z definicji gęstości warunkowej.
 

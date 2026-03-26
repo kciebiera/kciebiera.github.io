@@ -46,7 +46,7 @@ Formalnie taką sytuację możemy modelować następująco:
 
 Łańcuchem Markowa o zbiorze stanów $S \subseteq \mathbb{R}$ nazywamy ciąg zmiennych losowych $X_0,X_1,X_2,\ldots$ taki, że  
 
-$P(X_n = x_n | X_{n-1} = x_{n-1} \wedge X_{n-2} = x_{n-2} \wedge \ldots \wedge X_0 = x_0 ) = P(X_n = x_n | X_{n-1} = x_{n-1}) = p_{x_{n-1},x_n}$ dla każdego $n > 0$ i ciągu stanów $x_0,x_1,\ldots,x_n \in S$.
+$P(X_n = x_n \vert{} X_{n-1} = x_{n-1} \wedge X_{n-2} = x_{n-2} \wedge \ldots \wedge X_0 = x_0 ) = P(X_n = x_n \vert{} X_{n-1} = x_{n-1}) = p_{x_{n-1},x_n}$ dla każdego $n > 0$ i ciągu stanów $x_0,x_1,\ldots,x_n \in S$.
 
 W tej definicji zmienna $X_t$ opisuje stan, w którym znajduje się łańcuch Markowa w chwili $t$. Intuicyjnie, warunek z definicji łańcucha Markowa mówi, że zmienna $X_t$ zależy tylko od zmiennej $X_{t-1}$. Co ważne, nie znaczy to, że $X_t$ jest niezależna od $X_0,\ldots,x_{t-2}$. Znaczy to jedynie tyle, że "cała zależność $X_t$ od $X_0,\ldots,X_{t-1}$ jest zawarta w zależności $X_t$ od $X_{t-1}$".
 
@@ -106,7 +106,7 @@ $\pi(t+s) = \pi(t) M^s$.
 
 Ze wzoru na prawdopodobieństwo całkowite mamy:  
 
-$P(X_{t+1} = a) = \sum_{b \in S} P(X_t = b) P(X_{t+1} = a | X_t = b) = \sum_{b \in S} \pi(t)_b M_{b,a}$,  
+$P(X_{t+1} = a) = \sum_{b \in S} P(X_t = b) P(X_{t+1} = a \vert{} X_t = b) = \sum_{b \in S} \pi(t)_b M_{b,a}$,  
 
 a to jest definicja mnożenia macierzy przez wektor (z lewej strony!).  
 
@@ -136,9 +136,9 @@ Interesuje nas obliczenie P(A).
 
 Ze wzoru na prawdopodobieństwo całkowite mamy  
 
-$P(A) = \sum_{c \in S} P(X_1 = c) P(A|X_1 =c) = \sum_{c \in S} p_{b,c} P(A|X_1 = c)$.  
+$P(A) = \sum_{c \in S} P(X_1 = c) P(A\vert{}X_1 =c) = \sum_{c \in S} p_{b,c} P(A\vert{}X_1 = c)$.  
 
-Łatwo zauważyć, że $P(A | X_1 = c) = f_{c,a}$ dla $c \neq a$ (zachęcamy czytelnika do uzasadnienia tego formalnie) oraz $P(A|X_1 = a) = 1$, skąd dostajemy tezę.
+Łatwo zauważyć, że $P(A \vert{} X_1 = c) = f_{c,a}$ dla $c \neq a$ (zachęcamy czytelnika do uzasadnienia tego formalnie) oraz $P(A\vert{}X_1 = a) = 1$, skąd dostajemy tezę.
 
 ---
 
@@ -254,9 +254,9 @@ $\mu_{b,a} = E(\tau)$.
 
 Ze wzoru na całkowitą wartość oczekiwaną mamy  
 
-$\mu_{b,a} = \sum_{c \in S} P(X_1 = c) E(\tau | X_1 = c) = \sum_{c \in S} p_{b,c} E(\tau | X_1 = c)$.  
+$\mu_{b,a} = \sum_{c \in S} P(X_1 = c) E(\tau \vert{} X_1 = c) = \sum_{c \in S} p_{b,c} E(\tau \vert{} X_1 = c)$.  
 
-Łatwo zauważyć, że $E(\tau | X_1 = c) = \mu_{c,a}+1$ dla $c \neq a$(zachęcamy czytelnika do uzasadnienia tego formalnie) oraz $E(\tau|X_1 = a) = 1$, skąd dostajemy tezę.
+Łatwo zauważyć, że $E(\tau \vert{} X_1 = c) = \mu_{c,a}+1$ dla $c \neq a$(zachęcamy czytelnika do uzasadnienia tego formalnie) oraz $E(\tau\vert{}X_1 = a) = 1$, skąd dostajemy tezę.
 
 ---
 
@@ -271,7 +271,7 @@ Postaramy się teraz opisać długookresowe zachowanie łańcucha Markowa. Dzię
 
 **Definicja (okresowość)**  
 
-Stan $a$ jest okresowy, jeśli istnieje liczba całkowita $d > 1$ (zwana okresem $a$) taka, że jeśli $p_{a,a}(k) > 0$  dla pewnego $k$, to $d | k$. Stan, który nie jest okresowy nazywamy *nieokresowym*. Łańcuch Markowa nie zawierający stanów okresowych nazywamy *łańcuchem nieokresowym*  
+Stan $a$ jest okresowy, jeśli istnieje liczba całkowita $d > 1$ (zwana okresem $a$) taka, że jeśli $p_{a,a}(k) > 0$  dla pewnego $k$, to $d \vert{} k$. Stan, który nie jest okresowy nazywamy *nieokresowym*. Łańcuch Markowa nie zawierający stanów okresowych nazywamy *łańcuchem nieokresowym*  
 
 **Przykład 8.19**  
 

@@ -158,8 +158,8 @@ Rozumowanie, którego użyliśmy przy wyborze probabilistycznego modelu dla rzut
 
 Niech $(\Omega,P)$ będzie skończoną przestrzenią probabilistyczną. Jeśli dla każdych $x,y \in \Omega$ zachodzi $P(x) = P(y)$, to:
 
-- $P(x) = \frac{1}{|\Omega|}$ dla każdego $x \in \Omega$,
-- $P(A) = \frac{|A|}{|\Omega|}$ dla każdego $A \subseteq \Omega$.
+- $P(x) = \frac{1}{\vert{}\Omega\vert{}}$ dla każdego $x \in \Omega$,
+- $P(A) = \frac{\vert{}A\vert{}}{\vert{}\Omega\vert{}}$ dla każdego $A \subseteq \Omega$.
 
 Oczywisty dowód pomijamy.
 
@@ -175,16 +175,16 @@ Oczywiście można problem rozważany przez d'Alamberta rozwiązać używając s
 
 Przypuśćmy, że interesuje nas prawdopodobieństwo tego, że w losowej $5$-kartowej ręce pokerowej jest dokładnie jedna para (w szczególności nie ma w niej trójki ani dwóch par). Aby obliczyć to prawdopodobieństwo przyjmijmy, że  $\Omega$ to zbiór wszystkich $5$-elementowych podzbiorów zbioru $52$ kart. Niech $A$ będzie zbiorem wszystkich zbiorów zawierających dokładnie jedną parę. Chcemy obliczyć $P(A)$. Ponieważ każdy $5$-elementowy podzbiór kart powinien być równie prawdopodobny, korzystamy ze schematu klasycznego i dostajemy:  
 
-$P(A) = \frac{|A|}{|\Omega|}$.  
+$P(A) = \frac{\vert{}A\vert{}}{\vert{}\Omega\vert{}}$.  
 
-Jasne jest, że  $|\Omega| = {52 \choose 5}$, a jaka jest moc $A$? Zastanówmy się na ile sposobów można wybrać podzbiór zawierający dokładnie jedną parę:
+Jasne jest, że  $\vert{}\Omega\vert{} = {52 \choose 5}$, a jaka jest moc $A$? Zastanówmy się na ile sposobów można wybrać podzbiór zawierający dokładnie jedną parę:
 
 1. na $13$ sposobów wybieramy rangę kart w parze,
 2. na ${4 \choose 2} = 6$ sposobów wybieramy kolory tych kart,
 3. na ${12 \choose 3}$ sposobów wybieramy rangi pozostałych kart (muszą być różne),
 4. na $4^3$ sposobów wybieramy kolory tych kart.
 
-Ostatecznie dostajemy $|A| = 13 \cdot 6 \cdot 4^3 \cdot {12 \choose 3}$ oraz $P(A) = \frac{|A|}{|\Omega|} \approx 0.423$.  
+Ostatecznie dostajemy $\vert{}A\vert{} = 13 \cdot 6 \cdot 4^3 \cdot {12 \choose 3}$ oraz $P(A) = \frac{\vert{}A\vert{}}{\vert{}\Omega\vert{}} \approx 0.423$.  
 
 Jak widać użycie schematu klasycznego sprowadziło problem probabilistyczny do problemu kombinatorycznego. Na ćwiczeniach zobaczymy więcej tego rodzaju zadań.
 

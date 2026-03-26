@@ -30,13 +30,13 @@ Nasz kolega rzuca dwiema kostkami i podaje nam sumę oczek. Załóżmy, że poda
 
 Informacja podana przez kolegę ograniczyła zbiór zdarzeń elementarnych do $A=\{(1,4),(2,3),(3,2)(4,1)\}$. Zbiór $A$ zawiera 4 elementy, ale tylko dwa z nich odpowiadają wypadnięciu 1 lub 2 oczek na pierwszej kostce. Sądzimy więc, że szukane prawdopodobieństwo wynosi $\frac{1}{2}$.
 
-Co dokładnie się tu stało? Obliczyliśmy wartość wyrażenia $\frac{|A\cap B|}{|A|}=\frac{P(A \cap B)}{P(A)}$, gdzie $A$ jest zdarzeniem, o którym wiemy, że zaszło, a $B$ zdarzeniem, którego prawdopodobieństwo chcemy obliczyć. Pierwsze z wyrażeń ma tę wadę, że implicite zakładamy w nim użycie schematu klasycznego. Drugie wyrażenie wady tej nie ma i to jego właśnie użyjemy w definicji:
+Co dokładnie się tu stało? Obliczyliśmy wartość wyrażenia $\frac{\vert{}A\cap B\vert{}}{\vert{}A\vert{}}=\frac{P(A \cap B)}{P(A)}$, gdzie $A$ jest zdarzeniem, o którym wiemy, że zaszło, a $B$ zdarzeniem, którego prawdopodobieństwo chcemy obliczyć. Pierwsze z wyrażeń ma tę wadę, że implicite zakładamy w nim użycie schematu klasycznego. Drugie wyrażenie wady tej nie ma i to jego właśnie użyjemy w definicji:
 
 **Definicja (Prawdopodobieństwo warunkowe)**  
 
 Niech $A,B \subseteq \Omega$ i $P(A) > 0$. Wtedy *prawdopodobieństwem $B$ pod warunkiem $A$* nazywamy:  
 
-$P(B|A) = \frac{P(A \cap B)}{P(A)}$.
+$P(B\vert{}A) = \frac{P(A \cap B)}{P(A)}$.
 
 **Uwaga 2.3**  
 
@@ -44,7 +44,7 @@ Założenie $P(A) > 0$ jest konieczne, aby wartość ilorazu była dobrze okreś
 
 **Uwaga 2.4**  
 
-Warto zauważyć, że para $(\Omega, P(\cdot|A))$ jest przestrzenią probabilistyczną (czytelnikowi pozostawiamy sprawdzenie aksjomatów). Co za tym idzie, wiele z przeprowadzanych przez nas rozważań ma swoje odpowiedniki "warunkowe".
+Warto zauważyć, że para $(\Omega, P(\cdot\vert{}A))$ jest przestrzenią probabilistyczną (czytelnikowi pozostawiamy sprawdzenie aksjomatów). Co za tym idzie, wiele z przeprowadzanych przez nas rozważań ma swoje odpowiedniki "warunkowe".
 
 ---
 
@@ -59,24 +59,24 @@ Wróćmy do przykładu z testem medycznym. Zdefiniujmy następujące zdarzenia:
 - $T$ - test dał wynik pozytywny,
 - $N$ - test dał wynik negatywny,
 
-Uzbrojeni w definicję prawdopodobieństwa warunkowego łatwo zauważymy dwie rzeczy. Po pierwsze, naszym celem jest obliczenie $P(C|T)$. Po drugie, dane z treści zadania opisują pewne prawdopodobieństwa warunkowe:
+Uzbrojeni w definicję prawdopodobieństwa warunkowego łatwo zauważymy dwie rzeczy. Po pierwsze, naszym celem jest obliczenie $P(C\vert{}T)$. Po drugie, dane z treści zadania opisują pewne prawdopodobieństwa warunkowe:
 
-- $P(T|C) = 0.95$,
-- $P(N|C) = 0.05$,
-- $P(T|Z) = 0.05$,
-- $P(N|Z) = 0.95$.
+- $P(T\vert{}C) = 0.95$,
+- $P(N\vert{}C) = 0.05$,
+- $P(T\vert{}Z) = 0.05$,
+- $P(N\vert{}Z) = 0.95$.
 
 Aby znaleźć interesującą nas wartość  
 
-$P(C|T) = \frac{P(C \cap T)}{P(T)}$  
+$P(C\vert{}T) = \frac{P(C \cap T)}{P(T)}$  
 
 spróbujmy najpierw obliczyć $P(C \cap T)$? Popatrzmy na definicję prawdopodobieństwa warunkowego:  
 
-$P(T|C) = \frac{P(T \cap C)}{P(C)}$.  
+$P(T\vert{}C) = \frac{P(T \cap C)}{P(C)}$.  
 
 Widać, że:  
 
-$P(T \cap C) = P(C) P(T|C)$.
+$P(T \cap C) = P(C) P(T\vert{}C)$.
 
 Sytuacja, z którą mamy tu do czynienia, t.j. obliczanie prawdopodobieństwa iloczynu zdarzeń za pomocą prawdopodobieństwa warunkowego, jest bardzo częsta i ważna. W szczególności istnieje uogólnienie wzoru, który uzyskaliśmy powyżej na więcej niż dwa zdarzenia.
 
@@ -84,7 +84,7 @@ Sytuacja, z którą mamy tu do czynienia, t.j. obliczanie prawdopodobieństwa il
 
 Niech $A_1,\ldots,A_n \subseteq \Omega$ będą zdarzeniami takimi, że $P(A_1 \cap \ldots \cap A_{n-1}) > 0$. Wtedy  
 
-$P(A_1 \cap \ldots \cap A_n) = P(A_1) \cdot P(A_2 | A_1) \cdot P(A_3 | A_1 \cap A_2) \cdot \ldots \cdot P(A_n | A_1 \cap \ldots \cap A_{n-1})$
+$P(A_1 \cap \ldots \cap A_n) = P(A_1) \cdot P(A_2 \vert{} A_1) \cdot P(A_3 \vert{} A_1 \cap A_2) \cdot \ldots \cdot P(A_n \vert{} A_1 \cap \ldots \cap A_{n-1})$
 
 **Uwaga 2.6**  
 
@@ -94,7 +94,7 @@ Założenie $P(A_1 \cap \ldots \cap A_{n-1}) > 0$ jest potrzebne, żeby wszystki
 
 Indukcja. Dla dwóch zdarzeń twierdzenie pokazaliśmy już wcześniej. Jeśli mamy $n > 2$ zdarzenia, to  
 
-$P(A_1 \cap \ldots \cap A_n) = P((A_1 \cap \ldots \cap A_{n-1}) \cap A_n) = P(A_1 \cap \ldots \cap A_{n-1}) \cdot P(A_n | A_1 \cap \ldots \cap A_{n-1})$  
+$P(A_1 \cap \ldots \cap A_n) = P((A_1 \cap \ldots \cap A_{n-1}) \cap A_n) = P(A_1 \cap \ldots \cap A_{n-1}) \cdot P(A_n \vert{} A_1 \cap \ldots \cap A_{n-1})$  
 
 z tezy dla dwóch zdarzeń. Wystarczy teraz zastosować do pierwszego członu założenie indukcyjne.
 
@@ -106,19 +106,19 @@ z tezy dla dwóch zdarzeń. Wystarczy teraz zastosować do pierwszego członu za
 
 Wróćmy do przykładu z testem medycznym. Potrafimy obliczyć prawdopodobieństwa $P(C \cap T)$, i w analogiczny sposób także $P(C\cap N), P(Z \cap T)$ i $P(Z\cap N)$.  
 
-Aby obliczyć szukane przez nas $P(C|T) = \frac{P(C \cap T)}{P(T)}$, potrzebujemy jeszcze znaleźć wartość $P(T)$. Ale to jest proste:  
+Aby obliczyć szukane przez nas $P(C\vert{}T) = \frac{P(C \cap T)}{P(T)}$, potrzebujemy jeszcze znaleźć wartość $P(T)$. Ale to jest proste:  
 
-$P(T) = P(C\cap T+Z\cap T) = P(C\cap T)+P(Z\cap T) = P(C)  P(T|C) + P(Z) P(T|Z)$.  
+$P(T) = P(C\cap T+Z\cap T) = P(C\cap T)+P(Z\cap T) = P(C)  P(T\vert{}C) + P(Z) P(T\vert{}Z)$.  
 
 Ostatecznie dostajemy więc:  
 
-$P(C|T) = \frac{P(C)  P(T|C)}{P(C)  P(T|C) + P(Z) P(T|Z)} = \frac{0.001 \cdot 0.95}{0.001 \cdot 0.95 + 0.999 \cdot 0.05} \sim \frac{0.001}{0.05} = 0.02.$  
+$P(C\vert{}T) = \frac{P(C)  P(T\vert{}C)}{P(C)  P(T\vert{}C) + P(Z) P(T\vert{}Z)} = \frac{0.001 \cdot 0.95}{0.001 \cdot 0.95 + 0.999 \cdot 0.05} \sim \frac{0.001}{0.05} = 0.02.$  
 
 **Komentarz**  
 
-Jeśli sądziłeś, tak jak większość ankietowanych lekarzy, że $P(C|T)$ jest bliskie $0.95$, to spróbuj w tej chwili znaleźć prosty powód dla którego wynik ten nie jest możliwy.
+Jeśli sądziłeś, tak jak większość ankietowanych lekarzy, że $P(C\vert{}T)$ jest bliskie $0.95$, to spróbuj w tej chwili znaleźć prosty powód dla którego wynik ten nie jest możliwy.
 
-Aby zobaczyć, że wynik ten nie jest możliwy wystarczy wykonać prosty eksperyment myślowy. Losowo wybrana osoba jest chora z prawdopodobieństwem $0.001$. Jeśli na losowo wybranej osobie przeprowadzimy test, to da on wynik pozytywny z prawdopodobieństwem co najmniej $0.05$, niezależnie od tego, czy osoba ta jest chora, czy nie. Gdyby faktycznie zachodziło $P(C|T) \sim 0.95$, to oznaczałoby to, że prawdopodobieństwo tego, że mamy do czynienia z osobą chorą w magiczny sposób rośnie tylko przez to, że ją badamy.
+Aby zobaczyć, że wynik ten nie jest możliwy wystarczy wykonać prosty eksperyment myślowy. Losowo wybrana osoba jest chora z prawdopodobieństwem $0.001$. Jeśli na losowo wybranej osobie przeprowadzimy test, to da on wynik pozytywny z prawdopodobieństwem co najmniej $0.05$, niezależnie od tego, czy osoba ta jest chora, czy nie. Gdyby faktycznie zachodziło $P(C\vert{}T) \sim 0.95$, to oznaczałoby to, że prawdopodobieństwo tego, że mamy do czynienia z osobą chorą w magiczny sposób rośnie tylko przez to, że ją badamy.
 
 Należy jednak przyznać, że odpowiedzi udzielane przez lekarzy nie są aż tak bardzo odległe od prawdy jak mogłoby nam się wydawać. Lekarze nie są bowiem przyzwyczajeni do pacjentów, którzy są losowo wybierani z całej populacji. U pacjentów, którzy są poddawani testom medycznym z reguły występują objawy zgodne z diagnozowaną chorobą. W takiej sytuacji $P(C)$ jest dużo większe, niż odpowiednia wartość dla całej populacji.
 
@@ -128,19 +128,19 @@ Sposób w jaki obliczyliśmy $P(T)$  jest szczególnym przypadkiem bardzo przyda
 
 Niech $B,A_1,A_2,\ldots \subseteq \Omega$ będą takie, że $P(A_k) > 0$ dla wszystkich $k$, i ponadto niech zbiory $A_1,A_2,\ldots$ stanowią podział $\Omega$, t.j. niech będą parami rozłączne i $A_1 \cup A_2 \cup \ldots  = \Omega$. Wtedy  
 
-$P(B) = \sum_{k=1}^\infty P(A_k) P(B|A_k).$
+$P(B) = \sum_{k=1}^\infty P(A_k) P(B\vert{}A_k).$
 
 **Dowód**  
 
-$P(B) = P(B \cap (A_1 \cup A_2 \cup \ldots)) = P((B \cap A_1) \cup  P((B \cap A_2) \cup \ldots) = \sum_{k=1}^\infty P(B \cap A_k) = \sum_{k=1}^\infty P(A_k) P(B|A_k).$
+$P(B) = P(B \cap (A_1 \cup A_2 \cup \ldots)) = P((B \cap A_1) \cup  P((B \cap A_2) \cup \ldots) = \sum_{k=1}^\infty P(B \cap A_k) = \sum_{k=1}^\infty P(A_k) P(B\vert{}A_k).$
 
-O wzorze na prawdopodobieństwo całkowite można myśleć jako o metodzie obliczania prawdopodobieństwa "przez przypadki", ew. metodą "dziel i rządź". Ze wzoru tego w prosty sposób wynika tzw. wzór Bayesa, który jest uogólnieniem sposobu, w jaki obliczaliśmy $P(C|T)$.
+O wzorze na prawdopodobieństwo całkowite można myśleć jako o metodzie obliczania prawdopodobieństwa "przez przypadki", ew. metodą "dziel i rządź". Ze wzoru tego w prosty sposób wynika tzw. wzór Bayesa, który jest uogólnieniem sposobu, w jaki obliczaliśmy $P(C\vert{}T)$.
 
 **Twierdzenie 2.8 (Wzór Bayesa)**  
 
 Niech $B,A_1,A_2,\ldots$ będą takie jak poprzednio. Wtedy  
 
-$P(A_i|B) = \frac{P(A_i \cap B)}{P(B)}=\frac{P(A_i)P(B|A_i)}{\sum_{k=1}^\infty P(A_k) P(B|A_k)} .$  
+$P(A_i\vert{}B) = \frac{P(A_i \cap B)}{P(B)}=\frac{P(A_i)P(B\vert{}A_i)}{\sum_{k=1}^\infty P(A_k) P(B\vert{}A_k)} .$  
 
 **Dowód**  
 
@@ -153,13 +153,13 @@ Zarówno wzór na prawdopodobieństwo całkowite, jak i twierdzenie Bayesa zacho
 Warto w tym miejscu zaznaczyć, że twierdzenie Bayesa jest fundamentalnym narzędziem probabilistycznym o licznych zastosowaniach. Duża część z nich ma następujący charakter:
 
 1. Modelujemy naszą wiedzę na temat pewnego obiektu/procesu przypisując prawdopodobieństwo $P(S_i)$ każdemu jego stanowi/przebiegowi $S_i$.
-2. Uzyskujemy nową informację $I$ na temat badanego obiektu, przy czym znamy dla każdego stanu obiektu prawdopodobieństwo $P(I|S_i)$ uzyskania tej właśnie informacji jeśli obiekt znajduje się w stanie $S_i$.
-3. Korzystając ze wzoru Bayesa obliczamy nowe prawdopodobieństwa $P(S_i|I)$ uwzględniające informację I.
+2. Uzyskujemy nową informację $I$ na temat badanego obiektu, przy czym znamy dla każdego stanu obiektu prawdopodobieństwo $P(I\vert{}S_i)$ uzyskania tej właśnie informacji jeśli obiekt znajduje się w stanie $S_i$.
+3. Korzystając ze wzoru Bayesa obliczamy nowe prawdopodobieństwa $P(S_i\vert{}I)$ uwzględniające informację I.
 
 A oto kilka przykładowych sytuacji tego typu, z zupełnie różnych dziedzin:
 
 - Tworzymy system ekspercki wspomagający diagnostykę medyczną. W tym przypadku zdarzenia $S_i$ odpowiadają różnym chorobom, ew. kombinacjom chorób, natomiast informacja $I$ może być wynikiem testu medycznego, nowym objawem itp.
-- Tworzymy system wspomagający poszukiwania wraków statków na dnie morza. W tym przypadku zdarzenia $S_i$ mogą odpowiadać różnym obszarom poszukiwań, a informacją $I$ może być zakończony niepowodzeniem dzień poszukiwań w konkretnym obszarze. Wtedy, jeśli przeszukiwanym obszarem był obszar $k$-ty, to $P(S_k | I) < P(S_k)$ oraz $P(S_i | I) > P(S_i)$ dla $i \neq k$, a dokładne wartości $P(S_i|I)$ można obliczyć ze wzoru Bayesa.
+- Tworzymy system wspomagający poszukiwania wraków statków na dnie morza. W tym przypadku zdarzenia $S_i$ mogą odpowiadać różnym obszarom poszukiwań, a informacją $I$ może być zakończony niepowodzeniem dzień poszukiwań w konkretnym obszarze. Wtedy, jeśli przeszukiwanym obszarem był obszar $k$-ty, to $P(S_k \vert{} I) < P(S_k)$ oraz $P(S_i \vert{} I) > P(S_i)$ dla $i \neq k$, a dokładne wartości $P(S_i\vert{}I)$ można obliczyć ze wzoru Bayesa.
 - Tworzymy program grający z w pokera. Program ten modeluje styl gry swojego przeciwnika za pomocą stanów $S_i$, np. poszczególne stany mogą odpowiadać różnym stopniom agresji. Jeśli przeciwnik jest pasywny, to gra agresywnie tylko jeśli ma bardzo dobre karty. Jeśli natomiast jest agresywny, to z pewnym prawdopodobieństwem gra agresywnie nawet ze słabymi kartami. Informacją $I$, którą otrzymujemy może być agresywne rozegranie przez przeciwnika pewnej liczby rozdań. Wzór Bayesa pozwala stwierdzić jak bardzo informacja $I$ zwiększa prawdopodobieństwo tego, że mamy do czynienia z przeciwnikiem agresywnym.
 
 Rozumowania tego typu nazywa się *wnioskowaniem Bayesowskim*.
@@ -182,7 +182,7 @@ Zdefiniujmy następujące zdarzenia:
 
 Rozwiązanie zadania mogłoby wyglądać tak:  
 
-$P(B_1 \cap B_2) = P(U_1 \cap B_1 \cap B_2) + P(U_2 \cap B_1 \cap B_2) = P(U_1) P(B_1 | U_1) P(B_2 | U_1 \cap B_1) + P(U_2) P(B_1 | U_2) P(B_2 | U_2 \cap B_1).$  
+$P(B_1 \cap B_2) = P(U_1 \cap B_1 \cap B_2) + P(U_2 \cap B_1 \cap B_2) = P(U_1) P(B_1 \vert{} U_1) P(B_2 \vert{} U_1 \cap B_1) + P(U_2) P(B_1 \vert{} U_2) P(B_2 \vert{} U_2 \cap B_1).$  
 
 Wszystkie prawdopodobieństwa występujące w ostatnim wyrażeniu są łatwe do obliczenia jeśli znamy zawartości urn.
 
@@ -190,9 +190,9 @@ W metodzie drzewkowej reprezentujemy wszystkie możliwe przebiegi losowania za p
 
 TUTAJ OBRAZEK
 
-Krawędzie na najwyższym poziomie odpowiadają wyborowi urny, krawędzie na drugim poziomie - losowaniu pierwszej kuli, krawędzie na trzecim poziomie - losowaniu drugiej kuli. Liczby na krawędziach są odpowiednimi prawdopodobieństwami warunkowymi. Jeśli na przykład wybraliśmy urnę pierwszą i wylosowaliśmy z niej kulę czarną ($U_1 \cap B_1$), to prawdopodobieństwo wylosowania kolejnej kuli czarnej, czyli przejścia do zdarzenia $U_1 \cap B_1 \cap B_2$ wynosi $P(B_2 | U_1 \cap B_1)$.  
+Krawędzie na najwyższym poziomie odpowiadają wyborowi urny, krawędzie na drugim poziomie - losowaniu pierwszej kuli, krawędzie na trzecim poziomie - losowaniu drugiej kuli. Liczby na krawędziach są odpowiednimi prawdopodobieństwami warunkowymi. Jeśli na przykład wybraliśmy urnę pierwszą i wylosowaliśmy z niej kulę czarną ($U_1 \cap B_1$), to prawdopodobieństwo wylosowania kolejnej kuli czarnej, czyli przejścia do zdarzenia $U_1 \cap B_1 \cap B_2$ wynosi $P(B_2 \vert{} U_1 \cap B_1)$.  
 
-W przypadku krawędzi wychodzących z korzenia mamy do czynienia z prawdopodobieństwami absolutnymi, choć oczywiście można uznać, że korzeń odpowiada zdarzeniu $\Omega$, i wtedy mamy $P(U_i|\Omega) = P(U_i)$.
+W przypadku krawędzi wychodzących z korzenia mamy do czynienia z prawdopodobieństwami absolutnymi, choć oczywiście można uznać, że korzeń odpowiada zdarzeniu $\Omega$, i wtedy mamy $P(U_i\vert{}\Omega) = P(U_i)$.
 
 Ze wzoru iloczynowego wynika, że prawdopodobieństwo znalezienia się w konkretnym wierzchołku jest równe iloczynowi liczb na ścieżce od korzenia do tego wierzchołka. W szczególności, aby znaleźć $P(B_1 \cap B_2)$ sumujemy $P(U_1 \cap B_1 \cap B_2)$ oraz $P(U_2 \cap B_1 \cap B_2)$ mnożąc liczby na odpowiednich ścieżkach.
 
@@ -202,4 +202,4 @@ Takie "graficzne" rozwiązanie wydaje się bardziej intuicyjne niż nasze pierws
 
 ## Prawdopodobieństwo warunkowe jako metoda formułowania założeń
 
-Naszą motywacją do zdefiniowania pojęcia prawdopodobieństwa warunkowego było nadanie sensu pytaniom takim jak w przykładzie 2.1. Okazało się jednak, że prawdopodobieństwo warunkowe może służyć także do formułowania założeń dotyczących zależności między zdarzeniami, np. wartości $P(T|C)$ w przykładzie 2.1, czy wartości $P(B_1|U_1)$ w przykładzie 2.9. To drugie zastosowanie pojęcia prawdopodobieństwa warunkowego jest o tyle interesujące, że pozwala ono często unikać formalnej definicji zbioru zdarzeń elementarnych $\Omega$. Zamiast tego postulujemy pewne zależności między prawdopodobieństwami interesujących nas zdarzeń. Tak właśnie postępujemy we wszystkich przykładach omówionych w tym rozdziale, z wyjątkiem przykładu 2.2.
+Naszą motywacją do zdefiniowania pojęcia prawdopodobieństwa warunkowego było nadanie sensu pytaniom takim jak w przykładzie 2.1. Okazało się jednak, że prawdopodobieństwo warunkowe może służyć także do formułowania założeń dotyczących zależności między zdarzeniami, np. wartości $P(T\vert{}C)$ w przykładzie 2.1, czy wartości $P(B_1\vert{}U_1)$ w przykładzie 2.9. To drugie zastosowanie pojęcia prawdopodobieństwa warunkowego jest o tyle interesujące, że pozwala ono często unikać formalnej definicji zbioru zdarzeń elementarnych $\Omega$. Zamiast tego postulujemy pewne zależności między prawdopodobieństwami interesujących nas zdarzeń. Tak właśnie postępujemy we wszystkich przykładach omówionych w tym rozdziale, z wyjątkiem przykładu 2.2.

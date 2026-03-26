@@ -212,21 +212,21 @@ $\frac{e^{-2} 2^2}{2} = \frac{2}{e^2} \sim 0.27.$
 
 Ponieważ napisy $X \in A$ czy $X \ge Y$ interpretujemy jako zdarzenia, możemy bez żadnych dodatkowych definicji używać pojęcia prawdopodobieństwa warunkowego na przykład tak:  
 
-$P(X \in A | B)$  
+$P(X \in A \vert{} B)$  
 
 lub tak:  
 
-$P (X \ge Y | Y \ge 1)$.
+$P (X \ge Y \vert{} Y \ge 1)$.
 
-Warto w tym miejscu zwrócić szczególną uwagę na pierwsze z wyrażeń. Przypomnijmy, że para $(\Omega,P(\cdot|B))$ jest przestrzenią probabilistyczną. Jeśli potraktujemy $X$ jako zmienną losową określoną na tej przestrzeni, to otrzymamy pewną nową zmienną, z reguły oznaczaną $X|B$, dla której  
+Warto w tym miejscu zwrócić szczególną uwagę na pierwsze z wyrażeń. Przypomnijmy, że para $(\Omega,P(\cdot\vert{}B))$ jest przestrzenią probabilistyczną. Jeśli potraktujemy $X$ jako zmienną losową określoną na tej przestrzeni, to otrzymamy pewną nową zmienną, z reguły oznaczaną $X\vert{}B$, dla której  
 
-$P( X|B \in A) = P(X \in A | B)$.  
+$P( X\vert{}B \in A) = P(X \in A \vert{} B)$.  
 
-Jest to często używany skrót notacyjny. Rozkład zmiennej $X|B$ nazywa się *rozkładem $X$ pod warunkiem $B$*.
+Jest to często używany skrót notacyjny. Rozkład zmiennej $X\vert{}B$ nazywa się *rozkładem $X$ pod warunkiem $B$*.
 
 **Uwaga 4.11**  
 
-Nie należy mylić wprowadzonej tu notacji ze spotykaną w literaturze notacją $X|Y$, gdzie $X,Y$ są zmiennymi losowymi. Tej drugiej nie będziemy definiować w ramach tego wykładu.
+Nie należy mylić wprowadzonej tu notacji ze spotykaną w literaturze notacją $X\vert{}Y$, gdzie $X,Y$ są zmiennymi losowymi. Tej drugiej nie będziemy definiować w ramach tego wykładu.
 
 ### Niezależność zmiennych losowych
 

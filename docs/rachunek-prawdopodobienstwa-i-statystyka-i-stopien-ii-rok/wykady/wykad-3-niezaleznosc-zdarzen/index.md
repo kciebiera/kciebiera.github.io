@@ -18,7 +18,7 @@ Do rozwiązania tego problemu moglibyśmy oczywiście użyć metody z poprzednie
 
 Spróbujmy zbadać tę sytuację nieco bardziej formalnie. Jeśli przez $A$ oznaczymy zdarzenie odpowiadające wypadnięciu 5-ki na pierwszej kostce, a przez $B$ wypadnięciu co najwyżej 2-ki na drugiej kostce, to sądzimy, że powinno zachodzić:  
 
-$P(B|A) = P(B)$,  
+$P(B\vert{}A) = P(B)$,  
 
 czyli  
 

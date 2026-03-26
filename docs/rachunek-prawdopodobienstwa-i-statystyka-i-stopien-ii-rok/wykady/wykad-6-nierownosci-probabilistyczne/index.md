@@ -73,19 +73,19 @@ Zauważmy jednak, że tak określona zmienna jest skoncentrowana w dwóch punkta
 
 Niech $X$ będzie dyskretną zmienną losową taką, że $EX < \infty$ oraz $VarX < \infty$ i niech $\sigma = \sqrt{VarX}$ będzie odchyleniem standardowym $X$. Wtedy dla dowolnego $c > 0$  
 
-$P(|X-EX|\ge c\sigma) \le \frac{1}{c^2}$.  
+$P(\vert{}X-EX\vert{}\ge c\sigma) \le \frac{1}{c^2}$.  
 
 **Dowód**  
 
 Niech $Y=(X-EX)^2$. Wtedy korzystając z nierówności Markowa dostajemy  
 
-$P( |X-EX| \ge c\sigma ) = P( (X-EX)^2\ge c^2 VarX)  = P( Y \ge c^2 EY) \le 1/c^2$.
+$P( \vert{}X-EX\vert{} \ge c\sigma ) = P( (X-EX)^2\ge c^2 VarX)  = P( Y \ge c^2 EY) \le 1/c^2$.
 
 **Uwaga 6.5**  
 
 Tak jak w przypadku nierówności Markowa, często używa się alternatywnego sformułowania nierówności Czebyszewa:  
 
-$P(|X-EX|\ge c) \le \frac{VarX}{c^2}$.
+$P(\vert{}X-EX\vert{}\ge c) \le \frac{VarX}{c^2}$.
 
 **Przykład 6.3 (c.d.)**  
 
@@ -93,7 +93,7 @@ Zobaczmy jakie oszacowanie można uzyskać za pomocą nierówności Czebyszewa.
 
 Zmienna $X$ ma rozkład Binom$(n,p=\frac{1}{2})$, a zatem $VarX = npq=\frac{n}{4}$. Korzystając z alternatywnej wersji nierówności Czebyszewa dostajemy:  
 
-$P(X \ge \frac{3}{4}n) = \frac{1}{2} P( |X-EX| \ge \frac{1}{4}n) \le \frac{1}{2} \frac{\frac{n}{4}}{(\frac{1}{4}n)^2} = \frac{2}{n}$  
+$P(X \ge \frac{3}{4}n) = \frac{1}{2} P( \vert{}X-EX\vert{} \ge \frac{1}{4}n) \le \frac{1}{2} \frac{\frac{n}{4}}{(\frac{1}{4}n)^2} = \frac{2}{n}$  
 
 (w pierwszym kroku skorzystaliśmy z tego, że $P(X \ge \frac{3}{4}n) = P(X \le \frac{1}{4}n)$ ).
 
@@ -105,13 +105,13 @@ Zanim przejdziemy do kolejnej nierówności, udowodnimy bardzo ważny wniosek z 
 
 Niech zmienne losowe $X_1,X_2,\ldots$ będą niezależne o tym samym rozkładzie $X$ i niech $\bar{X_n} =\frac{\sum_{i=1}^n X_i}{n}$ dla $n =1,2,\ldots$ . Niech ponadto $\mu =  EX < \infty$ i $\sigma^2 = Var X < \infty$. Wtedy dla każdego $\varepsilon > 0$  
 
-$\lim_{n\rightarrow\infty} P(| \bar{X_n}-\mu| > \varepsilon) = 0$.
+$\lim_{n\rightarrow\infty} P(\vert{} \bar{X_n}-\mu\vert{} > \varepsilon) = 0$.
 
 **Dowód**  
 
 Z liniowości wartości oczekiwanej dla wszystkich $n=1,2,\ldots$ mamy $E\bar{X_n} = \mu$. Ponadto z niezależności $X_i$ wynika, że $Var\bar{X_n} = \frac{1}{n^2} \cdot n \sigma^2 = \frac{\sigma^2}{n}$. A zatem z nierówności Czebyszewa dostajemy  
 
-$P(| \bar{X_n}-\mu| > \varepsilon) \le \frac{\frac{\sigma^2}{n}}{\varepsilon^2} \rightarrow_{n\rightarrow\infty} 0$,  
+$P(\vert{} \bar{X_n}-\mu\vert{} > \varepsilon) \le \frac{\frac{\sigma^2}{n}}{\varepsilon^2} \rightarrow_{n\rightarrow\infty} 0$,  
 
 co kończy dowód.
 

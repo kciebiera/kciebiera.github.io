@@ -49,7 +49,7 @@ Palący matematyk nosi po jednym pudełku zapałek w lewej i prawej kieszeni spo
 
 ## Zadanie 1 (Własność braku pamięci)
 
-Pokazać, że zmienna o rozkładzie geometrycznym "nie ma pamięci", tzn. dla dowolnych $0\le m < n$  zachodzi $P(X = n| X > m) = P( X = n-m)$. Nieco mniej formalnie: jeśli czekamy na orła i wypadło już $m$ kolejnych reszek, to prawdopodobieństwo tego, że pierwszy orzeł wypadnie  za $n-m$ rzutów jest takie samo jak gdyby całej przeszłości (t.j. $m$ reszek) nie było. Wiele osób sądzi, że $P(X=n| X>m) > P(X=n-m)$ - orzeł niejako "należy się".
+Pokazać, że zmienna o rozkładzie geometrycznym "nie ma pamięci", tzn. dla dowolnych $0\le m < n$  zachodzi $P(X = n\vert{} X > m) = P( X = n-m)$. Nieco mniej formalnie: jeśli czekamy na orła i wypadło już $m$ kolejnych reszek, to prawdopodobieństwo tego, że pierwszy orzeł wypadnie  za $n-m$ rzutów jest takie samo jak gdyby całej przeszłości (t.j. $m$ reszek) nie było. Wiele osób sądzi, że $P(X=n\vert{} X>m) > P(X=n-m)$ - orzeł niejako "należy się".
 
 ## Zadanie 2 (Brak pamięci definiuje rozkład geometryczny)
 
@@ -79,7 +79,7 @@ W sytuacji jak w poprzednim zadaniu pokazać, że zmienne losowe opisujące wykl
 
 ## Zadanie 5
 
-Niech $X, Y$ będą niezależne o rozkładzie Poissona. Pokazać, że rozkład $X | X+Y=n$ jest dwumianowy, t.j. $P(X=k|X+Y=n) = P(Z=k)$ dla pewnej zmiennej $Z$ o rozkładzie dwumianowym.
+Niech $X, Y$ będą niezależne o rozkładzie Poissona. Pokazać, że rozkład $X \vert{} X+Y=n$ jest dwumianowy, t.j. $P(X=k\vert{}X+Y=n) = P(Z=k)$ dla pewnej zmiennej $Z$ o rozkładzie dwumianowym.
 
 ## Zadanie 6
 

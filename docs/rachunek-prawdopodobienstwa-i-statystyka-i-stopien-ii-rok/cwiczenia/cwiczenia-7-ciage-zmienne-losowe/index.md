@@ -22,7 +22,7 @@ Uzasadnij nieformalne stwierdzenie, że rozkład wykładniczy jest "ciągłą we
 
 ## Zadanie 4 (brak pamięci)
 
-Pokaż, że zmienna losowa $X$ o wartościach nieujemnych spełnia warunek $P( X > s+t | X>t ) = P(  X > s )$ dla wszystkich rzeczywistych $s, t \ge 0$ wtw, gdy $X$ ma rozkład wykładniczy.
+Pokaż, że zmienna losowa $X$ o wartościach nieujemnych spełnia warunek $P( X > s+t \vert{} X>t ) = P(  X > s )$ dla wszystkich rzeczywistych $s, t \ge 0$ wtw, gdy $X$ ma rozkład wykładniczy.
 
 Wskazówka:  
 
