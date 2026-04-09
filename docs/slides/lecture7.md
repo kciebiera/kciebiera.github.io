@@ -13,33 +13,46 @@ style: |
 {% raw %}
 
 # Lecture 7
-## Django — REST APIs & JSON
+## REST APIs — Ideas, Principles, and Django
 
 **WWW 25/26**
-REST · JSON · JsonResponse · fetch() · CORS
+REST · Resources · HTTP semantics · JSON · CORS · API design
 
 ---
 
-# Why REST APIs?
+# What This Lecture Is About
+
+This lecture is about **ideas**, not Django wiring.
+
+- What problem do APIs solve?
+- Where does REST come from and what does it actually mean?
+- What is a "resource" and why does the concept matter?
+- Why do HTTP methods and status codes carry semantic weight?
+- How do you design an API that other developers can understand without reading your source code?
+
+> The lab will cover the Django implementation details (views, serializers, DRF).
+
+---
+
+# The Problem — Why APIs?
 
 A traditional Django view returns **HTML** — a full page the browser renders.
 
-But modern apps need **data**, not HTML:
-- A React/Vue/Svelte frontend wants raw data to render itself
+But modern apps need **data**, not pages:
+- A React/Vue/Svelte frontend renders its own UI from raw data
 - A mobile app needs structured responses, not markup
 - A third-party service needs machine-readable output
+- A CLI tool or script wants to automate tasks
 
-**Solution:** build a second kind of view — an **API endpoint** that returns **JSON**.
+**Solution:** build endpoints that return **data** (usually JSON) instead of HTML.
 
 ```
 Browser                 Django (traditional)
   ──── GET /posts/ ──►  renders posts.html ──► full HTML page
 
-JavaScript app          Django (API)
-  ── GET /api/posts/ ►  returns JSON list  ──► [{id:1, title:...}, ...]
+JavaScript / mobile     Django (API)
+  ── GET /api/posts/ ►  returns JSON       ──► [{id:1, title:...}, ...]
 ```
-
-The frontend and backend become **decoupled**: they communicate through a stable contract (the API), and either side can change independently.
 
 ---
 
@@ -78,443 +91,395 @@ Django becomes the **single source of truth** for data; the presentation layer i
 
 ---
 
-# REST Principles
+# Where REST Comes From
 
-**REST** (Representational State Transfer) is an architectural style, not a protocol.
+In 2000, **Roy Fielding** published his PhD dissertation:
+*"Architectural Styles and the Design of Network-based Software Architectures"*
 
-The six constraints:
+Fielding was one of the principal authors of the **HTTP specification** (RFC 2616). He didn't invent a new protocol — he described the **architectural principles already present in the web** and gave them a name:
 
-| Constraint | Meaning |
-|------------|---------|
-| **Stateless** | Each request carries all information needed; server holds no session per request |
-| **Client–server** | UI and data storage are separated |
-| **Uniform interface** | Consistent conventions for all resources |
-| **Cacheable** | Responses declare whether they can be cached |
-| **Layered system** | Client doesn't know if it's talking to the real server |
-| **Code on demand** (optional) | Server can send executable code |
+> **REST** — Representational State Transfer
 
-The most important for day-to-day API design: **stateless** + **uniform interface**.
+Key insight: the web already worked phenomenally well at scale. REST captured *why* — and showed how to apply the same principles to APIs.
+
+REST is **not** a protocol, a library, or a standard. It is a set of **architectural constraints** that, when followed, produce systems with desirable properties: scalability, simplicity, modifiability, visibility, reliability.
 
 ---
 
-# REST Resource Conventions
+# The Six REST Constraints
 
-Resources are **nouns** in the URL. HTTP **methods** are the verbs.
+| Constraint | What it means | Why it matters |
+|------------|---------------|----------------|
+| **Client–server** | UI and data storage are separated | They evolve independently |
+| **Stateless** | Each request carries all info needed | Server doesn't track sessions between requests |
+| **Cacheable** | Responses say whether they can be reused | Reduces load, improves latency |
+| **Uniform interface** | All resources follow the same conventions | Any developer can guess how a new endpoint works |
+| **Layered system** | Client can't tell if it talks to origin or proxy | Load balancers, CDNs, gateways work transparently |
+| **Code on demand** *(optional)* | Server can send executable code (e.g., JS) | Extends client functionality |
 
-| Method | URL | Action |
-|--------|-----|--------|
-| `GET` | `/api/posts/` | List all posts |
-| `POST` | `/api/posts/` | Create a new post |
-| `GET` | `/api/posts/42/` | Retrieve post #42 |
-| `PUT` | `/api/posts/42/` | Replace post #42 entirely |
-| `PATCH` | `/api/posts/42/` | Partially update post #42 |
-| `DELETE` | `/api/posts/42/` | Delete post #42 |
-
-**Golden rules:**
-- URLs are nouns (`/posts/`, `/users/`, `/comments/`) — never verbs (`/getPost/`, `/deleteUser/`)
-- `GET` must be **safe** (no side effects)
-- `PUT`/`DELETE`/`PATCH` must be **idempotent** (same result if repeated)
+For day-to-day API design, the ones that matter most are **stateless** and **uniform interface**.
 
 ---
 
-# HTTP Status Codes for APIs
+# Statelessness — Why It Matters
 
-Returning the right status code is as important as the response body.
+<div class="columns">
+<div>
+
+**Stateful (session-based):**
+1. Client logs in → server stores session
+2. Each subsequent request references that session
+3. Server must remember state between requests
+4. Load balancing is tricky (sticky sessions?)
+5. Server crash = lost sessions
+
+</div>
+<div>
+
+**Stateless (REST):**
+1. Each request includes everything needed (token, data, context)
+2. Server processes request, forgets about it
+3. Any server can handle any request
+4. Horizontal scaling is trivial
+5. Server crash = no state lost
+
+</div>
+</div>
+
+**Statelessness** doesn't mean you can't have login — it means the **server doesn't store per-client state between requests**. Authentication info (token, API key) travels with every request.
+
+> "Each request from client to server must contain all of the information necessary to understand the request." — Fielding, §5.1.3
+
+---
+
+# What Is a Resource?
+
+A **resource** is any concept that can be named and addressed. It's the fundamental abstraction in REST.
+
+<div class="columns">
+<div>
+
+**Resources are nouns:**
+- A blog post (`/posts/42`)
+- A collection of posts (`/posts/`)
+- A user profile (`/users/ada`)
+- A shopping cart (`/cart/`)
+- Today's weather in Warsaw (`/weather/warsaw/today`)
+
+</div>
+<div>
+
+**Not resources (bad URLs):**
+- `/getPost?id=42` — verb, not noun
+- `/deleteUser/5` — action in the URL
+- `/doSearch` — procedure call
+- `/api/v2/processPayment` — RPC
+
+</div>
+</div>
+
+A resource has an **identifier** (URL) and one or more **representations** (JSON, HTML, XML…).
+
+When you `GET /posts/42`, you receive a **representation** of the resource — not the resource itself. The resource is the abstract concept; the JSON is just one way to look at it.
+
+---
+
+# Representations and Content Negotiation
+
+The same resource can have **multiple representations**:
+
+```
+GET /api/posts/42
+Accept: application/json     →  {"id": 42, "title": "Hello"}
+
+GET /api/posts/42
+Accept: text/html            →  <h1>Hello</h1><p>...</p>
+
+GET /api/posts/42
+Accept: application/xml      →  <post><id>42</id>...</post>
+```
+
+The **`Accept` header** tells the server what format the client prefers. The server picks the best match and sets `Content-Type` in the response.
+
+This is called **content negotiation** — a core idea in REST that most APIs simplify by only supporting JSON.
+
+> The URL identifies **what** (the resource); the representation describes **how** (the format).
+
+---
+
+# HTTP Methods Are the Verbs
+
+Resources are nouns in the URL. HTTP **methods** are the verbs.
+
+| Method | Meaning | Safe? | Idempotent? |
+|--------|---------|-------|-------------|
+| `GET` | Read a resource | ✅ | ✅ |
+| `POST` | Create a new resource | ❌ | ❌ |
+| `PUT` | Replace a resource entirely | ❌ | ✅ |
+| `PATCH` | Partially update a resource | ❌ | ⚠️* |
+| `DELETE` | Remove a resource | ❌ | ✅ |
+
+```
+GET    /api/posts/       → list all posts
+POST   /api/posts/       → create a new post
+GET    /api/posts/42/    → read post #42
+PUT    /api/posts/42/    → replace post #42 entirely
+PATCH  /api/posts/42/    → update some fields of post #42
+DELETE /api/posts/42/    → delete post #42
+```
+
+*\*PATCH **can** be idempotent (e.g., `{"title": "new"}`) but the spec does not guarantee it (e.g., `{"views": "+1"}`). Unlike PUT, the result may depend on current state.*
+
+**Golden rule:** URLs are nouns — never `/getPost/`, `/deleteUser/`, `/createComment/`.
+
+---
+
+# Safety and Idempotency
+
+Two properties that HTTP methods promise — and that clients, caches, and intermediaries rely on:
+
+<div class="columns">
+<div>
+
+## Safe
+
+A method is **safe** if it does **not change** server state.
+
+`GET` and `HEAD` are safe. Calling them 1000 times changes nothing.
+
+Crawlers, prefetch, caches — all assume `GET` is safe. If your `GET /delete-post/5` actually deletes something, you've broken the contract.
+
+</div>
+<div>
+
+## Idempotent
+
+A method is **idempotent** if calling it **N times has the same effect as calling it once**.
+
+`PUT` and `DELETE` are idempotent. If a network error occurs mid-request, the client can **safely retry**.
+
+`POST` is *not* idempotent — sending it twice may create two resources!
+
+`PATCH` is a grey area — it *can* be idempotent (setting a field to a value) but doesn't have to be (incrementing a counter).
+
+</div>
+</div>
+
+> These aren't just theory — they affect how browsers, load balancers, and retry logic actually behave.
+
+---
+
+# HTTP Status Codes — Semantic Responses
+
+Status codes tell the client **what happened** without parsing the body.
 
 | Code | Name | When to use |
 |------|------|-------------|
-| `200` | OK | Successful GET or PATCH |
+| `200` | OK | Successful GET, PATCH |
 | `201` | Created | Successful POST that created a resource |
 | `204` | No Content | Successful DELETE (no body) |
+| `301` | Moved Permanently | Resource URL has changed permanently |
+| `304` | Not Modified | Cached version is still valid |
 | `400` | Bad Request | Malformed JSON or missing required field |
 | `401` | Unauthorized | Not authenticated |
 | `403` | Forbidden | Authenticated but not allowed |
 | `404` | Not Found | Resource doesn't exist |
-| `422` | Unprocessable Entity | Data is valid JSON but fails validation |
-| `500` | Internal Server Error | Unhandled exception — should never reach clients |
-
-```python
-# Good
-return JsonResponse({"error": "title is required"}, status=400)
-
-# Bad — never return 200 with an error body
-return JsonResponse({"error": "not found"}, status=200)  # ← wrong!
-```
+| `405` | Method Not Allowed | e.g., DELETE on a read-only resource |
+| `409` | Conflict | e.g., editing a resource that was concurrently changed |
+| `429` | Too Many Requests | Rate limit exceeded |
+| `500` | Internal Server Error | Bug on the server — should never reach clients |
 
 ---
 
-# JSON — The Language of APIs
+# Error Responses — Design Matters
 
-**JSON** (JavaScript Object Notation) — a text format for structured data.
+Status codes say *what happened*; the body should explain *why* and *how to fix it*.
 
+**A well-structured error response:**
 ```json
 {
-  "id": 1,
-  "title": "Hello Django",
-  "published": true,
-  "views": 42,
-  "tags": ["python", "web"],
-  "author": {
-    "name": "Ada",
-    "email": "ada@example.com"
-  },
-  "deleted_at": null
+  "error": {
+    "code": "validation_error",
+    "message": "Invalid input.",
+    "details": [
+      {"field": "title", "message": "This field is required."},
+      {"field": "body", "message": "Must be at least 10 characters."}
+    ]
+  }
 }
 ```
 
-Rules:
-- Keys must be **double-quoted strings**
-- Values: string, number, boolean (`true`/`false`), array, object, `null`
-- No trailing commas
-- No comments
+**Anti-patterns:**
+- A plain string: `"Something went wrong"` — no structure, no field info
+- HTML error page returned from an API — client can't parse it
+- Raw stack trace: `"NoneType has no attribute 'title'"` — leaks internals
 
-JSON is **language-agnostic** — Python, JavaScript, Go, Rust all speak it.
-
----
-
-# Python `json` Module
-
-```python
-import json
-
-# Python dict → JSON string
-data = {"title": "Hello", "views": 42, "published": True}
-text = json.dumps(data)
-# '{"title": "Hello", "views": 42, "published": true}'
-
-# Pretty-print
-text = json.dumps(data, indent=2)
-
-# JSON string → Python dict
-raw = '{"title": "Hello", "views": 42}'
-data = json.loads(raw)
-print(data["title"])  # Hello
-
-# Python types map to JSON types:
-# dict  → object
-# list  → array
-# str   → string
-# int/float → number
-# True/False → true/false
-# None  → null
-```
-
-`json.dumps` raises `TypeError` if the object contains non-serialisable types (e.g., `datetime`, Django model instances).
+> See **RFC 7807** (Problem Details for HTTP APIs) for a standardised error format used by many public APIs.
 
 ---
 
-# Django's `JsonResponse`
+# HATEOAS — Hypermedia as Navigation
 
-`JsonResponse` is a subclass of `HttpResponse` that:
-1. Calls `json.dumps()` on the data you pass
-2. Sets `Content-Type: application/json` automatically
+**HATEOAS** (Hypermedia As The Engine Of Application State) is the most misunderstood REST constraint.
 
-```python
-from django.http import JsonResponse
+The idea: responses should contain **links** that tell the client what it can do next.
 
-def post_list(request):
-    data = [
-        {"id": 1, "title": "Hello"},
-        {"id": 2, "title": "World"},
-    ]
-    return JsonResponse(data, safe=False)
+```json
+{
+  "id": 42,
+  "title": "Hello",
+  "author": "Ada",
+  "_links": {
+    "self": "/api/posts/42/",
+    "author": "/api/users/ada/",
+    "comments": "/api/posts/42/comments/",
+    "edit": "/api/posts/42/",
+    "delete": "/api/posts/42/"
+  }
+}
 ```
 
-**`safe=False`** is required when the top-level value is a list (not a dict).  
-This prevents a historical JSON security issue in old browsers.
+Like hyperlinks in HTML — you don't hardcode URLs, you follow links from the response.
 
-```python
-# Dict — no safe=False needed
-return JsonResponse({"count": 2, "results": [...]})
-
-# List — must pass safe=False
-return JsonResponse([...], safe=False)
-```
-
-The response automatically has status `200` unless you pass `status=`.
+**In practice**, most APIs ignore HATEOAS and clients hardcode URL patterns. But the GitHub API, for example, includes `_links` and `url` fields everywhere — making it navigable and forward-compatible.
 
 ---
 
-# Serialising Model Instances
+# Richardson Maturity Model
 
-Django model instances are **not JSON-serialisable** by default:
+A framework (by Leonard Richardson) for classifying how "RESTful" an API really is:
 
-```python
-post = Post.objects.get(pk=1)
-json.dumps(post)  # TypeError: Object of type Post is not JSON serializable
-```
+| Level | Name | What it means | Example |
+|-------|------|---------------|---------|
+| **0** | The Swamp of POX | One endpoint, POST everything | `POST /api` with action in body |
+| **1** | Resources | Individual URLs for resources, but only POST | `POST /posts/42` |
+| **2** | HTTP Verbs | Proper methods + status codes | `GET /posts/42`, `DELETE /posts/42` |
+| **3** | Hypermedia | HATEOAS — responses contain navigation links | `_links: {comments: "/posts/42/comments/"}` |
 
-The simplest fix: write a helper that converts a model to a plain dict.
+Most production APIs live at **Level 2** — proper resources, methods, and status codes. Level 3 (full HATEOAS) is rare outside APIs like GitHub's.
 
-```python
-def post_to_dict(post):
-    return {
-        "id": post.pk,
-        "title": post.title,
-        "body": post.body,
-        "author": post.author.username,
-        "created_at": post.created_at.isoformat(),
-        "updated_at": post.updated_at.isoformat(),
-    }
-```
-
-Why explicit? You control exactly which fields are exposed.  
-Automatic serialisation (e.g., Django's `serializers.serialize`) often leaks internal fields or requires extra parsing on the client.
-
-```python
-return JsonResponse(post_to_dict(post))
-return JsonResponse([post_to_dict(p) for p in qs], safe=False)
-```
+**Useful mental model:** if you're designing an API, aim for at least Level 2. That's where the practical benefits (cacheability, predictability, tooling) come from.
 
 ---
 
-# Class-Based Views for APIs
+# REST vs Alternatives
 
-`django.views.View` is a great base for API views — it dispatches to `get()`, `post()`, `patch()`, `delete()` methods automatically.
+REST is not the only way to build APIs. Each style makes different trade-offs:
 
-```python
-from django.views import View
-from django.http import JsonResponse
+| | REST | GraphQL | gRPC | SOAP |
+|---|------|---------|------|------|
+| **Format** | JSON (usually) | JSON | Protobuf (binary) | XML |
+| **Transport** | HTTP | HTTP | HTTP/2 | HTTP |
+| **Schema** | OpenAPI (optional) | Built-in type system | `.proto` files | WSDL |
+| **Strengths** | Simple, cacheable, universal | Client picks exact fields | Fast, typed, streaming | Enterprise, ACID transactions |
+| **Weaknesses** | Over-fetching, many round trips | No caching, complex queries | Not browser-friendly | Verbose, complex |
+| **Era** | 2000s–now | 2015–now | 2015–now | 1990s–2010s |
 
-class PostListView(View):
-    def get(self, request):
-        posts = Post.objects.all()
-        return JsonResponse([post_to_dict(p) for p in posts], safe=False)
-
-    def post(self, request):
-        # create a new post
-        ...
-```
-
-Wire it up in `urls.py`:
-
-```python
-from django.urls import path
-from .views import PostListView, PostDetailView
-
-urlpatterns = [
-    path("api/posts/", PostListView.as_view()),
-    path("api/posts/<int:pk>/", PostDetailView.as_view()),
-]
-```
-
-The `dispatch()` method routes by `request.method.lower()` — if you don't define `patch()`, Django returns `405 Method Not Allowed` automatically.
+**When to use REST:** most web APIs, public APIs, when simplicity and cacheability matter.
+**When to consider GraphQL:** complex UIs that need flexible queries, mobile apps where bandwidth matters.
+**When to consider gRPC:** microservice-to-microservice communication, high-performance needs.
 
 ---
 
-# `@csrf_exempt` and `method_decorator`
+# An API Is a Contract
 
-By default, Django requires a **CSRF token** on all `POST`, `PUT`, `PATCH`, and `DELETE` requests from forms. API clients (mobile apps, `curl`, other servers) don't send this token.
+Once you publish an API, other people write code against it. That code **breaks** if you change the API.
 
-For API views consumed by non-browser clients, disable CSRF checking:
+An API is a **contract** — a promise about:
+- What URLs exist and what they accept
+- What HTTP methods each endpoint supports
+- What the request body looks like
+- What the response body looks like
+- What status codes are returned and when
 
-```python
-from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
+**Breaking changes** (removing a field, renaming a URL, changing a status code) are expensive — every client must update.
 
-@method_decorator(csrf_exempt, name="dispatch")
-class PostListView(View):
-    def get(self, request):
-        ...
+This is why API design matters: **a good design is easy to use correctly and hard to use incorrectly**.
 
-    def post(self, request):
-        ...
-```
-
-`method_decorator` wraps the **class-based view** with a function decorator.  
-`name="dispatch"` applies it to the entry point, so all methods are covered.
-
-**Note:** In production, use token-based auth (e.g., DRF's `TokenAuthentication`) instead of disabling CSRF.
+> "APIs are like user interfaces for developers. Design them with the same care."
 
 ---
 
-# Reading a JSON Request Body
+# API Versioning
 
-The incoming JSON lives in `request.body` as **bytes**. You must decode it.
+How do you evolve an API without breaking existing clients?
 
-```python
-import json
-from django.http import JsonResponse
+<div class="columns">
+<div>
 
-def post(self, request):
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "invalid JSON"}, status=400)
-
-    title = data.get("title", "").strip()
-    if not title:
-        return JsonResponse({"error": "title is required"}, status=400)
-
-    body = data.get("body", "")
-    # ... create the object
+**URL versioning (most common):**
 ```
+/api/v1/posts/
+/api/v2/posts/
+```
+Simple, visible, easy to route.
 
-**Common mistakes:**
-- Reading `request.POST` instead of `request.body` — `POST` only works for `application/x-www-form-urlencoded`
-- Not catching `JSONDecodeError` — any badly-formed request crashes with 500
-- Forgetting `.strip()` — a title of `"   "` passes `if title` but is not valid
+**Header versioning:**
+```http
+GET /api/posts/
+Accept: application/vnd.myapp.v2+json
+```
+Cleaner URLs, but harder to test.
+
+</div>
+<div>
+
+**Query parameter:**
+```
+/api/posts/?version=2
+```
+Easy to add, but feels hacky.
+
+**No versioning (evolve carefully):**
+- Only add fields, never remove
+- Deprecated fields return `null`
+- New behavior behind feature flags
+
+Used by GitHub, Stripe. Requires discipline.
+
+</div>
+</div>
+
+**The best strategy:** design carefully from the start, add fields freely, avoid breaking changes, version only when you must.
 
 ---
 
-# The Full GET List Endpoint
+# JSON in APIs — Conventions That Matter
 
-```python
-from django.views import View
-from django.http import JsonResponse
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-from .models import Post
+You know JSON. Here's what matters for **API design**:
 
-def post_to_dict(post):
-    return {
-        "id": post.pk,
-        "title": post.title,
-        "body": post.body,
-        "author": post.author.username,
-        "created_at": post.created_at.isoformat(),
-    }
-
-@method_decorator(csrf_exempt, name="dispatch")
-class PostListView(View):
-    def get(self, request):
-        qs = Post.objects.select_related("author").order_by("-created_at")
-        return JsonResponse([post_to_dict(p) for p in qs], safe=False)
-```
-
-`select_related("author")` avoids **N+1 queries** — without it, each `post.author.username` triggers a separate SQL query.
-
-`order_by("-created_at")` — newest first (minus = descending).
+- **Dates** have no native type — use **ISO 8601**: `"2025-10-14T09:31:05+00:00"`
+- **Null vs. absent** — decide on a convention and stick to it (`"deleted_at": null` vs. omitting the field)
+- **Naming** — pick `snake_case` or `camelCase` and be consistent across all endpoints
+- **Envelope pattern** — wrap collections in metadata:
+  ```json
+  {"count": 87, "next": "/api/posts/?page=2", "results": [...]}
+  ```
+  vs. bare arrays `[{...}, {...}]` — envelopes are easier to extend without breaking clients
+- **No trailing commas, no comments** — JSON is strict; a single trailing comma breaks parsing
 
 ---
 
-# The POST Create Endpoint
+# From Concepts to Django — A Preview
 
-```python
-import json
-from django.http import JsonResponse
+The ideas from this lecture map directly to Django code. The **lab** will cover the implementation in detail.
 
-@method_decorator(csrf_exempt, name="dispatch")
-class PostListView(View):
-    def get(self, request):
-        ...  # as above
+| Concept | Django implementation |
+|---------|---------------------|
+| JSON responses | `JsonResponse` (manual) or DRF `Serializer` |
+| HTTP methods → CRUD | `View` subclass with `get()`, `post()`, `patch()`, `delete()` |
+| Status codes | `return JsonResponse(data, status=201)` |
+| Validation | Manual checks or DRF `.is_valid()` |
+| Browsable docs | DRF Browsable API + `drf-spectacular` → Swagger UI |
+| Authentication | Session cookies or `Authorization: Token ...` header |
 
-    def post(self, request):
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "invalid JSON"}, status=400)
+**Django REST Framework** (DRF) is the de-facto standard — it provides serializers, viewsets, routers, pagination, and permissions out of the box. Full CRUD in ~10 lines of code.
 
-        title = data.get("title", "").strip()
-        if not title:
-            return JsonResponse({"error": "title is required"}, status=400)
-
-        post = Post.objects.create(
-            title=title,
-            body=data.get("body", ""),
-            author=request.user,
-        )
-        return JsonResponse(post_to_dict(post), status=201)
-```
-
-Return **201 Created** (not 200) and the newly created resource in the body.  
-The client now has the `id` and `created_at` assigned by the server.
+> You'll build it by hand first, then see what DRF saves you.
 
 ---
 
-# The GET Detail Endpoint
-
-```python
-from django.http import JsonResponse
-from django.views import View
-from .models import Post
-
-@method_decorator(csrf_exempt, name="dispatch")
-class PostDetailView(View):
-    def _get_post(self, pk):
-        try:
-            return Post.objects.select_related("author").get(pk=pk)
-        except Post.DoesNotExist:
-            return None
-
-    def get(self, request, pk):
-        post = self._get_post(pk)
-        if post is None:
-            return JsonResponse({"error": "not found"}, status=404)
-        return JsonResponse(post_to_dict(post))
-```
-
-`pk` comes from the URL pattern `<int:pk>` and is passed as a keyword argument to every method.
-
-The private helper `_get_post()` is shared by `get`, `patch`, and `delete` — avoids repeating the try/except.
-
-**Never** raise `Http404` in an API view — it returns HTML, confusing API clients.
-
----
-
-# The PATCH Update Endpoint
-
-```python
-    def patch(self, request, pk):
-        post = self._get_post(pk)
-        if post is None:
-            return JsonResponse({"error": "not found"}, status=404)
-
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "invalid JSON"}, status=400)
-
-        # Only update fields that were sent
-        if "title" in data:
-            title = data["title"].strip()
-            if not title:
-                return JsonResponse({"error": "title cannot be blank"}, status=400)
-            post.title = title
-
-        if "body" in data:
-            post.body = data["body"]
-
-        post.save()
-        return JsonResponse(post_to_dict(post))
-```
-
-`PATCH` = **partial update** — only fields present in the request are changed.  
-`PUT` = full replacement — absent fields would be cleared.  
-Prefer `PATCH` for typical edit operations.
-
----
-
-# The DELETE Endpoint
-
-```python
-    def delete(self, request, pk):
-        post = self._get_post(pk)
-        if post is None:
-            return JsonResponse({"error": "not found"}, status=404)
-
-        post.delete()
-        return JsonResponse({}, status=204)
-```
-
-**204 No Content** is the correct status for a successful delete.  
-The response body is empty (or `{}`).
-
-Some APIs return `200` with a `{"deleted": true}` body — both are acceptable, but 204 is the REST convention.
-
-```bash
-# curl test
-curl -X DELETE http://localhost:8000/api/posts/42/
-# HTTP/1.1 204 No Content
-```
-
-After deletion, a `GET /api/posts/42/` should return `404`.  
-Make sure your helper method queries the database fresh each time.
-
----
-
-# Nested Resources
+# Nested Resources and URL Design
 
 Model relationships are expressed as **URL nesting**:
 
@@ -525,598 +490,211 @@ Model relationships are expressed as **URL nesting**:
 /api/posts/42/comments/7/        # comment #7 on post #42
 ```
 
-```python
-# urls.py
-urlpatterns = [
-    path("api/posts/", PostListView.as_view()),
-    path("api/posts/<int:post_pk>/", PostDetailView.as_view()),
-    path("api/posts/<int:post_pk>/comments/", CommentListView.as_view()),
-    path("api/posts/<int:post_pk>/comments/<int:pk>/", CommentDetailView.as_view()),
-]
-
-# views.py
-class CommentListView(View):
-    def get(self, request, post_pk):
-        post = get_object_or_404(Post, pk=post_pk)
-        comments = post.comments.select_related("author").order_by("created_at")
-        return JsonResponse([comment_to_dict(c) for c in comments], safe=False)
-```
-
-Keep nesting to **two levels** maximum — deeper nesting becomes unmanageable.
+**Design guidelines:**
+- Keep nesting to **two levels** maximum — deeper nesting becomes unmanageable
+- Use **query parameters** for filtering, sorting, and searching:
+  ```
+  /api/posts/?author=ada              # filter by field
+  /api/posts/?ordering=-created_at    # sort (- = descending)
+  /api/posts/?search=django           # full-text search
+  /api/posts/?fields=id,title         # sparse fields (return less data)
+  /api/comments/?post=42&author=ada   # alternative to deep nesting
+  ```
+- Always **sanitise and cap** numeric parameters — never let a client ask for 100,000 rows
 
 ---
 
-# Query Parameters for Filtering
+# Pagination — Don't Return Everything
 
-`request.GET` contains query parameters (despite the name, it works for any GET request).
+Large datasets must be paginated — never dump all records in one response.
 
-```python
-# GET /api/posts/?search=django&author=ada&limit=10
+**Common patterns:**
 
-class PostListView(View):
-    def get(self, request):
-        qs = Post.objects.select_related("author").order_by("-created_at")
+<div class="columns">
+<div>
 
-        search = request.GET.get("search", "").strip()
-        if search:
-            qs = qs.filter(title__icontains=search)
-
-        author = request.GET.get("author", "").strip()
-        if author:
-            qs = qs.filter(author__username=author)
-
-        try:
-            limit = int(request.GET.get("limit", 20))
-            limit = min(limit, 100)   # cap at 100
-        except ValueError:
-            limit = 20
-
-        qs = qs[:limit]
-        return JsonResponse([post_to_dict(p) for p in qs], safe=False)
+**Offset-based (simple):**
+```json
+{
+  "count": 87,
+  "page": 2,
+  "page_size": 20,
+  "next": "/api/posts/?page=3",
+  "previous": "/api/posts/?page=1",
+  "results": [...]
+}
 ```
+Easy to understand.
+Skipping pages is costly on large tables.
 
-Always **sanitise and cap** numeric parameters — never let a client ask for 100 000 rows.
+</div>
+<div>
+
+**Cursor-based (scalable):**
+```json
+{
+  "next_cursor": "eyJpZCI6IDQyfQ",
+  "results": [...]
+}
+```
+Opaque cursor = no page-skipping.
+Consistent performance at any depth.
+Used by Twitter, Slack, Stripe APIs.
+
+</div>
+</div>
+
+**Always include metadata** (total count, next link) — clients need to know when to stop fetching.
 
 ---
 
 # Authentication in APIs
 
-<div class="columns">
-<div>
+You covered sessions and cookies in Lecture 6. For APIs, the key shift is:
 
-**Session auth (cookies)**
-- Django's default login sets a `sessionid` cookie
-- Works for browser-based `fetch()` calls on the same domain
-- CSRF still needed for state-changing requests
-- Simple: reuse Django's existing login view
-
-```python
-if not request.user.is_authenticated:
-    return JsonResponse(
-        {"error": "login required"},
-        status=401
-    )
-```
-
-</div>
-<div>
-
-**Token auth (intro)**
-- Client sends `Authorization: Token abc123` header
-- No cookies, no CSRF
-- Works across domains and from mobile apps
-- Django REST Framework provides `TokenAuthentication`
-- Tokens stored in database, revocable
+| | Traditional (HTML views) | API |
+|---|---|---|
+| **Identity** | `sessionid` cookie (automatic) | Token/key in `Authorization` header (explicit) |
+| **CSRF** | Needed (browser sends cookies automatically) | Not needed with tokens (no cookies) |
+| **Cross-domain** | Tricky (CORS + credentials) | Easy (token travels in header) |
 
 ```http
 GET /api/posts/ HTTP/1.1
-Host: api.example.com
 Authorization: Token 9944b09199c62bcf
 ```
 
-</div>
-</div>
+**The REST connection:** statelessness means the server doesn't store per-client state. Every request carries its own proof of identity — whether that's a cookie, a token, a JWT, or an API key.
 
-For this course, session auth is fine. Real projects often use JWT (JSON Web Tokens) or OAuth2.
-
----
-
-# `curl` for API Testing
-
-`curl` lets you test every HTTP method from the terminal.
-
-```bash
-# GET list
-curl http://localhost:8000/api/posts/
-
-# GET with pretty-print (pipe to python -m json.tool)
-curl -s http://localhost:8000/api/posts/ | python -m json.tool
-
-# POST — create a post
-curl -X POST http://localhost:8000/api/posts/ \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Hello", "body": "World"}'
-
-# PATCH — partial update
-curl -X PATCH http://localhost:8000/api/posts/1/ \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Updated title"}'
-
-# DELETE
-curl -X DELETE http://localhost:8000/api/posts/1/ -v
-
-# Check status codes
-curl -o /dev/null -s -w "%{http_code}\n" http://localhost:8000/api/posts/999/
-# 404
-```
-
-Always send `-H "Content-Type: application/json"` when posting JSON.
+For this course, session auth is fine. Real-world APIs typically use **JWT** or **OAuth2**.
 
 ---
 
-# The `fetch()` API — Basics
+# Rate Limiting — Protecting Your API
 
-`fetch()` is the modern browser API for HTTP requests. It returns a `Promise`.
+Without rate limits, a single client can:
+- Overload your server (accidentally or maliciously)
+- Scrape all your data
+- Trigger huge cloud bills
 
-```javascript
-// Simple GET
-fetch("/api/posts/")
-  .then(response => response.json())
-  .then(posts => console.log(posts))
-  .catch(err => console.error(err));
-```
-
-With `async/await` (cleaner):
-
-```javascript
-async function loadPosts() {
-  const response = await fetch("/api/posts/");
-  if (!response.ok) {
-    throw new Error(`HTTP error: ${response.status}`);
-  }
-  const posts = await response.json();
-  return posts;
-}
-```
-
-Key points:
-- `fetch()` only rejects on **network errors** — a 404 does not throw!
-- Always check `response.ok` (true for 200–299) or `response.status` explicitly
-- `.json()` is also async — you must `await` it
-
----
-
-# `fetch()` — POST, PATCH, DELETE
-
-```javascript
-// POST — create a new post
-async function createPost(title, body) {
-  const response = await fetch("/api/posts/", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title, body }),
-  });
-  if (!response.ok) {
-    const err = await response.json();
-    throw new Error(err.error);
-  }
-  return await response.json();  // returns the created post (201)
-}
-
-// PATCH — partial update
-async function updatePost(id, changes) {
-  const response = await fetch(`/api/posts/${id}/`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(changes),
-  });
-  return await response.json();
-}
-
-// DELETE
-async function deletePost(id) {
-  await fetch(`/api/posts/${id}/`, { method: "DELETE" });
-}
-```
-
----
-
-# Consuming the API — Rendering Posts Dynamically
-
-```javascript
-async function renderPosts() {
-  const container = document.getElementById("posts");
-  container.innerHTML = "<p>Loading…</p>";
-
-  try {
-    const posts = await loadPosts();
-    container.innerHTML = "";
-
-    posts.forEach(post => {
-      const article = document.createElement("article");
-
-      const h2 = document.createElement("h2");
-      h2.textContent = post.title;
-
-      const meta = document.createElement("p");
-      meta.textContent = `by ${post.author} on ${post.created_at}`;
-
-      const body = document.createElement("p");
-      body.textContent = post.body;
-
-      article.append(h2, meta, body);
-      container.append(article);
-    });
-  } catch (err) {
-    container.innerHTML = `<p class="error">Failed to load: ${err.message}</p>`;
-  }
-}
-
-document.addEventListener("DOMContentLoaded", renderPosts);
-```
-
-Use `textContent` (not `innerHTML`) to avoid **XSS** — never insert user data as HTML.
-
----
-
-# CORS — Cross-Origin Resource Sharing
-
-A browser **blocks** a page on `http://frontend.com` from calling `http://api.example.com/` by default.
-
-This is the **Same-Origin Policy** — origins must match (scheme + host + port).
-
-CORS is the mechanism by which a server **opts in** to cross-origin requests:
+**Rate limiting** restricts how many requests a client can make in a time window.
 
 ```http
 HTTP/1.1 200 OK
-Access-Control-Allow-Origin: https://frontend.com
-Access-Control-Allow-Methods: GET, POST, PATCH, DELETE
-Access-Control-Allow-Headers: Content-Type, Authorization
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 42
+X-RateLimit-Reset: 1698000000
+
+HTTP/1.1 429 Too Many Requests
+Retry-After: 30
+{"error": "rate limit exceeded"}
 ```
 
-**Preflight:** before a `POST`/`PATCH`/`DELETE`, the browser sends an `OPTIONS` request. The server must respond with the correct headers or the real request is blocked.
+**Common strategies:**
+- Per user/token: 100 requests/minute
+- Per IP: 30 requests/minute (unauthenticated)
+- Per endpoint: write endpoints have stricter limits than reads
+
+DRF has built-in throttling classes. In production, this is often handled by a reverse proxy (Nginx, Cloudflare).
+
+---
+
+# CORS — The API Angle
+
+You learned about the **Same-Origin Policy** in Lecture 6. Here's the part that matters for APIs:
+
+When your React app on `localhost:3000` calls your Django API on `localhost:8000`, the browser **blocks it** unless the server sends CORS headers.
+
+**What's new for APIs:** requests with `Content-Type: application/json` or `Authorization` headers trigger a **preflight** — the browser sends `OPTIONS` first:
 
 ```
 Browser                          API server
   ──── OPTIONS /api/posts/ ────►
-  ◄─── 200 + CORS headers ──────
+  ◄─── 200 + CORS headers ──────  (Access-Control-Allow-Origin, etc.)
   ──── POST /api/posts/ ───────►
   ◄─── 201 JSON ────────────────
 ```
 
----
+In Django, `django-cors-headers` middleware handles this. The key setting: `CORS_ALLOWED_ORIGINS`.
 
-# CORS in Django
-
-Install `django-cors-headers`:
-
-```bash
-uv add django-cors-headers
-```
-
-```python
-# settings.py
-INSTALLED_APPS = [
-    ...
-    "corsheaders",
-    ...
-]
-
-MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",   # must be first
-    "django.middleware.common.CommonMiddleware",
-    ...
-]
-
-# Allow a specific frontend origin
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "https://myfrontend.com",
-]
-
-# Or allow all origins (development only — never in production!)
-CORS_ALLOW_ALL_ORIGINS = True
-```
-
-The middleware automatically adds the correct `Access-Control-Allow-*` headers and handles `OPTIONS` preflight requests.
+> CORS is **browser-only** — `curl`, mobile apps, and server-to-server calls are not affected.
 
 ---
 
-# Django REST Framework (DRF)
+# Consuming APIs — Clients and Tools
 
-`django-rest-framework` is the de-facto standard for Django APIs.  
-It builds on top of the manual approach you just learned.
+An API endpoint is useless until something calls it. Common clients:
 
-**What it adds:**
+| Client | How it calls the API | Use case |
+|--------|---------------------|----------|
+| Browser JS (`fetch`) | `await fetch("/api/posts/")` | SPA, dynamic page updates |
+| CLI (`curl`, `httpie`) | `http GET localhost:8000/api/posts/` | Testing, scripting |
+| Mobile app | HTTP library (Retrofit, Alamofire) | iOS/Android clients |
+| Another server | HTTP client (requests, httpx) | Microservices, webhooks |
+| Generated client | From OpenAPI spec | Type-safe, auto-updated |
 
-| Feature | Manual views | DRF |
-|---------|-------------|-----|
-| Serialisation | `post_to_dict()` helper | `ModelSerializer` class |
-| Validation | `if not title: ...` | Serializer `.is_valid()` |
-| Browsable API | No | HTML form in browser |
-| Authentication | Manual check | Pluggable backends |
-| Permissions | Manual check | `IsAuthenticated`, etc. |
-| Pagination | Manual slice | `PageNumberPagination` |
-| ViewSets | Manual class | `ModelViewSet` (5 lines) |
+**Key `fetch()` gotcha:** it does **not** throw on 4xx/5xx — a 404 is a successful HTTP response! Always check `response.ok`.
 
-```python
-# DRF — a full CRUD API in ~10 lines
-class PostSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Post
-        fields = ["id", "title", "body", "author", "created_at"]
-
-class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all()
-    serializer_class = PostSerializer
-```
+> The lab will cover `fetch()` in detail. For testing during development, try **httpie**: `uv tool install httpie`
 
 ---
 
-# DRF — Minimal Setup
+# Real-World REST APIs — Learning from the Wild
 
-```bash
-uv add djangorestframework
-```
+Study how major APIs are designed — they reflect years of iteration:
 
-```python
-# settings.py
-INSTALLED_APPS = [
-    ...
-    "rest_framework",
-]
+**GitHub API** (`api.github.com`):
+- Consistent resource URLs: `/repos/{owner}/{repo}/issues`
+- HATEOAS links in every response
+- Pagination via `Link` header
+- Rate limiting: 5000 req/hr authenticated
 
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.SessionAuthentication",
-    ],
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
-    ],
-}
-```
+**Stripe API** (`api.stripe.com`):
+- Versioning via date-based header: `Stripe-Version: 2023-10-16`
+- Idempotency keys for safe retries on POST
+- Expandable fields: `?expand[]=customer`
 
-```python
-# urls.py
-from rest_framework.routers import DefaultRouter
-from .views import PostViewSet
-
-router = DefaultRouter()
-router.register("posts", PostViewSet)
-
-urlpatterns = [
-    path("api/", include(router.urls)),
-]
-```
-
-Visit `/api/` in the browser — DRF shows a clickable, self-documenting interface.
+**Common patterns across all good APIs:**
+- Consistent naming (plural nouns, `snake_case` or `camelCase` — pick one)
+- Predictable error format: `{"error": {"code": "...", "message": "..."}}`
+- Pagination metadata in every list response
+- Comprehensive documentation with examples
 
 ---
 
-# DRF — Serializer in Depth
+# API Design Best Practices
 
-A **serializer** replaces your hand-written `post_to_dict()`. It handles both serialisation (Python → JSON) and deserialisation + validation (JSON → Python).
+<div class="columns">
+<div>
 
-```python
-# blog/serializers.py
-from rest_framework import serializers
-from .models import Post, Comment
+**✅ Do:**
+- Use plural nouns: `/posts/`, `/users/`
+- Return proper status codes
+- Be consistent in naming and structure
+- Include error messages in the body
+- Paginate all list endpoints
+- Version if you expect breaking changes
+- Document with OpenAPI / Swagger
 
-class CommentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model  = Comment
-        fields = ["id", "author", "body", "created"]
+</div>
+<div>
 
-class PostSerializer(serializers.ModelSerializer):
-    comments = CommentSerializer(many=True, read_only=True)
+**❌ Don't:**
+- Put verbs in URLs: `/getPost/`, `/deleteUser/`
+- Return 200 for errors
+- Expose internal field names or IDs
+- Return HTML from an API endpoint
+- Change response shapes between endpoints
+- Ignore idempotency in mutation endpoints
+- Let clients request unbounded datasets
 
-    class Meta:
-        model  = Post
-        fields = ["id", "title", "slug", "body",
-                  "pub_date", "category", "comments"]
-```
+</div>
+</div>
 
-**In a view:**
-
-```python
-serializer = PostSerializer(post)
-return JsonResponse(serializer.data)           # serialise
-
-serializer = PostSerializer(data=request.data)
-if serializer.is_valid():
-    serializer.save()                          # validate + create
-else:
-    return JsonResponse(serializer.errors, status=400)
-```
+> Design your API as if someone who has never seen your codebase will use it. Because they will.
 
 ---
 
-# DRF — ModelViewSet: 5 Lines = Full CRUD
-
-```python
-# blog/drf_views.py
-from rest_framework import viewsets, permissions
-from .models import Post
-from .serializers import PostSerializer
-
-class PostViewSet(viewsets.ModelViewSet):
-    queryset           = Post.objects.all()
-    serializer_class   = PostSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-```
-
-`ModelViewSet` auto-generates **6 actions**:
-
-| Action | Method | URL |
-|--------|--------|-----|
-| `list` | GET | `/api/posts/` |
-| `create` | POST | `/api/posts/` |
-| `retrieve` | GET | `/api/posts/1/` |
-| `update` | PUT | `/api/posts/1/` |
-| `partial_update` | PATCH | `/api/posts/1/` |
-| `destroy` | DELETE | `/api/posts/1/` |
-
----
-
-# DRF — Router Wires It All Up
-
-```python
-# blog/drf_urls.py
-from rest_framework.routers import DefaultRouter
-from .drf_views import PostViewSet
-
-router = DefaultRouter()
-router.register("posts", PostViewSet)
-
-urlpatterns = router.urls
-```
-
-```python
-# mysite/urls.py
-path("api/", include("blog.drf_urls")),
-```
-
-**What `DefaultRouter` generates:**
-
-```
-GET  /api/          → browsable API root (HTML in browser, JSON via curl)
-GET  /api/posts/    → list
-POST /api/posts/    → create
-GET  /api/posts/1/  → retrieve
-PUT  /api/posts/1/  → update
-PATCH /api/posts/1/ → partial update
-DELETE /api/posts/1/→ destroy
-```
-
----
-
-# OpenAPI — What It Is
-
-**OpenAPI 3.0** (formerly Swagger) is a standardised format for describing REST APIs as a YAML or JSON document.
-
-```yaml
-paths:
-  /api/posts/:
-    get:
-      summary: List all posts
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Post'
-    post:
-      summary: Create a post
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Post'
-```
-
-**Why it matters:**
-- Auto-generate API clients in any language
-- Generate interactive documentation (Swagger UI)
-- Run contract tests against the spec
-
----
-
-# OpenAPI with `drf-spectacular`
-
-```bash
-uv add drf-spectacular
-```
-
-```python
-# settings.py
-INSTALLED_APPS = [..., "drf_spectacular"]
-
-REST_FRAMEWORK = {
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-}
-```
-
-Add the schema endpoints to `urls.py`:
-
-```python
-from drf_spectacular.views import (
-    SpectacularAPIView,
-    SpectacularSwaggerView,
-    SpectacularRedocView,
-)
-
-urlpatterns += [
-    path("api/schema/",  SpectacularAPIView.as_view(),  name="schema"),
-    path("api/swagger/", SpectacularSwaggerView.as_view(url_name="schema"),
-                                                         name="swagger-ui"),
-    path("api/redoc/",   SpectacularRedocView.as_view(url_name="schema"),
-                                                         name="redoc"),
-]
-```
-
-Generate a static file:
-
-```bash
-uv run python manage.py spectacular --file schema.yaml
-```
-
----
-
-# Swagger UI
-
-`http://127.0.0.1:8000/api/swagger/` opens an **interactive browser UI**:
-
-```
-┌────────────────────────────────────────────┐
-│  My Blog API  v1.0                         │
-├────────────────────────────────────────────┤
-│  ▶ GET  /api/posts/        List posts      │
-│  ▶ POST /api/posts/        Create post     │
-│  ▶ GET  /api/posts/{id}/   Retrieve post   │
-│  ▶ PATCH /api/posts/{id}/  Update post     │
-│  ▶ DELETE /api/posts/{id}/ Delete post     │
-└────────────────────────────────────────────┘
-```
-
-**What you can do in Swagger UI:**
-- Click any endpoint → expands with parameters, request body schema, response examples
-- Click **Try it out** → fill in fields and execute the real request
-- See the actual `curl` command it sends
-- Inspect the response body, status code, and headers live
-
----
-
-# Annotating DRF Views for Better Docs
-
-`drf-spectacular` reads Python type hints and docstrings. You can improve the generated schema:
-
-```python
-from drf_spectacular.utils import extend_schema, OpenApiParameter
-
-class PostViewSet(viewsets.ModelViewSet):
-    queryset         = Post.objects.all()
-    serializer_class = PostSerializer
-
-    @extend_schema(
-        parameters=[
-            OpenApiParameter("search", str,
-                             description="Filter posts by title"),
-        ],
-        summary="List all blog posts",
-    )
-    def list(self, request, *args, **kwargs):
-        query = request.query_params.get("search", "")
-        if query:
-            self.queryset = self.queryset.filter(title__icontains=query)
-        return super().list(request, *args, **kwargs)
-```
-
-The `@extend_schema` decorator is optional — `drf-spectacular` auto-generates reasonable docs even without it.
-
----
+# Common Design Mistakes
 
 <div class="columns">
 <div>
@@ -1136,43 +714,35 @@ DELETE /api/posts/5/
 
 **Status code mistakes:**
 ```python
-# Bad
+# Bad — 200 with error body
 return JsonResponse(
     {"error": "not found"},
-    status=200   # ← wrong!
-)
-
-# Bad
-return JsonResponse(
-    {"data": post},
-    status=404   # ← confusing!
+    status=200  # ← wrong!
 )
 ```
 
 </div>
 <div>
 
-**Body mistakes:**
+**Inconsistent responses:**
 ```python
-# Bad — returning HTML on error
-# (Django's default 500 page)
-raise ValueError("oops")
-
-# Good — always JSON
-try:
-    ...
-except Exception as e:
-    return JsonResponse(
-        {"error": "server error"},
-        status=500
-    )
-
-# Bad — inconsistent shapes
-{"post": {...}}  # sometimes
-[{...}]          # other times
+# Bad — different shapes
+{"post": {...}}  # detail
+[{...}]          # list
 
 # Good — consistent envelope
 {"results": [...], "count": 2}
+{"id": 1, "title": "Hello"}
+```
+
+**Leaking internals:**
+```python
+# Bad — raw exception
+{"error": "RelatedObjectDoesNotExist:
+  Post has no author."}
+
+# Good — generic message
+{"error": "internal server error"}
 ```
 
 </div>
@@ -1180,277 +750,32 @@ except Exception as e:
 
 ---
 
-# Putting It All Together — File Layout
+# API Documentation — OpenAPI
 
-A typical app with a REST API:
+**OpenAPI 3.0** (formerly Swagger) is a standardised machine-readable format for describing REST APIs.
 
-```
-myapp/
-├── models.py          # Post, Comment, etc.
-├── serializers.py     # post_to_dict() helpers (or DRF serializers)
-├── views.py           # HTML views (templates)
-├── api_views.py       # JSON API views
-├── urls.py
-└── templates/
-    └── myapp/
-        └── index.html
+**Why it matters:**
+- Auto-generate API clients in any language (Python, TypeScript, Swift…)
+- Interactive documentation (Swagger UI) — try endpoints live in the browser
+- Contract tests — verify your implementation matches the spec
+- A single source of truth that stays in sync with your code
 
-# urls.py
-urlpatterns = [
-    # HTML views
-    path("posts/", views.PostListView.as_view(), name="post-list"),
-    # API views
-    path("api/posts/", api_views.PostListView.as_view()),
-    path("api/posts/<int:pk>/", api_views.PostDetailView.as_view()),
-]
-```
-
-Keeping `views.py` and `api_views.py` separate makes it easier to evolve the two independently.
-
----
-
-# Complete `api_views.py` — Reference
-
-```python
-import json
-from django.http import JsonResponse
-from django.views import View
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-from .models import Post
-
-def post_to_dict(post):
-    return {"id": post.pk, "title": post.title, "body": post.body,
-            "author": post.author.username, "created_at": post.created_at.isoformat()}
-
-@method_decorator(csrf_exempt, name="dispatch")
-class PostListView(View):
-    def get(self, request):
-        qs = Post.objects.select_related("author").order_by("-created_at")
-        return JsonResponse([post_to_dict(p) for p in qs], safe=False)
-
-    def post(self, request):
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "invalid JSON"}, status=400)
-        title = data.get("title", "").strip()
-        if not title:
-            return JsonResponse({"error": "title required"}, status=400)
-        post = Post.objects.create(title=title, body=data.get("body", ""), author=request.user)
-        return JsonResponse(post_to_dict(post), status=201)
+```yaml
+paths:
+  /api/posts/:
+    get:
+      summary: List all posts
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
 ```
 
----
-
-# Complete `api_views.py` — Detail View
-
-```python
-@method_decorator(csrf_exempt, name="dispatch")
-class PostDetailView(View):
-    def _get_post(self, pk):
-        try:
-            return Post.objects.select_related("author").get(pk=pk)
-        except Post.DoesNotExist:
-            return None
-
-    def get(self, request, pk):
-        post = self._get_post(pk)
-        if post is None:
-            return JsonResponse({"error": "not found"}, status=404)
-        return JsonResponse(post_to_dict(post))
-
-    def patch(self, request, pk):
-        post = self._get_post(pk)
-        if post is None:
-            return JsonResponse({"error": "not found"}, status=404)
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "invalid JSON"}, status=400)
-        if "title" in data:
-            post.title = data["title"].strip() or post.title
-        if "body" in data:
-            post.body = data["body"]
-        post.save()
-        return JsonResponse(post_to_dict(post))
-
-    def delete(self, request, pk):
-        post = self._get_post(pk)
-        if post is None:
-            return JsonResponse({"error": "not found"}, status=404)
-        post.delete()
-        return JsonResponse({}, status=204)
-```
-
----
-
-# Testing the Full Flow with `curl`
-
-Start the dev server, then:
-
-```bash
-# 1. List all posts (empty at first)
-curl -s http://localhost:8000/api/posts/ | python -m json.tool
-
-# 2. Create a post
-curl -s -X POST http://localhost:8000/api/posts/ \
-  -H "Content-Type: application/json" \
-  -d '{"title": "My First Post", "body": "Hello from curl!"}' \
-  | python -m json.tool
-# → {"id": 1, "title": "My First Post", ...}
-
-# 3. Read it back
-curl -s http://localhost:8000/api/posts/1/ | python -m json.tool
-
-# 4. Update the title
-curl -s -X PATCH http://localhost:8000/api/posts/1/ \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Updated!"}' | python -m json.tool
-
-# 5. Delete it
-curl -s -X DELETE http://localhost:8000/api/posts/1/ -w "%{http_code}\n"
-# → 204
-
-# 6. Confirm it's gone
-curl -s http://localhost:8000/api/posts/1/ | python -m json.tool
-# → {"error": "not found"}
-```
-
----
-
-# `isoformat()` and Datetime Serialisation
-
-`datetime` objects are not JSON-serialisable — always convert them to strings.
-
-```python
-from datetime import datetime, timezone
-
-dt = datetime.now(timezone.utc)
-dt.isoformat()
-# '2025-10-14T09:31:05.123456+00:00'
-```
-
-ISO 8601 is the correct format for API date/time fields.  
-JavaScript can parse it natively: `new Date("2025-10-14T09:31:05+00:00")`.
-
-```python
-# In post_to_dict:
-"created_at": post.created_at.isoformat(),
-
-# On the JS side:
-const date = new Date(post.created_at);
-console.log(date.toLocaleDateString("pl-PL"));
-// e.g. "14.10.2025"
-```
-
-If your field might be `None` (e.g., `deleted_at`):
-
-```python
-"deleted_at": post.deleted_at.isoformat() if post.deleted_at else None,
-```
-
----
-
-# Pagination
-
-Large datasets must be paginated — never return all records.
-
-```python
-class PostListView(View):
-    PAGE_SIZE = 20
-
-    def get(self, request):
-        qs = Post.objects.select_related("author").order_by("-created_at")
-
-        try:
-            page = max(1, int(request.GET.get("page", 1)))
-        except ValueError:
-            page = 1
-
-        start = (page - 1) * self.PAGE_SIZE
-        end = start + self.PAGE_SIZE
-        total = qs.count()
-
-        return JsonResponse({
-            "count": total,
-            "page": page,
-            "page_size": self.PAGE_SIZE,
-            "next": page + 1 if end < total else None,
-            "results": [post_to_dict(p) for p in qs[start:end]],
-        })
-```
-
-```
-GET /api/posts/?page=2
-→ {"count": 87, "page": 2, "page_size": 20, "next": 3, "results": [...]}
-```
-
----
-
-# Ordering and Sorting via Query Params
-
-```python
-ALLOWED_ORDER_FIELDS = {"created_at", "title", "views"}
-
-def get(self, request):
-    qs = Post.objects.select_related("author")
-
-    order_by = request.GET.get("order_by", "-created_at")
-    # Strip leading '-' to check the field name
-    field = order_by.lstrip("-")
-    if field not in ALLOWED_ORDER_FIELDS:
-        return JsonResponse({"error": "invalid order_by"}, status=400)
-
-    qs = qs.order_by(order_by)
-    return JsonResponse([post_to_dict(p) for p in qs], safe=False)
-```
-
-```bash
-# Newest first (default)
-curl "/api/posts/?order_by=-created_at"
-
-# Alphabetical by title
-curl "/api/posts/?order_by=title"
-
-# Most viewed
-curl "/api/posts/?order_by=-views"
-
-# Rejected
-curl "/api/posts/?order_by=password"
-# → {"error": "invalid order_by"}
-```
-
-Always **whitelist** allowed fields — never pass user input directly to `order_by()`.
-
----
-
-# Error Handling Best Practices
-
-Wrap your view logic to catch unexpected errors gracefully:
-
-```python
-import logging
-logger = logging.getLogger(__name__)
-
-@method_decorator(csrf_exempt, name="dispatch")
-class PostListView(View):
-    def get(self, request):
-        try:
-            qs = Post.objects.select_related("author").order_by("-created_at")
-            return JsonResponse([post_to_dict(p) for p in qs], safe=False)
-        except Exception as exc:
-            logger.exception("Unexpected error in PostListView.get")
-            return JsonResponse({"error": "internal server error"}, status=500)
-```
-
-**Rules:**
-- Never expose raw exception messages to clients — they leak internals
-- Always log the real exception with `logger.exception()` (includes traceback)
-- Return a generic `{"error": "internal server error"}` to the client
-- In development, `DEBUG=True` will still show Django's error page in the browser
-
-Use `DEBUG=False` + Sentry (or similar) in production to capture exceptions.
+> In the lab, you'll use `drf-spectacular` to auto-generate this from your code.
 
 ---
 
@@ -1458,20 +783,18 @@ Use `DEBUG=False` + Sentry (or similar) in production to capture exceptions.
 
 REST APIs let Django serve **any client** — browser, mobile, CLI, third-party service.
 
-Key ideas from this lecture:
-
-- **REST** — stateless, resource-based URLs (nouns), HTTP methods as verbs
-- **HTTP status codes** matter: 200/201/204 for success, 400/404/422 for client errors, 500 for server errors
-- **`JsonResponse`** serialises dicts/lists; use `safe=False` for lists
-- **`post_to_dict()`** — explicit field selection, call `.isoformat()` on datetimes
-- **`@csrf_exempt` + `method_decorator`** — required for non-browser API clients
-- **`json.loads(request.body)`** — always wrap in try/except
-- **`select_related()`** — avoid N+1 queries on foreign keys
-- **CORS** — the server opts in to cross-origin browser requests via headers
-- **`fetch()`** — always check `response.ok`; use `textContent` to prevent XSS
-- **Django REST Framework** — `ModelSerializer` + `ModelViewSet` + `DefaultRouter` = full CRUD in ~15 lines
-- **OpenAPI / drf-spectacular** — auto-generates machine-readable API spec from your ViewSets
-- **Swagger UI** — interactive browser for exploring and testing the API live
+**Ideas to remember:**
+- **REST** is an architectural style from Roy Fielding (2000), not a protocol
+- **Resources** are nouns (URLs); **HTTP methods** are verbs
+- **Statelessness** — every request is self-contained; enables scaling
+- **Safety** (GET doesn't change state) and **idempotency** (retrying is safe) are contracts
+- **Status codes** carry meaning — use them correctly; **error bodies** explain what went wrong
+- **Content negotiation** — same resource, multiple representations
+- **HATEOAS** and the **Richardson Maturity Model** — levels of RESTfulness
+- **API = contract** — design carefully, breaking changes are expensive
+- **Versioning, pagination, rate limiting** — production essentials
+- **CORS** — the server opts in to cross-origin browser requests
+- **OpenAPI** — machine-readable API documentation
 
 ---
 
@@ -1486,11 +809,11 @@ Key ideas from this lecture:
 - OpenAPI schema generation with `drf-spectacular` + Swagger UI at `/api/swagger/`
 
 **Check your understanding:**
-1. Why do we need `safe=False` when returning a list from `JsonResponse`?
-2. What is the difference between `PUT` and `PATCH`?
-3. What does `select_related("author")` do and why does it matter?
+1. What does "statelessness" mean for API design? How does the client prove identity?
+2. Why is `GET` safe and `POST` not idempotent? What are the practical consequences?
+3. What is a "resource" and how does it differ from its representation?
 4. Why does `fetch()` not throw on a 404 response?
-5. What does `drf-spectacular` read to generate the OpenAPI schema?
+5. What problem does API versioning solve?
 
 ---
 
@@ -1498,11 +821,13 @@ Key ideas from this lecture:
 
 **Next lecture:** Django — Forms, ModelForms & Validation
 
-Recommended reading before Lab 7:
-- Django docs: `JsonResponse` — docs.djangoproject.com/en/5.2/ref/request-response/#jsonresponse-objects
-- MDN: Using the Fetch API — developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+Recommended reading:
+- Fielding's dissertation, Chapter 5: fielding.net/pubs/dissertation/rest_arch_style.htm
+- Martin Fowler: Richardson Maturity Model — martinfowler.com/articles/richardsonMaturityModel.html
 - MDN: HTTP response status codes — developer.mozilla.org/en-US/docs/Web/HTTP/Status
-- `django-cors-headers` — github.com/adamchainz/django-cors-headers
+- MDN: Using the Fetch API — developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+- GitHub REST API docs — docs.github.com/en/rest (excellent real-world example)
+- RFC 7807: Problem Details for HTTP APIs — tools.ietf.org/html/rfc7807
 
 Useful tools:
 - **httpie** (`uv tool install httpie`) — friendlier `curl` alternative: `http GET localhost:8000/api/posts/`
