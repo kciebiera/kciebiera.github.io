@@ -28,6 +28,7 @@
 | 5 | Django — Models, ORM & Forms | [slides](slides/lecture5.md) |
 | 6 | Django — Authentication | [slides](slides/lecture6.md) |
 | 7 | Django — REST APIs & JSON | [slides](slides/lecture7.md) |
+| 8 | JavaScript & TypeScript | [slides](slides/lecture8.md) |
 
 
 ## Previous edition

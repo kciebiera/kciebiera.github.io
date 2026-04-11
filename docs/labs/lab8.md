@@ -292,7 +292,7 @@ interface Post {
     slug:     string;
     body:     string;
     pubDate:  string;
-    category: Category | null;   // union type: Category or null
+    category: Category | null;   // a field that is either a Category or nothing — union types are introduced in Phase 4
 }
 
 interface Comment {
@@ -435,8 +435,27 @@ export { PostStatus, HttpMethod, ApiRequest, isPost };
 // 3. Create an array of shapes and render them as an SVG gallery in the page.
 //    Below each shape, display "Area: <value>".
 //
-// Hint: SVG elements must be created with document.createElementNS:
-//   document.createElementNS("http://www.w3.org/2000/svg", "circle")
+// Hint: SVG elements must be created with document.createElementNS, and their
+// attributes must be set with setAttribute (not direct property assignment):
+//
+//   // Use this helper to save boilerplate:
+//   function svgEl(
+//       tag: string,
+//       attrs: Record<string, string | number>
+//   ): SVGElement {
+//       const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+//       for (const [k, v] of Object.entries(attrs)) {
+//           el.setAttribute(k, String(v));
+//       }
+//       return el as SVGElement;
+//   }
+//
+//   // Wrap shapes in an <svg> container with an explicit viewBox:
+//   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+//   svg.setAttribute("width", "120");
+//   svg.setAttribute("height", "120");
+//   svg.setAttribute("viewBox", "0 0 120 120");
+//   svg.appendChild(svgEl("circle", { cx: 60, cy: 60, r: 50, fill: "steelblue" }));
 ```
 
 ### Exercise: robust type guard
@@ -456,6 +475,14 @@ export { PostStatus, HttpMethod, ApiRequest, isPost };
 //   - Run isValidPost on the result
 //   - Display "✅ Valid Post" and render the card, or "❌ Invalid: <reason>"
 ```
+
+> **That was painful, right?** Manually validating every field, including a nested object, produces a lot of repetitive, error-prone code. In practice, developers reach for **schema validation libraries** that do this automatically:
+>
+> - **[Zod](https://zod.dev)** — TypeScript-first, infers types from schemas: `z.object({ id: z.number(), title: z.string(), ... })`
+> - **[Valibot](https://valibot.dev)** — similar API, smaller bundle
+> - **[Yup](https://github.com/jquense/yup)** — popular with form libraries (Formik, React Hook Form)
+>
+> These libraries generate both the runtime validator *and* the TypeScript type from a single schema definition. No duplicated logic.
 
 ## Phase 5: Generics
 
@@ -493,6 +520,12 @@ Render grouped posts as categorised sections in the page — one `<section>` per
 // TODO: Write a generic pipeline combinator:
 // function pipe<T>(...fns: Array<(arg: T) => T>): (arg: T) => T
 //
+// Note: this signature requires every function to accept and return the SAME
+// type T. That's a deliberate simplification — it works perfectly for pipelines
+// over a single type (like Post[]). A true variadic pipe where each step can
+// change the type (A → B → C) requires complex overloads and is beyond this lab.
+// Libraries like fp-ts and Ramda implement the full version.
+//
 // It returns a new function that applies each function in sequence:
 //   pipe(f, g, h)(x)  ===  h(g(f(x)))
 //
@@ -511,7 +544,10 @@ Render grouped posts as categorised sections in the page — one `<section>` per
 
 ```typescript
 // TODO: Write a generic memoization function:
-// function memoize<A extends string, R>(fn: (arg: A) => Promise<R>): (arg: A) => Promise<R>
+// function memoize<A extends PropertyKey, R>(fn: (arg: A) => Promise<R>): (arg: A) => Promise<R>
+//
+// Note: A extends PropertyKey (= string | number | symbol) so the cache key
+// can be used as an object property. This allows memoizing fetchTodo(id: number).
 //
 // It caches the result of the first call for each argument.
 // Subsequent calls with the same argument return the cached value instantly.
