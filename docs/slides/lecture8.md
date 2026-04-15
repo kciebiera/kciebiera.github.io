@@ -13,7 +13,7 @@ style: |
 
 # Lecture 8
 
-## JavaScript & TypeScript — The Web's Language
+## JavaScript & TypeScript — The Browser’s Programming Model
 
 **WWW 25/26**
 JavaScript · DOM · async/await · TypeScript · types · tooling
@@ -22,15 +22,18 @@ JavaScript · DOM · async/await · TypeScript · types · tooling
 
 # What This Lecture Is About
 
-You know C++. You know how to write programs. This lecture introduces **JavaScript** — the language that runs in every browser — and **TypeScript**, which adds a type system on top.
+You already know how to program. This lecture explains **how JavaScript works in the browser** and why **TypeScript** is useful once projects get larger.
 
-- What is JavaScript and why does it exist?
-- How does it fit into a web page?
-- How does it differ from C++?
-- What problem does TypeScript solve?
-- How does the build toolchain work?
+Today’s goals:
 
-> The lab will cover TypeScript syntax exercises. Today we build the **mental model**: what JavaScript is, where it runs, and why TypeScript makes it better.
+- Understand where JavaScript runs
+- Understand how JavaScript interacts with a web page
+- Understand the browser’s event-driven execution model
+- Understand why asynchronous code exists
+- Understand what TypeScript adds on top of JavaScript
+
+> The goal is not to memorise syntax. The goal is to build the runtime model:
+> **page + DOM + events + async + types**.
 
 ---
 
@@ -54,8 +57,9 @@ Every web page is built from three languages with distinct roles:
 └─────────────────────────────────────────────────┘
 ```
 
-**JavaScript is the only programming language that runs natively in the browser.**
-Everything interactive on the web — forms, menus, animations, API calls — is JavaScript.
+**JavaScript is the only *scripting* language that runs natively in the browser.**
+JavaScript is the browser’s main programming language for interactivity and dynamic behaviour.
+(WebAssembly, covered later, is the second native language — a compilation target for C++, Rust, and others.)
 
 ---
 
@@ -72,22 +76,20 @@ JavaScript is embedded in (or linked from) HTML:
 <body>
   <h1 id="greeting">Hello</h1>
   <button id="btn">Click me</button>
-
-  <!-- Inline script — runs immediately when the browser reaches this tag -->
   <script>
     document.getElementById("btn").addEventListener("click", function () {
       document.getElementById("greeting").textContent = "You clicked!";
     });
   </script>
-
   <!-- Or load from an external file (preferred for real projects) -->
   <!-- <script src="app.js"></script> -->
 </body>
 </html>
 ```
-
-Open any web page, press **F12** → **Console** tab. You have a live JavaScript interpreter.
-
+- The browser loads HTML from top to bottom
+- When it reaches a `<script>`, it executes JavaScript
+- That code can read and modify the page through the DOM
+In real projects, JavaScript usually lives in separate files and is loaded with `<script src="...">`.
 ---
 
 # JavaScript for C++ Developers
@@ -138,24 +140,26 @@ for (let i = 0; i < 5; i++) {
 </div>
 
 Braces, semicolons, `if`/`for`/`while`, `return` — all the same. Key difference: **no type declarations**.
+The syntax looks familiar. The important differences are not syntax but runtime behaviour: dynamic typing, garbage collection, objects, and the event-driven browser environment.
 
 ---
 
 # Key Differences from C++
 
-JavaScript was designed for **quick scripts in a browser**, not systems programming:
+JavaScript differs from C++ in three big ways:
 
-| Feature | C++ | JavaScript |
-|---------|-----|------------|
-| **Types** | Static, declared | Dynamic, checked at runtime |
-| **Memory** | Manual (`new`/`delete`) | Garbage collected |
-| **Compilation** | To machine code | Interpreted / JIT-compiled |
-| **Threads** | Multi-threaded | Single-threaded (event loop) |
-| **Undefined behaviour** | Yes — dangerous | No — surprising, but defined |
-| **Null access** | Crashes (segfault) | `null`/`undefined` — distinct values |
-| **Numbers** | `int`, `long`, `float`, … | Just `number` (64-bit float) |
-| **Strings** | `std::string` / `char*` | Built-in, immutable, Unicode |
-| **Code sharing** | `.h` header files | `import` / `export` |
+1. Execution model
+   - Runs inside a browser environment
+   - Event-driven
+   - Usually one main thread for page code
+2. Language model
+   - Dynamic typing
+   - Garbage collection
+   - Objects and functions are lightweight, flexible values
+3. Safety model
+   - No manual memory management
+   - No dangling pointers or buffer overflows in user code
+   - Errors are more often logic/type errors than memory errors
 
 > JavaScript is **safe** (no buffer overflows, no dangling pointers) but **loose** (no type errors until runtime).
 
@@ -228,12 +232,12 @@ Think of it as: "Nobody ever set this."
 </div>
 
 ```javascript
-// Both are falsy, but not equal to each other:
-null == undefined    // true  (loose equality)
-null === undefined   // false (strict equality — different types)
+// Both are falsy, but not strictly equal — different types:
+null == undefined    // true  (loose equality coerces types — avoid!)
+null === undefined   // false (strict equality — null and undefined are distinct)
 
-// Safe "either one" check with ?? (nullish coalescing):
-const name = user.name ?? "Anonymous";  // uses "Anonymous" if null OR undefined
+// Safe "either one" check with ?. and ?? (optional chaining + nullish coalescing):
+const name = user?.name ?? "Anonymous";  // user?.name is undefined if user is null/undefined
 ```
 
 > **Rule:** use `null` when you deliberately clear a value; never assign `undefined` yourself.
@@ -256,8 +260,6 @@ post["title"]       // same — bracket == dot notation
 post.body           // undefined — missing field, no error
 post.author = "Alice";  // add a new field at any time
 ```
-
-> **JSON** is literally JavaScript object syntax — `JSON.stringify(post)` / `JSON.parse(text)`.
 
 ---
 
@@ -334,7 +336,7 @@ function greet(name) {
 }
 
 // Arrow function — shorter syntax, very common in modern code
-const greet = (name) => "Hello, " + name + "!";
+const greetArrow = (name) => "Hello, " + name + "!";
 
 // Functions passed as arguments (callbacks):
 const numbers = [3, 1, 4, 1, 5, 9];
@@ -354,31 +356,6 @@ const counter = makeCounter();
 counter();  // 1
 counter();  // 2  — count persists between calls
 ```
-
----
-
-# Closure Capture — By Reference, Not Value
-
-C++ lambdas capture by value (`[=]`) or reference (`[&]`). JS closures always capture the **variable itself** — they see its value *when called*, not when created.
-
-> **`var` vs `let`**: `var` is function-scoped (old JS); `let` is block-scoped like C++. This is why `var` causes the bug.
-
-```javascript
-// Classic loop closure bug — var is shared across all iterations:
-const fns = [];
-for (var i = 0; i < 3; i++) {
-    fns.push(() => console.log(i));
-}
-fns[0]();  // 3  ← not 0!  (all share the same i, now 3)
-
-// Fix: use let — creates a fresh i per iteration:
-for (let i = 0; i < 3; i++) {
-    fns.push(() => console.log(i));
-}
-fns[0]();  // 0 ✅   fns[1]();  // 1 ✅   fns[2]();  // 2 ✅
-```
-
-> **Rule:** always use `let` / `const`, never `var`.
 
 ---
 
@@ -471,18 +448,52 @@ JavaScript runs on **one thread**. Only one piece of code executes at a time.
 
 ---
 
-# Async: Callbacks → Promises → async/await
+# Era 1: Callbacks — The Original Async Pattern
+
+Before Promises, async code used **nested callbacks**. Every step is a function passed to the previous one:
+
+```javascript
+// XMLHttpRequest — the original way to fetch data (pre-2015)
+function loadPosts(onSuccess, onError) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/api/posts/");
+    xhr.onload = function () {
+        if (xhr.status !== 200) {
+            onError("HTTP " + xhr.status);
+            return;
+        }
+        var data = JSON.parse(xhr.responseText);
+        onSuccess(data.posts);
+    };
+    xhr.onerror = function () { onError("Network error"); };
+    xhr.send();
+}
+
+// Now load a post, then load its comments — nested callbacks:
+loadPosts(function (posts) {
+    loadComments(posts[0].id, function (comments) {
+        loadUser(comments[0].author, function (user) {
+            render(posts[0], comments, user);  // finally!
+        }, onError);
+    }, onError);
+}, onError);
+// ↑ "Callback hell" — each level adds indentation; error handling repeats
+```
+
+Every async step nests one level deeper. With 4–5 steps this becomes unreadable — nicknamed **"callback hell"** or the **"pyramid of doom"**.
+
+---
+
+# Async: Promises → async/await
 
 A blocking HTTP request would freeze the browser. JavaScript's solution: **don't wait**.
 
 ```javascript
-// Era 1: Callbacks — works but nests badly
+// Era 2: Promises — chainable, composable (ES2015)
 fetch("/api/posts/")
     .then(res => res.json())
     .then(data => render(data.posts))
     .catch(err => showError(err));
-
-// Era 2: Promises — same but chainable, composable (ES2015)
 
 // Era 3: async/await — reads like synchronous code (ES2017)
 async function loadPosts() {
@@ -582,6 +593,36 @@ One file per concern; explicit dependencies. No header files, no `#include`.
 
 </div>
 </div>
+
+---
+
+# WebAssembly — A Second Native Language
+
+JavaScript isn't the only language the browser can run natively. **WebAssembly** (Wasm, 2017) is a binary instruction format designed as a compilation target:
+
+```
+C++ / Rust / Go source
+        │
+        ▼ compile (emcc / wasm-pack / tinygo)
+  module.wasm   ← binary, runs at near-native speed in the browser
+        │
+        ▼ loaded via JavaScript
+const wasm = await WebAssembly.instantiateStreaming(fetch("module.wasm"));
+wasm.instance.exports.add(1, 2);   // call Wasm function from JS
+```
+
+**What it is and isn't:**
+
+| | WebAssembly | JavaScript |
+|--|--|--|
+| **Written by hand?** | Rarely — it's a compiler target | Yes |
+| **Speed** | Near-native (no GC pauses) | Fast (JIT), but GC overhead |
+| **DOM access** | Only via JavaScript bridge | Direct |
+| **Use cases** | Heavy compute, game engines, codecs, existing C++ libraries | UI, logic, APIs |
+
+**Real uses you've seen:** Figma (rendering engine in C++), Google Meet (video codec), AutoCAD in the browser, Python/Ruby interpreters compiled to Wasm.
+
+> As a C++ developer you can compile existing C++ code to Wasm with **Emscripten** — your algorithms run in the browser with no rewrite.
 
 ---
 
@@ -702,12 +743,19 @@ el.click();  // OK
 An **interface** names the shape of an object. TypeScript uses **structural typing** — if an object has all the required fields, it matches the interface.
 
 ```typescript
+interface Category {
+    id:   number;
+    name: string;
+    slug: string;
+}
+
 interface Post {
     id:       number;
     title:    string;
+    slug:     string;
     body:     string;
     pubDate:  string;
-    category: string | null;   // string OR null — covered more in Phase 4
+    category: Category | null;   // Category object OR null — union types in Phase 4
 }
 
 function summarise(post: Post): string {
@@ -727,105 +775,6 @@ summarise({ id: 1, title: "Hi" });
 
 ---
 
-# `type` vs `interface` — Which One?
-
-Both describe types, but they have different roles:
-
-<div class="columns">
-<div>
-
-**`interface`** — for object shapes
-
-```typescript
-interface User {
-    id:   number;
-    name: string;
-}
-
-// Can be extended later:
-interface AdminUser extends User {
-    role: "admin";
-}
-// Analogous to a C++ struct or
-// abstract base class declaration
-```
-
-</div>
-<div>
-
-**`type`** — an alias for any type expression
-
-```typescript
-// Union of primitives:
-type ID = number | string;
-
-// Function signature:
-type Handler = (e: Event) => void;
-
-// Alias for an object:
-type Point = { x: number; y: number };
-
-// Analogous to C++:
-//   using ID = int;
-//   typedef void(*Handler)(Event);
-```
-
-</div>
-</div>
-
-> **Rule of thumb:** use `interface` for object shapes (especially in APIs); use `type` for unions, primitives, and function signatures. When in doubt, `interface` is the conventional choice for objects.
-
----
-
-# Structural Typing — Compatibility by Shape
-
-C++ developers are used to **nominal typing** — types are compatible only if they share an explicit base class or interface. TypeScript uses **structural typing** — any object with the right shape is compatible, no declaration needed.
-
-<div class="columns">
-<div>
-
-**Nominal (C++/Java)**
-
-```cpp
-// Must explicitly inherit:
-class Post : public Printable {
-    std::string title;
-};
-
-void print(Printable& p) { ... }
-
-struct Article { std::string title; };
-Article a;
-print(a);   // ❌ Compile error:
-            // Article is not Printable
-```
-
-</div>
-<div>
-
-**Structural (TypeScript)**
-
-```typescript
-interface Printable {
-    title: string;
-}
-
-function print(p: Printable) { ... }
-
-const article = { title: "Hi", views: 42 };
-print(article);   // ✅ — article has 'title'
-                  // Extra fields are fine
-                  // No "implements Printable"
-                  // declaration needed
-```
-
-</div>
-</div>
-
-> This mirrors **duck typing** in Python/Ruby ("if it has a `title`, it's printable") — but enforced statically by the compiler, not discovered at runtime.
-
----
-
 # Union Types and Type Guards
 
 A **union type** says a value can be one of several types:
@@ -839,89 +788,7 @@ getUser("abc-123"); // ✅
 getUser(true);      // ❌ Error: boolean not assignable to ID
 ```
 
-**Discriminated unions** — a `kind` field lets TypeScript narrow the type in each branch:
-
-```typescript
-type Shape =
-    | { kind: "circle";    radius: number }
-    | { kind: "rectangle"; width: number; height: number };
-
-function area(s: Shape): number {
-    switch (s.kind) {
-        case "circle":    return Math.PI * s.radius ** 2;
-        case "rectangle": return s.width * s.height;
-        // Add "triangle" to Shape without a case here:
-        // TypeScript: "Function lacks ending return statement" — exhaustiveness check
-    }
-}
-```
-
 > **TypeScript has `enum`** (C++ developers: you'll see it in Lab 8). But the community prefers union types because string literal unions compile to **zero JavaScript** — they're erased completely. `enum` compiles to a real JS object and adds runtime overhead. Use unions unless you have a specific reason for `enum`.
-
----
-
-# Generics — One Function, Any Type
-
-**Generics** write one function that works with any type while preserving full type safety:
-
-```typescript
-// Without generics — one function per type, lots of duplication
-function firstString(arr: string[]): string | undefined { return arr[0]; }
-function firstNumber(arr: number[]): number | undefined { return arr[0]; }
-
-// With generics — T is inferred from the argument at the call site
-function first<T>(arr: T[]): T | undefined {
-    return arr[0];
-}
-
-first([1, 2, 3]);     // T = number, returns number | undefined  ✅
-first(["a", "b"]);    // T = string, returns string | undefined  ✅
-
-// Useful for collections over domain types:
-function groupBy<T>(
-    items: T[],
-    keyFn: (item: T) => string
-): Record<string, T[]> {
-    const groups: Record<string, T[]> = {};
-    for (const item of items) {
-        const k = keyFn(item);
-        (groups[k] ??= []).push(item);
-    }
-    return groups;
-}
-groupBy(posts, p => p.category ?? "none");  // T inferred as Post
-```
-
----
-
-# The Toolchain in Practice
-
-A TypeScript project has a few configuration files:
-
-```json
-// tsconfig.json — tells tsc how to check your code
-{
-  "compilerOptions": {
-    "target": "ES2020",   // output JS version
-    "strict": true,       // enable all strict checks — always use this
-    "noEmit": true,       // only type-check; esbuild handles output
-    "sourceMap": true     // generate .js.map for DevTools
-  },
-  "include": ["src/**/*"]
-}
-```
-
-**`strict: true`** enables the most important checks:
-
-- `strictNullChecks` — `null` and `undefined` are distinct types; must be handled explicitly
-- `noImplicitAny` — every value must have a known type (no silent `any`)
-
-```typescript
-// Without strictNullChecks: getElementById returns HTMLElement
-// With strictNullChecks:    getElementById returns HTMLElement | null
-
-// You must handle the null case — or the compiler won't let you proceed.
-```
 
 ---
 
@@ -960,7 +827,7 @@ if (!isPost(raw)) throw new Error("unexpected API shape");
 
 # Summary
 
-JavaScript is the language of the web — the only language that runs natively in browsers.
+JavaScript is the scripting language of the web — alongside WebAssembly, the only languages that run natively in browsers.
 
 **JavaScript:**
 
