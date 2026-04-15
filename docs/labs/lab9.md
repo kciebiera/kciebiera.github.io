@@ -429,13 +429,12 @@ interface PersistedState {
 
 Final checks:
 
-1. `npm run check` has zero errors.
+1. `npm run check` — zero errors.
 2. No `any` types in `main.ts`.
 3. Search debounces correctly (verify in Network tab).
 4. Matching text is highlighted with `<mark>` tags during search.
 5. Expand/collapse works with both mouse and keyboard.
 6. Arrow keys navigate between posts with a visible focus indicator.
 7. Sort preference and search query persist across page reloads via `localStorage`.
-8. Open DevTools → Sources — you can see and set breakpoints in your `.ts` file (source maps).
 
-**Exploration:** Add a `<select>` element for category filtering. Fetch all posts and filter client-side by the selected category using `Array.filter()`. Update `state` with the filtered results and call `render()`. This means the sort, search highlight, and category filter must all compose correctly.
+**Exploration:** Add a `<select>` element for category filtering. Fetch all posts and filter client-side by the selected category using `Array.filter()`. Update `state` with the filtered results and call `render()`. This means the sort, search highlight, and category filter must all compose correctly. Open DevTools → Sources — you can see and set breakpoints in your `.ts` file (source maps).

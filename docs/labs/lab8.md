@@ -565,17 +565,11 @@ Render grouped posts as categorised sections in the page — one `<section>` per
 
 Final checks:
 
-1. `npm run check` produces zero errors.
+1. `npm run check` — zero errors.
 2. All functions have explicit return types. There are no `any` types.
 3. The page loads in the browser and displays results from all phases.
 4. The `<select>` sort control (Phase 3) re-sorts posts live.
 5. The JSON validator (Phase 4) correctly accepts valid posts and rejects invalid ones.
 6. `fetchWithTimeout` (Phase 2) times out on a 1ms deadline.
-
-Run:
-
-```bash
-npm run check
-```
 
 **Exploration:** Open DevTools → Sources. Set a breakpoint in `fetchTodo`. Reload the page. Step through the code — notice you're stepping through `.ts` files, not compiled `.js`. This is source maps at work.

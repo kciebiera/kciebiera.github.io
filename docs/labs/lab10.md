@@ -119,7 +119,7 @@ TypeScript has built-in **utility types** that transform existing types. They ar
 | `Omit<T, K>` | Removes named fields | Form data (no `id`, no `created`) |
 
 ```typescript
-// Reuse Post and Comment interfaces from Lab 9 (or import them)
+// Reuse the Post interface from Lab 9 (or import it); Comment is introduced here.
 interface Post {
     id: number; title: string; slug: string;
     body: string; pub_date: string; category: string | null;
