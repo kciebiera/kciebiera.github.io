@@ -29,6 +29,7 @@
 | 6 | Django — Authentication | [slides](slides/lecture6.md) |
 | 7 | Django — REST APIs & JSON | [slides](slides/lecture7.md) |
 | 8 | JavaScript & TypeScript | [slides](slides/lecture8.md) |
+| 8 | Events & TypeScript | [slides](slides/lecture9.md) |
 
 
 ## Previous edition
