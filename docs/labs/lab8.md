@@ -63,7 +63,7 @@ Open `package.json` and add a `scripts` section:
   "scripts": {
     "check": "tsc --noEmit",
     "build": "npm run check && esbuild src/main.ts --bundle --outfile=dist/main.js --sourcemap",
-    "dev": "esbuild src/main.ts --bundle --outfile=dist/main.js --sourcemap --servedir=. --serve"
+    "dev": "esbuild src/main.ts --bundle --outfile=dist/main.js --sourcemap --watch"
   }
 }
 ```
@@ -92,7 +92,7 @@ Create `src/` for TypeScript source, `dist/` for compiled output, and `index.htm
 </html>
 ```
 
-Run `npm run dev` — esbuild starts a local server with live reload. Open the URL it prints (usually `http://localhost:8000`). Every time you save a `.ts` file, esbuild recompiles and the browser refreshes automatically.
+Run `npm run dev` — esbuild watches your `.ts` files and rebuilds `dist/main.js` whenever you save. Open `index.html` in the browser, or serve the folder with any simple static server if the browser blocks module/file access. Refresh the page after each rebuild.
 
 > **Source maps:** The `--sourcemap` flag generates a `.js.map` file. Open DevTools → Sources — you will see your original `.ts` files, with breakpoints and variable inspection. Without source maps, you would debug compiled JavaScript.
 
@@ -221,6 +221,8 @@ async function fetchTodo(id: number): Promise<Todo> {
 
 export { delay, countdown, fetchTodo, Todo };
 ```
+
+This lab does **not** validate the JSON at runtime — we simply trust that this API returns a `Todo`-shaped object. That is convenient for teaching, but in real code you should validate external data before trusting it.
 
 In `main.ts`, fetch and render:
 
@@ -461,7 +463,9 @@ export { PostStatus, HttpMethod, ApiRequest, isPost };
 ### Exercise: robust type guard
 
 ```typescript
-// TODO: Write a function isValidPost(data: unknown): data is Post
+// TODO: Write a function validatePost(
+//   data: unknown
+// ): { ok: true; post: Post } | { ok: false; reason: string }
 // that validates ALL fields — not just "title" and "slug".
 // Check that:
 //   - data is an object (not null)
@@ -472,8 +476,9 @@ export { PostStatus, HttpMethod, ApiRequest, isPost };
 // Add a <textarea> to the page. When the user pastes JSON and clicks a
 // "Validate" button:
 //   - Parse the JSON (handle parse errors)
-//   - Run isValidPost on the result
-//   - Display "✅ Valid Post" and render the card, or "❌ Invalid: <reason>"
+//   - Run validatePost on the result
+//   - If it succeeds, display "✅ Valid Post" and render the card
+//   - If it fails, display "❌ Invalid: <reason>"
 ```
 
 > **That was painful, right?** Manually validating every field, including a nested object, produces a lot of repetitive, error-prone code. In practice, developers reach for **schema validation libraries** that do this automatically:
