@@ -1,0 +1,360 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="pl" lang="pl" dir="ltr">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="prev" href="/node/1121" />
+<link rel="up" href="/zaawansowane_algorytmy" />
+<link rel="next" href="/node/1124" />
+<link rel="shortcut icon" href="/misc/favicon.ico" type="image/x-icon" />
+    <title>Programowanie liniowe 2: Algorytm simplex i informacja o algorytmach wielomianowych | Informatyka MIMUW</title>
+    <link type="text/css" rel="stylesheet" media="all" href="/modules/book/book.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/node/node.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/defaults.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system-menus.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/user/user.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/modules/geshifilter/geshifilter.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/modules/img_assist/img_assist.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/modules/views/css/views.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/default/files/color/garland-0431760f/style.css?G" />
+<link type="text/css" rel="stylesheet" media="print" href="/themes/garland/print.css?G" />
+    <script type="text/javascript" src="/misc/jquery.js?G"></script>
+<script type="text/javascript" src="/misc/drupal.js?G"></script>
+<script type="text/javascript" src="/sites/default/files/languages/pl_7618cc674030d51495c9d1ac3aae9126.js?G"></script>
+<script type="text/javascript" src="/misc/collapse.js?G"></script>
+<script type="text/javascript" src="/sites/all/modules/img_assist/img_assist.js?G"></script>
+<script type="text/javascript">
+<!--//--><![CDATA[//><!--
+jQuery.extend(Drupal.settings, { "basePath": "/" });
+//--><!]]>
+</script>
+    <!--[if lt IE 7]>
+      <link type="text/css" rel="stylesheet" media="all" href="/themes/garland/fix-ie.css" />    <![endif]-->
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+  </head>
+  <body>
+
+<!-- Layout -->
+  <div id="header-region" class="clear-block"></div>
+
+    <div id="wrapper">
+    <div id="container" class="clear-block">
+
+      <div id="header">
+        <div id="logo-floater">
+        <h1><a href="/" title="Informatyka MIMUW"><span>Informatyka MIMUW</span></a></h1>        </div>
+
+                  <ul class="links primary-links"><li class="menu-126 first last"><a href="/node/3" title="Materiały">Materiały</a></li>
+</ul>                                  
+      </div> <!-- /header -->
+
+      
+      <div id="center"><div id="squeeze"><div class="right-corner"><div class="left-corner">
+          <div class="breadcrumb"><a href="/">Strona główna</a> › <a href="/zaawansowane_algorytmy">Zaawansowane algorytmy i struktury danych</a></div>                              <h2>Programowanie liniowe 2: Algorytm simplex i informacja o algorytmach wielomianowych</h2>                                                  <div class="clear-block">
+            <div id="node-1122" class="node">
+
+
+
+      <span class="submitted">śr., 06/29/2011 - 11:14 — kowalik</span>
+  
+  <div class="content clear-block">
+    <form action="/book/export/html/1100"  accept-charset="UTF-8" method="post" id="collapse-text-dynamic-form-number-2">
+<div>
+<div class="collapse-text-text collapsed-text">
+<h2>Algorytmy programowania liniowego</h2>
+<p>Pierwszym algorytmem programowania liniowego był algorytm simplex, opublikowany przez George'a Dantziga w 1947 roku. Algorytm ten najpierw znajduje pewien wierzchołek wielościanu rozwiązań dopuszczalnych, a następnie w pętli przemieszcza się wzdłuż krawędzi do jednego z sąsiednich wierzchołków tak, aby poprawić wartość funkcji celu. Niestety okazuje się, że jego pesymistyczna złożoność jest wykładnicza. Doskonale zachowuje się on jednak dla ,,rzeczywistych'' danych i jest powszechnie stosowany w praktyce.</p>
+<p>Kolejny przełom nastąpił w 1979 kiedy to Leonid Khachiyan opublikował tzw. metodę elipsoidalną, czyli algorytm wielomianowy o złożoności \(O(n^4L)\), gdzie \(L\) jest ograniczone z góry przez długość zapisu binarnego danych (macierzy \(\mathbf{A}\), wektorów \(\mathbf{b}\) i \(\mathbf{c}\)). Istnieją implementacje tego algorytmu, jednakże źle sprawdzają się w praktyce.</p>
+<p>W 1984 roku zupełnie inne podejście zaproponował Narendra Karmarkar. Jego metoda punktu wewnętrznego osiąga złożoność \(O(n^{3.5}L)\) i została poprawiona przez kolejnych autorów do \(O(n^3L)\). Podobno niektóre implementacje tego algorytmu zachowują się bardzo dobrze dla rzeczywistych danych (porównywalnie albo lepiej niż algorytm simplex). Mimo to, nawet ten algorytm jest rzadko stosowany praktyce.</p>
+<h2>Algorytm simplex</h2>
+<p>W poprzednim rozdziale zauważyliśmy już, że poszukując rozwiązań optymalnych można ograniczyć się do wierzchołków wielościanu. Algorytm simplex korzysta z tej obserwacji i realizuje podejście <em>local search</em>. Dokładniej, algorytm zaczyna od dowolnego wierzchołka wielościanu i w każdej kolejnej iteracji próbuje przemieścić się do takiego sąsiedniego wierzchołka, że wartość funkcji celu poprawia się (lub przynajmniej nie pogarsza).</p>
+<p>Opiszemy teraz algorytm simplex na przykładzie konkretnego programu liniowego:</p>
+<p>\[<br />
+       \begin{array}{lr}<br />
+       \textrm{max}                    &amp; 3x_1 + x_2 +2x_3 \\<br />
+                                       &amp; x_1 + x_2 + 3x_3 \le 30 \\<br />
+                                       &amp; 2x_1 + 2x_2 + 5x_3 \le 24\\<br />
+                                       &amp; 4x_1 + x_2 + 2 x_3 \le 36\\<br />
+                                       &amp; x_1, x_2, x_3 \ge 0.<br />
+       \end{array}<br />
+\]</p>
+<p>Zauważmy, że jest to program w postaci standardowej (w wersji maksymalizacyjnej), oraz wszystkie wyrazy wolne z prawych stron nierówności są nieujemne. Dzięki temu łatwo znaleźć dla niego rozwiązanie dopuszczalne --- rozwiązanie zerowe: \(x_1=0\), \(x_2=0\), \(x_3=0\).</p>
+<p>Zapiszmy teraz ten program w postaci dopełnieniowej, wprowadzając zmienną dopełnieniową dla każdej nierówności (z wyłączeniem warunków nieujemnościowych). Dodatkowo funkcję celu zastąpmy nową zmienną \(z\):</p>
+<p>\[<br />
+       \begin{array}{rl}<br />
+       \textrm{max}                    &amp; z \\<br />
+                                      z &amp; = 3x_1 + x_2 +2x_3\\<br />
+                                      x_4 &amp;  = 30 - x_1 - x_2 - 3x_3 \\<br />
+                                      x_5 &amp;  = 24 - 2x_1 - 2x_2 - 5x_3\\<br />
+                                      x_6 &amp;  = 36 - 4x_1 - x_2 - 2 x_3\\<br />
+                                       &amp; x_1, x_2, x_3, x_4, x_5, x_6 \ge 0.<br />
+       \end{array}<br />
+\]</p>
+<p>Nasze rozwiązanie dopuszczalne, rozszerzone o zmienne dopełnieniowe ma teraz następującą postać:<br />
+\[ x_1 = 0, x_2 = 0, x_3 = 0, \quad x_4 = 30, x_5 = 24, x_6 = 36.\]</p>
+<p>Podczas działania algorytmu, w kolejnych krokach będziemy zmieniać nasz <em>program liniowy</em>. Mimo, iż ograniczenia będą się zmieniać, zawsze będą one opisywać ten sam wielościan (tzn. zbiór rozwiązań dopuszczalnych). W każdym kroku nasz program liniowy będzie miał szczególną postać, która w sposób jednoznaczny będzie wyznaczać pewien wierzchołek wielościanu --- najlepsze dotąd znalezione rozwiązanie. Podamy teraz niezmiennik, który opisuje postać tych programów. </p>
+<p>Niezmiennik sformułujemy dla dowolnego programu (a nie tylko powyższego przykładu). Załóżmy, że początkowy program w postaci dopełnieniowej ma \(m\) równości, oraz zawiera zmienne \(x_1,\ldots, x_{n+m}\) (gdzie \(x_{n+1},\ldots, x_{n+m}\) są zmiennymi dopełnieniowymi).</p>
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Niezmiennik 1</legend><br />
+<div class="collapse-text-text collapsed-text">
+Zbiór zmiennych \(\{x_1,\ldots,x_{n+m}\}\) dzieli się na dwa rozłączne zbiory: \(m\) zmiennych <em>bazowych</em> i \(n\) zmiennych <em>niebazowych</em>. Oznaczmy zbiór indeksów zmiennych bazowych przez \(B=\{B_1,\ldots,B_m\}\) (baza) i zmiennych niebazowych przez \(N=\{N_1,\ldots,N_n\}\). Program zawiera:</p>
+<ul>
+<li> równanie postaci \(z = v + \sum_{j=1}^n c_j x_{N_j}\);
+ </li>
+<li> dla każdego \(i=1,\ldots,m\) równanie postaci \(x_{B_i} = b_i + \sum_{j=1}^{n}a_{i,j} x_{N_j}\), gdzie \(b_i\ge 0\);
+ </li>
+<li> dla każdego \(i=1,\ldots,n+m\) nierówność \(x_i\ge 0\),
+</li>
+</ul>
+<p>gdzie \(v\), \(c_j\), \(b_j\), \(a_{i,j}\) są stałymi.
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+<p>W rozważanym przez nas przykładzie, powyższy niezmiennik jest spełniony dla \(N=\{1,2,3\}\) oraz \(B=\{4,5,6\}\).</p>
+<p><b>Fakt</b><br />
+ Jeśli spełniony jest niezmiennik 1, to rozwiązanie \((x_1,\ldots,x_{n+m})\) postaci<br />
+ \[x_i = \left\{ \begin{array}{cl}<br />
+                  0 &amp; \text{gdy \(i\in N\)} \\<br />
+                  b_j &amp; \text{gdy \(i=B_j\) dla pewnego \(j=1,\ldots,n\)}<br />
+                 \end{array} \right.<br />
+\]<br />
+ jest bazowym rozwiązaniem dopuszczalnym o wartości funkcji celu \(v\).</p>
+<p><i>Dowód</i><br />
+ Łatwo sprawdzić, że tak zdefiniowane rozwiązanie jest rozwiązaniem dopuszczalnym o wartości funkcji celu \(v\).  Aby pokazać, że jest to bazowe rozwiązanie dopuszczalne musimy wskazać \(n+m\) liniowo niezależnych ograniczeń spełnionych z równością. W tym celu, dla każdego \(i\in B\) wybieramy (jedyną) równość zawierającą \(x_i\) oraz dla każdego \(i\in N\) nierówność \(x_i\ge 0\). &diams;</p>
+<p>Z powyższego faktu wynika, że o ile spełniony jest niezmiennik, to faktycznie znajdujemy się w wierzchołku aktualnego programu w postaci dopełnieniowej. Łatwo sprawdzić też, że po zignorowaniu zmiennych dopełnieniowych otrzymamy wierzchołek odpowiadającego programu w postaci standardowej, a więc faktycznie algorytm będzie generował wierzchołki wielościanu oryginalnego programu liniowego.</p>
+<p>Wróćmy do algorytmu simplex. Naszym celem jest zwiększenie zmiennej \(z\). W tym celu spójrzmy na dowolną zmienną niebazową z dodatnim współczynnikiem w funkcji celu. W tym przypadku możemy wybrać dowolną zmienną z \(x_1, x_2, x_3\) --- wybierzmy \(x_1\).<br />
+Oczywiście powiększając \(x_1\) powiększamy \(z\). Jak bardzo możemy powiększyć \(x_1\), zachowując wszystkie ograniczenia? Dopóki zmienne bazowe pozostają nieujemne, a więc:<br />
+\[x_1 := \min \left\{\frac{30}{1}, \frac{24}{2}, \frac{36}{4}\right\} = \frac{36}{4} = 9.  \]<br />
+Po takiej operacji przynajmniej jedna zmienna bazowa (w tym przypadku \(x_6\)) przyjmuje wartość \(0\). To pozwala na zmianę bazy (a w konsekwencji zmianę wierzchołka, w którym jesteśmy): zmienna \(x_1\) wchodzi do bazy (jest <em>zmienną wchodzącą</em>), a zmienna \(x_6\) wychodzi z bazy (<em>zmienna wychodząca</em>). Operacja wymiany bazy (ang. {\mathbf{b}f pivot}) przebiega w dwóch krokach:</p>
+<ol>
+<li> Rozwiąż równanie zawierające zmienną wychodzącą ze względu na zmienną wchodzącą. W tym przypadku otrzymujemy:<br />
+\[x_1 = 9 - \frac{1}{4}x_2 - \frac{1}{2}x_3 - \frac{1}{4}x_6. \]
+</li>
+<li> wstaw wynik zamiast \(x_1\) z prawej strony wszystkich równań (czyli uaktualnij współczynniki przy zmiennych niebazowych i wyrazy wolne). W tym przypadku otrzymujemy:<br />
+\[<br />
+       \begin{array}{rlccccccc}<br />
+                          z &amp; = &amp; 27 &amp;+&amp; \frac{1}{4}x_2 &amp;+&amp; \frac{1}{2}x_3 &amp;-&amp; \frac{3}{4}x_6\\<br />
+                          x_1 &amp; = &amp; 9 &amp;-&amp; \frac{1}{4}x_2 &amp;-&amp; \frac{1}{2}x_3 &amp;-&amp; \frac{1}{4}x_6\\<br />
+                          x_4 &amp; = &amp; 21 &amp;-&amp; \frac{3}{4}x_2 &amp;-&amp; \frac{5}{2}x_3 &amp;+&amp; \frac{1}{4}x_6\\<br />
+                          x_5 &amp; = &amp; 6 &amp;-&amp; \frac{3}{2}x_2 &amp;-&amp; 4x_3 &amp;+&amp; \frac{1}{2}x_6.\\<br />
+       \end{array}<br />
+\]
+</li>
+</ol>
+<p><b>Fakt</b><br />
+Po operacji wymiany bazy otrzymujemy program liniowy o tym samym zbiorze rozwiązań dopuszczalnych.</p>
+<p>Otrzymaliśmy rozwiązanie \((9,0,0,21,6,0)\) o wartości funkcji celu \(27\). Wykonajmy kolejną operację wymiany bazy. Teraz jako zmienną wchodzącą możemy wybrać już tylko jedną z dwóch: \(x_2\) lub \(x_3\), bo tylko te zmienne mają dodatnie współczynniki w funkcji celu. Wybierzmy \(x_3\). Podobnie jak poprzednio:<br />
+\[x_3 := \min \left\{\frac{9}{\frac{1}{2}}, \frac{21}{\frac{5}{2}}, \frac{6}{4}\right\} = \frac{6}{4} = \frac{3}{2}.\]<br />
+A więc \(x_5\) wychodzi z bazy. Otrzymujemy nowy program:<br />
+\[<br />
+       \begin{array}{rlccccccc}<br />
+                          z &amp; = &amp; \frac{111}{4} &amp;+&amp; \frac{1}{16}x_2 &amp;-&amp; \frac{1}{8}x_5 &amp;-&amp; \frac{11}{16}x_6\\<br />
+                          x_1 &amp; = &amp; \frac{33}{4} &amp;-&amp; \frac{1}{16}x_2 &amp;+&amp; \frac{1}{8}x_5 &amp;-&amp; \frac{5}{16}x_6\\<br />
+                          x_3 &amp; = &amp; \frac{3}{2} &amp;-&amp; \frac{3}{8}x_2 &amp;-&amp; \frac{1}{4}x_5 &amp;+&amp; \frac{1}{8}x_6\\<br />
+                          x_4 &amp; = &amp; \frac{69}{4} &amp;+&amp; \frac{3}{16}x_2 &amp;+&amp; \frac{5}{8}x_5 &amp;-&amp; \frac{1}{16}x_6.\\<br />
+       \end{array}<br />
+\]</p>
+<p>Teraz jedynym kandydatem do wejścia do bazy jest \(x_2\). Zauważmy, że w ostatnim równaniu współczynnik przed \(x_2\) jest dodatni. Oznacza to, że zwiększając \(x_2\) możemy też zwiększać \(x_4\) zachowując ostatnią równość zawsze spełnioną. A więc przy wyborze zmiennej wychodzącej nie bierzemy pod uwagę \(x_4\):<br />
+\[x_2 := \min \left\{\frac{\frac{33}{4}}{\frac{1}{16}}, \frac{\frac{3}{2}}{\frac{3}{8}}\right\} = \frac{\frac{3}{2}}{\frac{3}{8}} = 4.\]</p>
+<p><b>Uwaga</b><br />
+Zastanówmy się jednak przez chwilę, co by było, gdybyśmy nie mieli czego wziąć do minimum, tzn. gdyby istniała zmienna z dodatnim współczynnikiem w funkcji celu i nieujemnymi współczynnikami w pozostałych równaniach? Wtedy powiększając tę zmienną moglibyśmy otrzymać rozwiązanie dopuszczalne o dowolnie wysokiej wartości funkcji celu. W takiej sytuacji algorytm simplex zwraca komunikat ``PROGRAM  NIEOGRANICZONY'' i kończy działanie.</p>
+<p>Wracając do naszego programu liniowego, otrzymujemy:</p>
+<p>\[<br />
+       \begin{array}{rlccccccc}<br />
+                          z &amp; = &amp; 28 &amp;-&amp; \frac{1}{6}x_3 &amp;-&amp; \frac{1}{6}x_5 &amp;-&amp; \frac{2}{3}x_6\\<br />
+                          x_1 &amp; = &amp; 8 &amp;+&amp; \frac{1}{6}x_3 &amp;+&amp; \frac{1}{6}x_5 &amp;-&amp; \frac{1}{3}x_6\\<br />
+                          x_3 &amp; = &amp; 4 &amp;-&amp; \frac{8}{3}x_3 &amp;-&amp; \frac{2}{3}x_5 &amp;+&amp; \frac{1}{3}x_6\\<br />
+                          x_4 &amp; = &amp; 18 &amp;-&amp; \frac{1}{2}x_3 &amp;+&amp; \frac{1}{2}x_5 &amp;+&amp; 0x_6.\\<br />
+       \end{array}<br />
+\]</p>
+<p>Otrzymaliśmy więc sytuację, gdy nie możemy wykonać operacji wymiany bazy ponieważ wszystkie współczynniki w funkcji celu są ujemne. Jest jednak jasne, że musieliśmy w ten sposób dostać rozwiązanie optymalne programu, ponieważ dla dowolnych <em>nieujemnych</em> wartości zmiennych wartość funkcji celu naszego programu nie może przekroczyć aktualnej, czyli \(28\). Ponieważ w kolejnych krokach algorytmu otrzymywaliśmy równoważne programy liniowe o tym samym zbiorze rozwiązań dopuszczalnych, jest to także rozwiązanie optymalne oryginalnego programu.Odnotujmy te rozważania jako fakt:</p>
+<p><b>Fakt</b><br />
+Jeśli w pewnym kroku algorytmu simplex wszystkie współczynniki (przy zmiennych niebazowych) w funkcji celu są ujemne, to znalezione bazowe rozwiązanie dopuszczalne jest optymalnym rozwiązaniem oryginalnego programu.</p>
+<p>W naszym przypadku dostaliśmy rozwiązanie \((x_1,x_2,x_3) = (8,4,0)\) o wartości funkcji celu \(28\).</p>
+<p>W tej chwili zasada działania algorytmu simplex i jego częściowa poprawność (tzn. poprawność pod warunkiem zatrzymania się programu) powinny być już jasne. Zajmijmy się jeszcze przez chwilę właśnie kwestią warunku stopu i złożoności obliczeniowej.</p>
+<h3>Pseudokod algorytmu simplex</h3>
+<p>Podsumujmy teraz powyższe rozważania podając pseudokod algorytmu Simplex. Stosujemy oznaczenia takie jak w niezmienniku 1.</p>
+<ol type="1">
+<li> Sprowadź PL do postaci dopełnieniowej.
+ </li>
+<li> Znajdź równoważny PL taki, żeby spełniony był niezmiennik 1.
+ </li>
+<li> Dopóki istnieje \(j\in \{1,\ldots,n\}\) takie, że \(c_j &gt; 0\) (\(c_j=\) współczynnik przed \(x_{N_j}\) w aktualnej funkcji celu),<br />
+<ol type="a">
+<li> Wybierz takie \(j\) (\(x_{N_j}\) jest zmienną wchodzącą).
+  </li>
+<li> Jeśli dla każdego \(i=1,\ldots,m\), jest \(a_{i,j} \ge 0\) (tzn.\ dla każdego równania współczynnik przed \(x_{N_j}\) jest nieujemny) zwróć ,,PROGRAM NIEOGRANICZONY''.
+  </li>
+<li> wpp., wybierz \(i\) takie, że \(\frac{b_i}{-a_{i,j}} = \min\{\frac{b_i}{-a_{i,j}}\ |\ a_{i,j}&lt;0\}\) (\(x_{B_i}\) jest zmienną wychodzącą).
+  </li>
+<li> wykonaj operację Pivot (\(j\),\(i\))
+ </li>
+</ol>
+</li>
+<li> Zwróć rozwiązanie postaci: dla każdego \(i=1,\ldots,n\),<br />
+ \[x_i = \left\{ \begin{array}{cl}<br />
+                  0 &amp; \text{gdy \(i\in N\)} \\<br />
+                  b_j &amp; \text{gdy \(i=B_j\) dla pewnego \(j=1,\ldots,m\).}<br />
+                 \end{array} \right.<br />
+\]
+</li>
+</ol>
+<p>Podamy teraz pseudokod operacji Pivot(\(in\),\(out\)), realizującej usunięcie z bazy \(x_{B_{out}}\) i dodanie do niej \(x_{N_{in}}\). Przy implementacji, wygodnie jest przechowywać wszystkie stałe w jednej tablicy \(a_{i,j}\), gdzie \(i\in\{0,\ldots,m\}\), \(j\in\{0,\ldots,n\}\), oraz przyjmujemy że \(a_{0,0}=v\), \(a_{0,j}=c_j\) dla \(j=1,\ldots,n\) oraz \(a_{i,0}=b_i\) dla \(i=1,\ldots,m\) (wartości \(a_{i,j}\) dla \(i,j\ge 1\) mają takie same znaczenie jak wcześniej).</p>
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Pseudokod operacji pivot</legend><br />
+<div class="collapse-text-text collapsed-text">
+<b>Pivot</b> (\(in\),\(out\))<br />
+<span class="inline inline-left"><img src="http://smurf.mimuw.edu.pl/sites/default/files/images/pivot.png" alt="" title=""  class="image image-_original " width="280" height="240" /></span>
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+<h3>Warunek stopu i reguła Blanda</h3>
+<p>Jest jasne, że jeśli przy kolejnych operacjach wymiany bazy zawsze otrzymujemy większą (lub, w przypadku minimalizacji, mniejszą) wartość funkcji celu to algorytm musi się zakończyć --- po prostu dlatego, że jest ograniczona liczba wierzchołków wielościanu. Poprzednik tej implikacji niestety nie zawsze jest jednak spełniony. Dla przykładu, rozważmy następujący program:</p>
+<p>\[<br />
+       \begin{array}{rlccccccc}<br />
+                          z &amp; = &amp; 4 &amp;+&amp; 2x_1 &amp;-&amp; x_2 &amp;-&amp; 4x_4\\<br />
+                          x_3 &amp; = &amp; \frac{1}{2} &amp; &amp; &amp; &amp; &amp; - &amp; \frac{1}{2}x_4\\<br />
+                          x_5 &amp; = &amp;   &amp;-&amp; 2x_1 &amp;+&amp; 4x_2 &amp;+&amp; 3x_4\\<br />
+                          x_6 &amp; = &amp;   &amp;+&amp; x_1 &amp;-&amp; 3x_2 &amp;+&amp; 2x_4.\\<br />
+       \end{array}<br />
+\]</p>
+<p>Mamy \(B = \{3,4,6\}\), \(N=\{1,2,4\}\), \(\mathbf{x} = (0, 0, \frac{1}{2}, 0, 0, 0)\) oraz funkcja celu ma wartość \(z=4\).  Jako zmienną wchodzącą możemy wybrać jedynie \(x_1\), natomiast jako zmienną wychodzącą jedynie \(x_5\). Po wymianie bazy otrzymujemy:</p>
+<p>\[<br />
+       \begin{array}{rlccccccc}<br />
+                          z &amp; = &amp; 4 &amp;+&amp; 3x_2 &amp;-&amp; x_4 &amp;-&amp; x_5\\<br />
+                          x_1 &amp; = &amp;   &amp;+&amp; 2x_2 &amp;+&amp; \frac{3}{2}x_4 &amp;-&amp; \frac{1}{2}x_5\\<br />
+                          x_3 &amp; = &amp; \frac{1}{2} &amp; &amp; &amp; - &amp; \frac{1}{2}x_4 &amp; &amp; \\<br />
+                          x_6 &amp; = &amp;  &amp;-&amp; x_2 &amp;+&amp; \frac{7}{2}x_4 &amp;-&amp; \frac{1}{2}x_5.\\<br />
+       \end{array}<br />
+\]</p>
+<p>Mamy \(B = \{1,3,6\}\), \(N=\{2,4,5\}\), \(\mathbf{x} = (0, 0, \frac{1}{2}, 0, 0, 0)\) oraz funkcja celu ma wartość \(z=4\). Widzimy, że chociaż zmieniła się baza, bazowe rozwiązanie dopuszczalne pozostało to samo (w szczególności wartość funkcji celu się nie zmieniła). Może być to powodem poważnych kłopotów, a nawet zapętlenia się algorytmu. Początkowo ten problem ignorowano (!), gdyż w praktycznych zastosowaniach pojawia się on niezwykle rzadko. W 1977 (czyli w 30 lat od powstania algorytmu simplex) Robert Bland zaproponował niezwykle prostą heurystykę, o której można pokazać (dowód nie jest bardzo trudny, lecz pominiemy go tutaj), że gwarantuje zakończenie algorytmu.</p>
+<p><b>Twierdzenie [Reguła Blanda]</b><br />
+Jeśli podczas wymiany bazy:</p>
+<ul>
+<li> spośród możliwych zmiennych wchodzących wybierana jest zmienna o najmniejszym indeksie oraz,
+ </li>
+<li> spośród możliwych zmiennych wychodzących wybierana jest zmienna o najmniejszym indeksie (zauważmy, że może być wiele możliwych zmiennych wychodzących, gdy w wielu równaniach iloraz wyrazu wolnego i współczynnika przy zmiennej wchodzącej jest taki sam)
+</li>
+</ul>
+<p>to algorytm simplex kończy swoje działanie.</p>
+<p>Zapętlenie się algorytmu simplex jest równoważne powrotowi do tej samej bazy. Ponieważ dla programu o \(m\) zmiennych niebazowych i \(n\) zmiennych niebazowych mamy \(O({{n+m}\choose n})\) możliwych baz, więc algorytm simplex z regułą Blanda wykonuje \(O({{n+m}\choose n})\) operacji wymiany bazy (przy każdej z nich wykonuje się \(O(nm)\) operacji arytmetycznych). Z drugiej strony, odnotujmy, że</p>
+<p><b>Fakt</b><br />
+Istnieją przykłady programów liniowych, dla których algorytm simplex działa w czasie \(\Omega(2^n)\).</p>
+<p>Mimo to, następujący problem pozostaje otwarty.</p>
+<p><B>Problem</b><br />
+Czy istnieją reguły wyboru zmiennej wchodzącej i wychodzącej, dla których algorytm simplex działa w czasie wielomianowym?</p>
+<h3>Znajdowanie początkowego bazowego rozwiązania dopuszczalnego</h3>
+<p>Do wyjaśnienia pozostała jeszcze jedna kwestia.  Zakładaliśmy, że program jest postaci \[\max \mathbf{c}^T\mathbf{x}, \mathbf{A}\mathbf{x}\le b, \mathbf{x}\ge 0, \] oraz że \(\mathbf{b}\ge \mathbf{0}\). Wtedy łatwo jest znaleźć równoważny program w postaci dopełnieniowej, który spełnia niezmiennik 1 (innymi słowy: pierwsze bazowe rozwiązanie dopuszczalne). Teraz opiszemy jak to zrobić w przypadku ogólnym. Rozwiązanie będzie dość zaskakujące: żeby znaleźć pierwsze bazowe rozwiązanie dopuszczalne użyjemy algorytmu simplex.</p>
+<ol>
+<li> Sprowadź program do postaci dopełnieniowej:
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Program (P1)</legend><br />
+<div class="collapse-text-text collapsed-text">
+\[<br />
+       \begin{array}{rcccccccc}<br />
+       \textrm{max}        &amp;   &amp; 0 &amp; + &amp; c_1x_1 &amp; + &amp; \ldots &amp; + &amp; c_nx_n  \\<br />
+                    x_{n+1}&amp; = &amp; b_1 &amp; + &amp; a_{11}x_1 &amp; + &amp; \ldots &amp; + &amp; a_{1n}x_n  \\<br />
+                    x_{n+2}&amp; = &amp; b_2 &amp; + &amp; a_{21}x_1 &amp; + &amp; \ldots &amp; + &amp; a_{2n}x_n  \\<br />
+                    \vdots    &amp;     &amp;   &amp;           &amp;   &amp;        &amp;   &amp;    \\<br />
+                    x_{n+m}&amp; = &amp; b_m &amp; + &amp; a_{m1}x_1 &amp; + &amp; \ldots &amp; + &amp; a_{mn}x_n  \\<br />
+                               x_i &amp;\ge &amp;0<br />
+       \end{array}<br />
+\]
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+</li>
+<li> Dodaj nową zmienną \(x_0\) i zbuduj nowy program:
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Program (P2)</legend><br />
+<div class="collapse-text-text collapsed-text">
+\[<br />
+       \begin{array}{rcccccccccc}<br />
+       \textrm{min}        &amp;   &amp; x_0 &amp;   &amp;           &amp;   &amp;        &amp;   &amp;            &amp; &amp; \\<br />
+                    x_{n+1}&amp; = &amp; b_1 &amp; + &amp; a_{11}x_1 &amp; + &amp; \ldots &amp; + &amp; a_{1n}x_n  &amp; + &amp; x_0\\<br />
+                    x_{n+2}&amp; = &amp; b_2 &amp; + &amp; a_{21}x_1 &amp; + &amp; \ldots &amp; + &amp; a_{2n}x_n  &amp; + &amp; x_0\\<br />
+                    \vdots    &amp;     &amp;  \vdots  &amp;           &amp;   &amp;        &amp;   &amp;    \\<br />
+                    x_{n+m}&amp; = &amp; b_m &amp; + &amp; a_{m1}x_1 &amp; + &amp; \ldots &amp; + &amp; a_{mn}x_n  &amp; + &amp; x_0\\<br />
+                               x_i &amp;\ge &amp;0<br />
+       \end{array}<br />
+\]
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+</li>
+<li> Przyjmij \(N=\{0,\ldots, n\}\), oraz \(B=\{n+1,\ldots,n+m\}\). Powyższy PL prawie spełnia niezmiennik, brakuje ,,tylko'' warunku ,,\(b_i\ge 0\) dla każdego \(i\)''.
+</li>
+<li> Wybierz \(k\) takie, że \(b_k = \min_i \{b_i\}\). Za pomocą operacji Pivot, usuń z bazy \(x_k\) i wprowadź do bazy \(x_0\). Otrzymujemy nowy PL:
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Program (P3)</legend><br />
+<div class="collapse-text-text collapsed-text">
+\[<br />
+       \begin{array}{crcccccccccc}<br />
+       &amp;\textrm{min}        &amp;   &amp; -b_k &amp; - &amp; a_{k1}x_1 &amp; -  &amp;  \ldots  &amp; -  &amp; a_{kn}x_n &amp; + &amp; x_{n+k}\\<br />
+                 i\ne k \Rightarrow &amp;   x_{n+i}&amp; = &amp; b_i - b_k &amp; + &amp; (a_{i1}-a_{k1})x_1 &amp; + &amp; \ldots &amp; + &amp; (a_{in}-a_{kn})x_n  &amp; + &amp; x_{n+k}\\<br />
+               &amp;     x_{0}&amp; = &amp; -b_k &amp; - &amp; a_{k1}x_1 &amp; -  &amp;  \ldots  &amp; -  &amp; a_{kn}x_n &amp; + &amp; x_{n+k}\\<br />
+                &amp;               x_i &amp;\ge &amp;0<br />
+       \end{array}<br />
+\]
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+</li>
+<li>
+Zauważmy, że program (P3) jest równoważny programowi (P2) oraz spełnia niezmiennik 1. Za pomocą algorytmu simplex znajdujemy rozwiązanie optymalne \(\mathbf{x}^*\). (Zauważmy, że program (P2) jest ograniczony: wartością funkcji celu jest wartość \(x_0\), która jest nieujemna.) W używanym algorytmie simplex dokonujemy jednak małej <em>modyfikacji w regule wyboru zmiennej wychodzącej</em>: jeśli \(x_0\) może opuścić bazę, to ją opuszcza. </p>
+</li>
+<li> Jeśli otrzymaliśmy \(x^*_0&gt;0\) zwracamy informację ,,PROGRAM SPRZECZNY''. Istotnie, gdyby istniało rozwiązanie dopuszczalne \(\mathbf{x}\) programu (P1), to \((0,\mathbf{x})\) byłoby rozwiązaniem dopuszczalnym programu (P2) o wartości funkcji celu 0.
+</li>
+<li> Jeśli otrzymaliśmy \(x^*_0=0\) oraz \(x_0\) jest niebazowa, wystarczy z ostatniego PL wygenerowanego przez algorytm simplex usunąć zmienne \(x_0\). Otrzymujemy wtedy program równoważny programowi (P1), który spełnia niezmiennik 1.
+</li>
+<li> Pozostaje przypadek, gdy otrzymaliśmy \(x^*_0=0\) oraz \(x_0\) jest bazowa. Pokażemy, że jest to niemożliwe. Rozważmy ostatnią operację Pivot. Powiedzmy, że zmienną wchodzącą było \(x_j\), a wychodzącą \(x_i\), dla pewnego \(i\ne j\). Przed wykonaniem operacji Pivot zarówno \(x_i\) jak i \(x_0\) były bazowe, a więc na podstawie niezmiennika 1 odpowiadały im dwa równania:<br />
+\[<br />
+       \begin{array}{rccccccc}<br />
+                    x_{0}&amp; = &amp; b_0 &amp; + &amp; \ldots  &amp; + &amp; a_{0j}x_j\\<br />
+                    x_{i}&amp; = &amp; b_i &amp; + &amp; \ldots  &amp; + &amp; a_{ij}x_j.<br />
+       \end{array}<br />
+\]<br />
+Po wykonaniu operacji Pivot, równanie zawierające \(x_0\) ma postać<br />
+\[<br />
+                    x_{0} =  b_0 + a_{0j}\cdot \frac{b_i}{-a_{ij}}  + \sum_{j\in N} a'_{0j}x_{N_j}.<br />
+\]<br />
+Wiemy jednak, że po tej operacji wyraz wolny w tym równaniu jest równy 0, a więc \(\frac{b_i}{-a_{ij}} = \frac{b_0}{-a_{0j}}\). Ponieważ \(x_i\) została wybrana jako zmienna wychodząca, więc \(\frac{b_i}{-a_{ij}}=\min\{\frac{b_{\ell}}{-a_{{\ell}j}}\ |\ a_{{\ell}j} &lt; 0\}\). Wówczas także \(\frac{b_0}{-a_{0j}}=\min\{\frac{b_{\ell}}{-a_{{\ell}j}}\ |\ a_{{\ell}j} &lt; 0\}\), czyli zmienna \(x_0\) również była kandydatem do opuszczenia bazy, a więc zgodnie z naszą regułą, musiała ją opuścić i cała rozważana sytuacja nie mogła mieć miejsca.
+</li>
+</ol>
+</div>
+</div>
+</form>
+<div class="image-clear"></div>  <div id="book-navigation-1100" class="book-navigation">
+    
+        <div class="page-links clear-block">
+              <a href="/node/1121" class="page-previous" title="Przejdź do poprzedniej strony">‹ Programowanie liniowe 1: Podstawowe pojęcia i geometria programów liniowych</a>
+                    <a href="/zaawansowane_algorytmy" class="page-up" title="Wyświetla stronę nadrzędną">w górę</a>
+                    <a href="/node/1124" class="page-next" title="Przejdź do następnej strony">Programowanie liniowe 3: Dualność ›</a>
+          </div>
+    
+  </div>
+  </div>
+
+  <div class="clear-block">
+    <div class="meta">
+        </div>
+
+          <div class="links"><ul class="links inline"><li class="book_printer first last"><a href="/book/export/html/1122" title="Wyświetla wszystkie strony książki w wersji przygotowanej do wydruku.">Wersja do wydruku</a></li>
+</ul></div>
+      </div>
+
+</div>
+          </div>
+                    <div id="footer"></div>
+      </div></div></div></div> <!-- /.left-corner, /.right-corner, /#squeeze, /#center -->
+
+      
+    </div> <!-- /container -->
+  </div>
+<!-- /layout -->
+
+    </body>
+</html>

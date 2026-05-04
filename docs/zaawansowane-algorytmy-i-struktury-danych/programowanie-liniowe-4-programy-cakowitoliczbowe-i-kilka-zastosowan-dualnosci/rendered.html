@@ -1,0 +1,266 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="pl" lang="pl" dir="ltr">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="prev" href="/node/1124" />
+<link rel="up" href="/zaawansowane_algorytmy" />
+<link rel="next" href="/node/1142" />
+<link rel="shortcut icon" href="/misc/favicon.ico" type="image/x-icon" />
+    <title>Programowanie liniowe 4: Programy całkowitoliczbowe i kilka zastosowań dualności | Informatyka MIMUW</title>
+    <link type="text/css" rel="stylesheet" media="all" href="/modules/book/book.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/node/node.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/defaults.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system-menus.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/user/user.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/modules/geshifilter/geshifilter.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/modules/img_assist/img_assist.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/modules/views/css/views.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/default/files/color/garland-0431760f/style.css?G" />
+<link type="text/css" rel="stylesheet" media="print" href="/themes/garland/print.css?G" />
+    <script type="text/javascript" src="/misc/jquery.js?G"></script>
+<script type="text/javascript" src="/misc/drupal.js?G"></script>
+<script type="text/javascript" src="/sites/default/files/languages/pl_7618cc674030d51495c9d1ac3aae9126.js?G"></script>
+<script type="text/javascript" src="/misc/collapse.js?G"></script>
+<script type="text/javascript" src="/sites/all/modules/img_assist/img_assist.js?G"></script>
+<script type="text/javascript">
+<!--//--><![CDATA[//><!--
+jQuery.extend(Drupal.settings, { "basePath": "/" });
+//--><!]]>
+</script>
+    <!--[if lt IE 7]>
+      <link type="text/css" rel="stylesheet" media="all" href="/themes/garland/fix-ie.css" />    <![endif]-->
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+  </head>
+  <body>
+
+<!-- Layout -->
+  <div id="header-region" class="clear-block"></div>
+
+    <div id="wrapper">
+    <div id="container" class="clear-block">
+
+      <div id="header">
+        <div id="logo-floater">
+        <h1><a href="/" title="Informatyka MIMUW"><span>Informatyka MIMUW</span></a></h1>        </div>
+
+                  <ul class="links primary-links"><li class="menu-126 first last"><a href="/node/3" title="Materiały">Materiały</a></li>
+</ul>                                  
+      </div> <!-- /header -->
+
+      
+      <div id="center"><div id="squeeze"><div class="right-corner"><div class="left-corner">
+          <div class="breadcrumb"><a href="/">Strona główna</a> › <a href="/zaawansowane_algorytmy">Zaawansowane algorytmy i struktury danych</a></div>                              <h2>Programowanie liniowe 4: Programy całkowitoliczbowe i kilka zastosowań dualności</h2>                                                  <div class="clear-block">
+            <div id="node-1126" class="node">
+
+
+
+      <span class="submitted">śr., 06/29/2011 - 13:05 — kowalik</span>
+  
+  <div class="content clear-block">
+    <form action="/book/export/html/1100"  accept-charset="UTF-8" method="post" id="collapse-text-dynamic-form-number-4">
+<div>
+<div class="collapse-text-text collapsed-text">
+<h2>Programowanie całkowitoliczbowe</h2>
+<p>Program (liniowy) całkowitoliczbowy to program liniowy z dodatkowym wymaganiem, aby wartości wszystkich zmiennych były całkowitoliczbowe. Ten z pozoru niewinny warunek całkowicie zmienia złożoność problemu: większość naturalnych problemów NP-trudnych można bardzo łatwo wyrazić jako liniowe programy całkowitoliczbowe, np. problem pokrycia wierzchołkowego w grafie \(G=(V,E)\) jest równoważny programowi:</p>
+<p>\[<br />
+\label{eq:vc}<br />
+       \begin{array}{rll}<br />
+       \textrm{min}                    &amp; \sum_{v\in V} x_v \\<br />
+                                       &amp; x_u+x_v \ge 1 &amp; \forall uv \in E\\<br />
+                                       &amp; x_v \in \{0,1\} &amp; \forall v \in V,\\<br />
+       \end{array}<br />
+\]<br />
+ponieważ ostatni warunek możemy zastąpić przez koniunkcję \(0 \le x_v \le 1\) i \(x_v \in \mathbb{Z}\). Jeśli min zastąpimy przez max, a \(\ge\) przez \(\le\) otrzymamy z kolei problem najmniejszego zbioru niezależnego.</p>
+<p><b>Wniosek </b><br />
+ Problem programowania liniowego całkowitoliczbowego jest NP-trudny.</p>
+<h2>Dokładne relaksacje i unimodularność </h2>
+<p>Dla danego programu całkowitoliczbowego (I) jego <em>relaksacją</em> będziemy nazywać program liniowy (L), który powstaje po usunięciu warunku całkowitoliczbowości. Relaksacja jest <em>dokładna</em>, gdy wszystkie wierzchołki (L) są całkowitoliczbowe (tzn. mają całkowite współrzędne). Zauważmy, że jeśli relaksacja faktycznie jest dokładna, to w szczególności możemy rozwiązać program całkowitoliczbowy (I) w czasie wielomianowym. W tym celu wystarczy: </p>
+<ol>
+<li> rozwiązać (L) w czasie wielomianowym (np. metodą elipsoidalną) otrzymując rozwiązanie optymalne \(\mathbf{x}^*\),
+ </li>
+<li> znaleźć wierzchołek \(\mathbf{x}'\) o wartości funkcji celu takiej samej jak dla \(\mathbf{x}^*\) (wielomianowo, np. tak jak w dowodzie twierdzenia th:opt-&gt;vtx z <a href="http://smurf.mimuw.edu.pl/drupal6/node/1121#thoptvtx"> wykładu o geometrii programów liniowych</a>)
+ </li>
+<li> zwrócić \(\mathbf{x}'\) jako rozwiązanie programu całkowitoliczbowego (I).
+</li>
+</ol>
+<p>Poszukiwanie programów całkowitoliczbowych, których relaksacje są dokładne to użyteczne narzędzie w rozstrzyganiu, czy dany problem algorytmiczny należy do klasy \(\mathbf{P}\). W dowodzeniu, że dana relaksacja jest dokładna często używamy pojęcia całkowitej unimodularności.</p>
+<p>Mówimy, że macierz \(\mathbf{A}\) jest <em>całkowicie unimodularna</em> jeśli dla każdej podmacierzy \(\mathbf{A}'\) macierzy \(\mathbf{A}\), mamy \(\det \mathbf{A}'\in \{-1,0,1\}\).</p>
+<p><b>Twierdzenie 1</b><br />
+Jeśli wektor \(\mathbf{b}\) jest całkowitoliczbowy i macierz \(\mathbf{A}\) jest całkowicie unimodularna to program \(\mathbf{A} \mathbf{x}\le \mathbf{b}\) ma wierzchołki całkowitoliczbowe (czyli jest dokładną relaksacją programu całkowitoliczbowego \(\mathbf{A} \mathbf{x}\le \mathbf{b}\)). </p>
+<p>Dowód powyższego twierdzenia pozostawiamy Czytelnikowi jako ćwiczenie. Wskazówka: skorzystaj z tego, że wierzchołki są bazowymi rozwiązaniami dopuszczalnymi oraz użyj wzorów Cramera. </p>
+<h2>Maksymalny przepływ o minimalnym koszcie</h2>
+<p>Rozważmy problem maksymalnego przepływu o minimalnym koszcie (patrz odpowiedni <a href="http://smurf.mimuw.edu.pl/drupal6/node/1119">wykład</a>). Poznaliśmy dwa algorytmy dla tego problemu (algorytm usuwania ujemnych cykli i algorytm najkrótszej ścieżki). Choć algorytm najkrótszej ścieżki jest bardzo efektywny w zastosowaniach, w których maksymalny przepływ ma niewielką wartość, w ogólności żaden z tych dwóch algorytmów nie jest wielomianowy (tzn. nie zależy wielomianowo od rozmiaru danych). Z pomocą programowania liniowego łatwo pokazać, że algorytm wielomianowy dla tego problemu istnieje, i to nawet w ogólnym przypadku (algorytm najkrótszej ścieżki działa tylko gdy w grafie wejściowym nie ma cykli o ujemnym koszcie). Wystarczy jednym z algorytmów wielomianowych rozwiązać następujący program liniowy:</p>
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Program (F)</legend><br />
+<div class="collapse-text-text collapsed-text">
+\[<br />
+       \begin{array}{ll@{\hspace{7mm}}l}<br />
+       \textrm{zminimalizuj}           &amp; \sum_{(u,v)\in E} a(u,v) \cdot f_{uv} &amp; \\<br />
+       \textrm{z zachowaniem warunków} &amp;  \sum_{(u,v)\in  E} f_{uv} - \sum_{(v,u)\in E}f_{vu} = 0 &amp; \forall v \in V\setminus\{s,t\} \\<br />
+                                       &amp; f_{vw} \le c(v,w) &amp; \forall (v,w)\in E \\<br />
+                                       &amp; f_{vw} \ge 0 &amp; \forall (v,w)\in E \\<br />
+                                       &amp; \sum_{(s,v)\in E}f_{sv}=f^*,<br />
+       \end{array}<br />
+\]
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+<p>gdzie \(f^*\) jest wartością maksymalnego przepływu (którą możemy wyliczyć w czasie wielomianowym algorytmem Edmondsa-Karpa lub rozwiązując program liniowy z przykładu 2 z <a href="http://smurf.mimuw.edu.pl/drupal6/node/1121">pierwszego wykładu o programowaniu liniowym</a>).</p>
+<p>Znane nam algorytmy dla problemów przepływowych mają tę użyteczną cechę, że gdy przepustowości w sieci są całkowitoliczbowe, to również przepływ znajdowany przez te algorytmy jest całkowitoliczbowy. Okazuje się, że można to zagwarantować również rozwiązując powyższy program, gdyż jego macierz jest całkowicie unimodularna. Poniżej przestawiamy dowód tego faktu.</p>
+<p><b>Twierdzenie 2</b><br />
+Program (F) ma wierzchołki całkowitoliczbowe, o ile przepustowości krawędzi są liczbami całkowitymi.</p>
+<p><i>Dowód</i><br />
+Pokażemy, że macierz programu (F) jest unimodularna. Rozważamy dowolną podmacierz \(A'\) i chcemy wykazać, że \(\det A'\in \{-1,0,1\}\).  Dowodzimy przez indukcję ze względu na liczbę elementów macierzy \(A'\), że \(\det A' \in \{-1,0,1\}\). Dla macierzy o wymiarach \(1\times 1\) mamy \(\det A' \in \{-1,0,1\}\). Rozważmy teraz podmacierz \(A'\) o dowolnych wymiarach. Jeśli \(A'\) ma kolumnę, która zawiera co najwyżej jedną 1-kę, kończymy dowód korzystając z rozwinięcia Laplace'a względem tej kolumny i założenia indukcyjnego. Postępujemy analogicznie dla wierszy. Został nam przypadek, gdy każdy wiersz i każda kolumna zawiera co najmniej dwie 1-ki. Stąd, każdy wiersz \(A'\) pochodzi od ograniczenia typu \(\sum_{(u,v)\in  E} f_{uv} - \sum_{(v,u)\in E}f_{vu} = 0\) lub od ograniczenia \(\sum_{(s,v)\in E}f_{sv}=f^*\). Ale dla każdej zmiennej \(f_{ab}\) są tylko dwa takie ograniczenia: w jednym (dla wierzchołka \(a\))  \(f_{ab}\) pojawia się ze współczynnikiem \(+1\), w drugim (dla wierzchołka \(b\)) ze współczynnikiem \(-1\). Po dodaniu wszystkich wierszy \(A'\) dostaniemy więc wektor zerowy, a więc wiersze \(A'\) są liniowo zależne i \(\det A'=0\). &diams;</p>
+<h2>Skojarzenia w grafach dwudzielnych i twierdzenie Koniga-Egervary'ego</h2>
+<p>Rozważmy problem maksymalnego skojarzenia w danym grafie \(G=(V,E)\). Problem ten możemy łatwo sformułować jako zadanie programowania liniowego całkowitoliczbowego.</p>
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Program (IM1)</legend><br />
+<div class="collapse-text-text collapsed-text">
+\[<br />
+\label{eq:matching}<br />
+       \begin{array}{rll}<br />
+       \textrm{max}                    &amp; \sum_{e \in E} x_e \\<br />
+                                       &amp; \sum_{vw\in E}x_{vw} \le 1 &amp; \forall v \in V\\<br />
+                                       &amp; x_e \in \{0,1\} &amp;  \forall  e \in E.\\<br />
+       \end{array}<br />
+\]
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+<p>Relaksacja tego programu wygląda następująco:</p>
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Program (M1)</legend><br />
+<div class="collapse-text-text collapsed-text">
+\[<br />
+\label{eq:matching-lp}<br />
+       \begin{array}{rll}<br />
+       \textrm{max}                    &amp; \sum_{e \in E} x_e \\<br />
+                                       &amp; \sum_{vw\in E}x_{vw} \le 1 &amp; \forall v \in V\\<br />
+                                       &amp; x_e \ge 0 &amp; \forall e \in E.\\<br />
+       \end{array}<br />
+\]
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+<p>Zauważmy, że w powyższym programie mogliśmy opuścić warunek \(x_e \le 1\), gdyż i tak jest on spełniony dla każdego rozwiązania dopuszczalnego programu (M1).</p>
+<p><b>Twierdzenie 3</b><br />
+ Jeśli \(G\) jest dwudzielny, to macierz programu (M1) jest unimodularna. </p>
+<p><i>Dowód</i><br />
+Ponieważ \(G\) jest dwudzielny, więc jego zbiór wierzchołków dzieli się na dwa rozłączne zbiory \(V=X\cup Y\) takie, że każda krawędź ma 1 koniec w \(X\) i 1 koniec w \(Y\). Niech \(A'\) będzie dowolną podmacierzą macierzy programu (M1).  Stosujemy indukcję podobnie jak w dowodzie twierdzenia 2. Analogicznie jak poprzednio możemy założyć, że w każdym wierszu i każdej kolumnie \(A'\) są co najmniej dwie 1-ki. Stąd każdy wiersz \(A'\) pochodzi od wiersza typu \(\sum_{vw\in E}x_{vw} \le 1\) macierzy \(A\). Zauważamy, że każda kolumna macierzy \(A'\) zawiera dokładnie dwie jedynki: jedną w pewnym wierszu odpowiadającemu wierzchołkowi z \(X\), drugą w wierszu odpowiadającemu wierzchołkowi z \(Y\). Stąd, po dodaniu wszystkich wierszy \(A'\) odpowiadających wierzchołkom z \(X\) dostaniemy taki sam wektor jak po dodaniu wszystkich wierszy  \(A'\) odpowiadających wierzchołkom z \(Y\). A więc wiersze macierzy \(A'\) są liniowo zależne, czyli \(\det A'=0\).  &diams;</p>
+<p>Jako wniosek dostajemy, że (M1) jest dokładną relaksacją (IM1). W konsekwencji mamy</p>
+<p><b>Wniosek</b><br />
+Problem największego skojarzenia w grafach dwudzielnych jest w klasie \(\mathbf{P}\).</p>
+<p>Ten wniosek można oczywiście również otrzymać podając konkretny algorytm wielomianowy (patrz np. <a href="http://wazniak.mimuw.edu.pl/index.php?title=Zaawansowane_algorytmy_i_struktury_danych/Wyk%C5%82ad_7">wykład o skojarzeniach w grafach dwudzielnych</a>).</p>
+<p>Na marginesie dodajmy, że  (M1) <b>nie</b> jest dokładną relaksacją (IM1) w klasie wszystkich grafów (łatwo to sprawdzić np. dla trójkąta). Aby otrzymać program, którego relaksacja jest dokładna, należy do (M1) dodać <em>wykładniczą liczbę</em> warunków: dla każdego nieparzystego zbioru wierzchołków \(S\subseteq V\) dodajemy warunek \(\sum_{e=vw: v,w\in S} x_e \le (|S|-1)/2\).</p>
+<p>Powróćmy do grafów dwudzielnych. Rozważmy program dualny do programu (M1):</p>
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Program (VC)</legend><br />
+<div class="collapse-text-text collapsed-text">
+\[<br />
+\label{eq:vc-2}<br />
+       \begin{array}{rll}<br />
+       \textrm{min}                    &amp; \sum_{v\in V} y_v \\<br />
+                                       &amp; y_u+y_v \ge 1 &amp; \forall uv \in E\\<br />
+                                       &amp; y_v \ge 0 &amp; \forall v \in V.\\<br />
+       \end{array}<br />
+\]
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+<p>W powyższym programie moglibyśmy dodać warunek \(y_v \le 1\): i tak jest on spełniony dla każdego rozwiązania optymalnego programu (VC). Ponieważ macierz programu (VC) jest transpozycją macierzy programu (M1), więc również jest unimodularna. Stąd program (VC) ma rozwiązanie optymalne, które jest również rozwiązaniem optymalnym następującego programu całkowitoliczbowego</p>
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Program (IVC)</legend><br />
+<div class="collapse-text-text collapsed-text">
+\[<br />
+\label{eq:vc-3}<br />
+       \begin{array}{rll}<br />
+       \textrm{min}                    &amp; \sum_{v\in V} y_v \\<br />
+                                       &amp; y_u+y_v \ge 1 &amp; \forall uv \in E\\<br />
+                                       &amp; y_v \in \{0,1\} &amp; \forall v \in V.\\<br />
+       \end{array}<br />
+\]
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+<p>Z kolei zauważamy, że powyższy program jest równoważny problemowi znalezienia najmniejszego pokrycia wierzchołkowego grafu \(G\). Na podstawie twierdzenia o silnej dualności otrzymujemy</p>
+<p><b>Twierdzenie [K&#337;nig, Egervary]</b><br />
+W grafie dwudzielnym rozmiar największego skojarzenia jest równy liczności najmniejszego pokrycia wierzchołkowego. &diams;</p>
+<p>Wiele innych klasycznych twierdzeń mini-maksowych okazuje się być szczególnymi przypadkami twierdzenia o dualności programów liniowych. </p>
+<h2>Lemat Farkasa</h2>
+<p>Pokażemy teraz zastosowanie dualności w algebrze liniowej. Przypomnijmy, że dla układów równań prawdziwa jest następująca elegancka własność:</p>
+<p><b>Lemat </b><br />
+Są równoważne:</p>
+<ol type="i">
+<li> istnieje \(\mathbf{x}\) taki, że \(\mathbf{A}\mathbf{x}=\mathbf{b}\),
+</li>
+<li> nie istnieje \(\mathbf{y}\) taki, że \(\mathbf{y}^T\mathbf{A}=\mathbf{0}\) oraz \(\mathbf{y}^T\mathbf{b}\ne\mathbf{0}\).
+</li>
+</ol>
+<p>Innymi słowy, albo układ ma rozwiązanie, albo istnieje taka kombinacja liniowa \(\mathbf{y}\) jego równań, która prowadzi do sprzeczności. Odpowiednik tego faktu dla programów liniowych nosi nazwę Lemat Farkasa. </p>
+<p><b>Lemat Farkasa</b><br />
+Są równoważne:</p>
+<ol type="i">
+<li> istnieje \(\mathbf{x}\) taki, że \(\mathbf{A}\mathbf{x}\le\mathbf{b}\),
+</li>
+<li> nie istnieje \(\mathbf{y}\ge\mathbf{0}\) taki, że \(\mathbf{A}^T\mathbf{y}=\mathbf{0}\) oraz \(\mathbf{y}^T\mathbf{b}&lt;0\).
+</li>
+</ol>
+<p><i>Dowód</i><br />
+Rozważmy (prymalny) program liniowy:<br />
+\[<br />
+\label{eq:st-primal-farkas}<br />
+       \begin{array}{ll@{\hspace{15mm}}l}<br />
+       \textrm{zmaksymalizuj}           &amp; 0 &amp;  \\<br />
+       \textrm{z zachowaniem warunków} &amp; \mathbf{A}\mathbf{x} \le \mathbf{b}&amp;\\<br />
+                                       &amp; \mathbf{x} \text{ nieograniczony}&amp;<br />
+       \end{array}<br />
+\]<br />
+Napiszmy program dualny zgodnie z zasadami z <a href="http://smurf.mimuw.edu.pl/drupal6/node/1124">wykładu o dualności</a>.<br />
+\[<br />
+\label{eq:st-dual-farkas}<br />
+       \begin{array}{ll@{\hspace{15mm}}l}<br />
+       \textrm{zminimalizuj}           &amp; \mathbf{b}^T \mathbf{y} &amp;  \\<br />
+       \textrm{z zachowaniem warunków} &amp; \mathbf{A}^T\mathbf{y} = \mathbf{0}&amp;\\<br />
+                                       &amp; \mathbf{y} \ge 0.&amp;<br />
+       \end{array}<br />
+\]</p>
+<p>(i) \(\Rightarrow\) (ii). Jeśli istnieje \(\mathbf{x}\) taki, że \(\mathbf{A}\mathbf{x}\le\mathbf{b}\), to program prymalny jest dopuszczalny i ma rozwiązanie optymalne o koszcie 0. Z twierdzenia o (słabej) dualności, program dualny ma rozwiązań dopuszczalnych o wartości funkcji celu \(&lt;0\).</p>
+<p>(ii) \(\Rightarrow\) (i). Jeśli nie istnieje \(\mathbf{y}\ge\mathbf{0}\) taki, że \(\mathbf{A}^T\mathbf{y}=\mathbf{0}\) oraz \(\mathbf{y}^T\mathbf{b}&lt;0\), oznacza to, że \(\mathbf{y}=\mathbf{0}\) jest rozwiązaniem optymalnym programu dualnego. Z twierdzenia o (silnej) dualności program prymalny ma rozwiązanie optymalne, a więc układ nierówności \(\mathbf{A}\mathbf{x} \le \mathbf{b}\) jest niesprzeczny. &diams;</div>
+</div>
+</form>
+  <div id="book-navigation-1100" class="book-navigation">
+    
+        <div class="page-links clear-block">
+              <a href="/node/1124" class="page-previous" title="Przejdź do poprzedniej strony">‹ Programowanie liniowe 3: Dualność</a>
+                    <a href="/zaawansowane_algorytmy" class="page-up" title="Wyświetla stronę nadrzędną">w górę</a>
+                    <a href="/node/1142" class="page-next" title="Przejdź do następnej strony">Algorytmy aproksymacyjne 1: algorytmy kombinatoryczne ›</a>
+          </div>
+    
+  </div>
+  </div>
+
+  <div class="clear-block">
+    <div class="meta">
+        </div>
+
+          <div class="links"><ul class="links inline"><li class="book_printer first last"><a href="/book/export/html/1126" title="Wyświetla wszystkie strony książki w wersji przygotowanej do wydruku.">Wersja do wydruku</a></li>
+</ul></div>
+      </div>
+
+</div>
+          </div>
+                    <div id="footer"></div>
+      </div></div></div></div> <!-- /.left-corner, /.right-corner, /#squeeze, /#center -->
+
+      
+    </div> <!-- /container -->
+  </div>
+<!-- /layout -->
+
+    </body>
+</html>

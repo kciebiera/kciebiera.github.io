@@ -1,0 +1,329 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="pl" lang="pl" dir="ltr">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="prev" href="/node/1147" />
+<link rel="up" href="/zaawansowane_algorytmy" />
+<link rel="next" href="/node/1116" />
+<link rel="shortcut icon" href="/misc/favicon.ico" type="image/x-icon" />
+    <title>Haszowanie 1: łańcuchowanie, rodziny uniwersalne i niezależne | Informatyka MIMUW</title>
+    <link type="text/css" rel="stylesheet" media="all" href="/modules/book/book.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/node/node.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/defaults.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system-menus.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/user/user.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/modules/geshifilter/geshifilter.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/modules/img_assist/img_assist.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/modules/views/css/views.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/default/files/color/garland-0431760f/style.css?G" />
+<link type="text/css" rel="stylesheet" media="print" href="/themes/garland/print.css?G" />
+    <script type="text/javascript" src="/misc/jquery.js?G"></script>
+<script type="text/javascript" src="/misc/drupal.js?G"></script>
+<script type="text/javascript" src="/sites/default/files/languages/pl_7618cc674030d51495c9d1ac3aae9126.js?G"></script>
+<script type="text/javascript" src="/misc/collapse.js?G"></script>
+<script type="text/javascript" src="/sites/all/modules/img_assist/img_assist.js?G"></script>
+<script type="text/javascript">
+<!--//--><![CDATA[//><!--
+jQuery.extend(Drupal.settings, { "basePath": "/" });
+//--><!]]>
+</script>
+    <!--[if lt IE 7]>
+      <link type="text/css" rel="stylesheet" media="all" href="/themes/garland/fix-ie.css" />    <![endif]-->
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+  </head>
+  <body>
+
+<!-- Layout -->
+  <div id="header-region" class="clear-block"></div>
+
+    <div id="wrapper">
+    <div id="container" class="clear-block">
+
+      <div id="header">
+        <div id="logo-floater">
+        <h1><a href="/" title="Informatyka MIMUW"><span>Informatyka MIMUW</span></a></h1>        </div>
+
+                  <ul class="links primary-links"><li class="menu-126 first last"><a href="/node/3" title="Materiały">Materiały</a></li>
+</ul>                                  
+      </div> <!-- /header -->
+
+      
+      <div id="center"><div id="squeeze"><div class="right-corner"><div class="left-corner">
+          <div class="breadcrumb"><a href="/">Strona główna</a> › <a href="/zaawansowane_algorytmy">Zaawansowane algorytmy i struktury danych</a></div>                              <h2>Haszowanie 1: łańcuchowanie, rodziny uniwersalne i niezależne</h2>                                                  <div class="clear-block">
+            <div id="node-1149" class="node">
+
+
+
+      <span class="submitted">wt., 11/01/2011 - 13:54 — kowalik</span>
+  
+  <div class="content clear-block">
+    <form action="/book/export/html/1100"  accept-charset="UTF-8" method="post" id="collapse-text-dynamic-form-number-7">
+<div>
+<div class="collapse-text-text collapsed-text">Zajmiemy się jednym z podstawowych problemów algorytmicznych: problemem słownika. W tym rozdziale omawiamy jedno z bardziej efektywnych podejść do tego problemu, zwane haszowaniem (warto wspomnieć, że problem słownika jest głównym, ale nie jedynym zastosowaniem haszowania). Przypomnijmy krótko na czym polega problem słownika. </p>
+<h2> Problem słownika </h2>
+<p>Należy opisać strukturę danych, która reprezentuje pewien zbiór elementów \(S\) i udostępnia następujące operacje:</p>
+<ul>
+<li> Lookup(\(x\)) -- czy \(x \in S\)?
+</li>
+<li> Insert(\(x\)) -- \(S:=S \cup \{x\}\)
+</li>
+<li> Remove(\(x\)) -- \(S:=S \setminus \{x\}\)
+</li>
+</ul>
+<p>Zakładamy, że elementy zbioru \(S\) pochodzą z pewnego <em>uniwersum</em> \(U\), tzn.  \(S\subseteq U\). W zastosowaniach elementy \(S\) są zwykle liczbami lub napisami. W dalszych rozważaniach będziemy przyjmować, że \(U\) jest zbiorem liczb naturalnych z ograniczonego zakresu, tzn.  \(U=\{0,\ldots,|U|-1\}\). Nie jest to duże ograniczenie, gdyż w ten sposób możemy reprezentować także np. napisy o ograniczonej długości czy liczby wymierne o ograniczonej precyzji.</p>
+<p>Będziemy również zakładać, że znana jest liczba \(n\) taka, że \(|S|\le n\). </p>
+<h2>Haszowanie: główny pomysł</h2>
+<p>W znanych nam drzewiastych rozwiązaniach problemu słownika, chcąc wyszukać element w strukturze danych, algorytm "błądzi" po strukturze danych podążając za kolejnymi wskaźnikami. W haszowaniu chcemy skrócić ten proces: z grubsza rzecz biorąc, dla każdego potencjalnego elementu \(x\) chcielibyśmy natychmiast (ewentualnie wykonując proste obliczenia w czasie stałym) poznać miejsce, w którym on się znajduje. W najprostszej wersji, mamy <em>tablicę  haszującą</em></p>
+<p>\(T[0, \ldots, m-1],\)</p>
+<p>oraz <em>funkcję haszującą</em></p>
+<p>\(h: U \longrightarrow \{0,\ldots,m-1\}.\)</p>
+<p>Ponieważ nie chcemy, aby nasza struktura zajmowała istotnie więcej miejsca niż jest to konieczne, zwykle \(m = O(n)\), np. \(m = 2n\) lub \(m = n\). Potencjalnie \(h\) może być dowolną funkcją, choć dla nas użyteczne będą takie, których wartość możemy wyliczyć w czasie stałym. Generalnie, elementu \(x\in U\) będziemy szukać w komórce \(T[h(x)]\). Oczywiście zwykle uniwersum \(U\) jest dużo większe niż \(m\), więc niezależnie od tego jakiej funkcji haszującej \(h\) użyjemy, będzie się zdarzać, że dwa elementy \(x\) i \(y\) zostaną odwzorowane w tę samą komórkę tablicy \(T\), tzn. \(h(x)=h(y)\). Taką sytuację nazywamy <em>konfliktem</em>. Zaczynamy od najprostszego, ale całkiem skutecznego sposobu rozwiązywania konfliktów: haszowania przez łańcuchowanie.</p>
+<h2>Haszowanie przez łańcuchowanie</h2>
+<p>W haszowaniu przez łańcuchowanie dla każdego \(j\) tablica \(T\) w komórce \(T[j]\)  zawiera <em>listę</em> takich elementów \(x\in S\), że \(h(x) = j\). Teraz możemy bardzo łatwo zaimplementować operacje słownikowe: dla danego \(x\) wykonujemy odpowiednią operację na liście \(T[h(x)]\) (Lookup -- sprawdzamy czy lista \(T[h(x)]\) zawiera element; Insert -- wstawienie elementu na listę \(T[h(x)]\); Remove -- usunięcie elementu z listy \(T[h(x)]\)).</p>
+<p>W ten sposób czas wykonania operacji na elemencie \(x\) jest proporcjonalny do długości listy \(T[h(x)]\). Chcielibyśmy jakoś ograniczyć długość list elementów odwzorowanych w tę samą komórkę. Widać, że wszystko zależy od tego, jak dobrze dobierzemy funkcję \(h\). Niektóre funkcje \(h\) są w oczywisty sposób ,,złe'', np.  funkcje stałe. Czy istnieją ,,dobre'' funkcje? </p>
+<p>Gdybyśmy znali z góry zbiór \(S\) być może może udałoby się nawet sprawić, aby każdy element \(S\) został odwzorowany w inną komórkę tablicy \(T\) (w dalszej części wykładu zobaczymy, że istotnie jest to możliwe). Problem polega na tym, że w naszym problemie słownika to funkcję \(h\) ustalamy z góry, przed pojawieniem się ciągu operacji i chcielibyśmy, żeby w każdej chwili w przyszłości elementy \(S\) ,,w miarę jednostajnie'' rozproszyły się po \(\{0,\ldots,m-1\}\). Naturalnymi kandydatkami mogą być takie funkcje, które jednostajnie rozpraszają \(U\), tzn. dla dowolnych \(y_1,y_2\in\{0,\ldots,m-1\}\), \(|h^{-1}(y_1)| \approx  |h^{-1}(y_2)|\), np. \(h(x) = x \mod m\). Widać, że takie funkcje działałyby dobrze dla losowych danych.</p>
+<p>Często dane, które pojawiają się w praktyce są faktycznie zbliżone do losowych. My jednak stawiamy sobie za cel rozwiązanie, które będzie dobre <em> niezależnie od danych</em>. Od razu spotyka nas rozczarowanie. Zauważmy bowiem, że</p>
+<p><b>Uwaga</b><br />
+Dla \(|U|\gg m\), każda funkcja \(h: U \mapsto \{0,\ldots,m-1\}\) jest <em>zła</em>, tzn. złośliwy przeciwnik, jeśli będzie znał \(h\), może tak dobierać elementy dodawane do \(S\), że \(h(x) = h(y)\) dla każdej pary \(x,y \in S\).</p>
+<p>W 1977r Carter i Wegman wpadli na prosty pomysłem na poradzenie sobie z tym problemem. Mianowicie, funkcję haszującą będziemy losowali z pewnej rodziny funkcji -- w ten sposób przeciwnik będzie zmuszony się zabezpieczyć przed całym zbiorem funkcji, a to mu się nie uda. Z pewnym małym prawdopodobieństwem algorytm może wprawdzie dalej działać długo, jednakże to prawdopodobieństwo nie zależy od danych. W następnym rozdziale zastanowimy się, jakie warunki powinny spełniać takie rodziny funkcji i podamy kilka przykładów takich rodzin.</p>
+<h2> Uniwersalne i niezależne rodziny funkcji haszujących </h2>
+<p><b> Przykład 1 </b><br />
+Załóżmy, że \(h\) jest losowana jednostajnie ze zbioru wszystkich funkcji, czyli z \(\{0,\ldots,m-1\}^U\). Odpowiada to wylosowaniu niezależnie dla każdego \(x \in U\) wartości \(h(x) \in \{0,\ldots,m-1\}\).<br />
+Zauważmy, że wówczas<br />
+\[<br />
+\mathbb{P}\left[h(x) = h(y) \right] = \left\{ \begin{array}{ll} 1&amp; \mbox{gdy } x = y \\  \frac{1}{m} &amp; \mbox{ gdy } x \neq y .\end{array} \right.<br />
+\]<br />
+Stąd, dla dowolnego \(x\in U\):<br />
+\[<br />
+\mathbb{E} |h(x)| = \mathbb{E}\left[\sum_{y \in S} \mathbf{1}_{h(x) = h(y)} \right]= \sum_{y \in S} \mathbb{P}\left[h(x) = h(y)\right] = \left\{ \begin{array}{ll} \frac{n}{m}&amp; \mbox{gdy } x \notin S \\ 1+ \frac{n-1}{m} &amp; \mbox{gdy } x \in S.\end{array} \right.<br />
+\]<br />
+W powyższych rachunkach korzystamy z liniowości wartości oczekiwanej; notacja \(\mathbf{1}_{A}\) oznacza indykator zdarzenia \(A\), tzn. zmienną losową, która przyjmuje wartość 1 gdy \(A\) się wydarzy i \(0\) w przeciwnym przypadku.  Dla \(m = \Omega(n)\) otrzymane wyrażenie jest \(O(1)\), co daje oczekiwany czas stały wszystkich operacji słownikowych. Udało się więc przechytrzyć złośliwego przeciwnika. Ale czy na pewno?</p>
+<p>Powstaje pytanie jak szybko wylosować taką funkcję oraz ile pamięci potrzeba, aby ją reprezentować. Pierwsze, co przychodzi do głowy to reprezentowanie \(h\) jako tablicy \(A[1 \ldots |U|]\) liczb od 0 do \(m-1\). Jeśli jednak mamy do dyspozycji tyle pamięci (i czasu na inicjalizację) to nie musimy używać haszowania -- słownik możemy zaimplementować jako tablicę bitową rozmiaru \(|U|\). Z drugiej strony, jeśli naprawdę uprzemy się, żeby \(h\) losować ze zbioru <em>wszystkich</em>  funkcji, lepsze rozwiązanie nie istnieje: do przechowywania \(h\) potrzebujemy co najmniej \(|U|\log_2 m\) bitów (za pomocą mniej niż \(|U|\log_2 m\) bitów możemy reprezentować mniej niż \(2^{|U|\log_2 m}=m^{|U|}\) funkcji, czyli nie wszystkie).</p>
+<p>Przyjrzyjmy się rachunkom z powyższego przykładu i zastanówmy się czy coś da się jeszcze z niego uratować. Zauważmy, że nie potrzebowaliśmy pełnej losowości, a jedynie własności \(\mathbb{P}\left[h(x) = h(y)\right] \leq \frac{1}m\) dla \(x \neq y\). Tę cechę dostrzegli w 1977 roku Carter i Wegman. Podali oni następującą definicję.</p>
+<p><b>Definicja</b><br />
+Niech \(\mathcal{H} \subseteq \{0,\ldots,m-1\}^{U}\). Powiemy, że \(\mathcal{H}\) jest rodziną <em>\((\alpha,k)\)-uniwersalną</em>, gdy po wybraniu <em>losowej</em> funkcji \(h \in \mathcal{H}\) (tzn. jednostajnie, każdą z równym prawdopodobieństwem), dla dowolnych parami różnych \(x_1, x_2, \ldots, x_k \in U\) zachodzi<br />
+\[<br />
+\mathbb{P}[h(x_1) = h(x_2) = \ldots = h(x_k)] \leq \frac{\alpha}{m^{k-1}}.<br />
+\]</p>
+<p>Rodzinę \((1,k)\)-uniwersalną nazywamy krótko <em>$k$-uniwersalną</em>, natomiast na rodzinę 2-uniwersalną mówimy jeszcze krócej: <em>rodzina uniwersalna</em>. Z naszych wcześniejszych rozważań wynika, że</p>
+<p><b>Twierdzenie 2</b><br />
+<i>Jeśli używamy haszowania łańcuchowego z funkcją haszującą \(h\) wybraną losowo z uniwersalnej rodziny funkcji haszujących, to oczekiwane czasy wszystkich operacji słownikowych są stałe. </i></p>
+<p>Rozważmy jeszcze jedną naturalną definicję. Mówimy, że rodzina \(\mathcal{H}\) jest rodziną <em>jednostajną</em>, gdy po wybraniu <em>losowej</em> funkcji \(h \in \mathcal{H}\), dla dowolnego \(x \in U\) zmienna losowa \(h(x)\) ma rozkład jednostajny, tzn. dla każdego \(a \in  \{0,\ldots,m-1\}\) zachodzi \(\mathbb{P}[h(x)=a] = \frac{1}{m}\). Widzimy, że jednostajność jest również cechą pożądaną, jednakże łatwo sobie uświadomić, że nie gwarantuje ona efektywności operacji słownikowych.</p>
+<p><b>Zadanie</b><br />
+ Podaj przykład jednostajnej rodziny funkcji haszujących \(\mathcal{H}\) oraz ciągu \(n\) operacji Insert oraz Lookup, który wykona się w czasie  \(\Omega(n^2)\) niezależnie od tego, jaka funkcja haszująca \(h\) zostanie wylosowana z \(\mathcal{H}\).</p>
+<p>W niektórych zastosowaniach wygodnie jest korzystać z rodzin funkcji posiadających jeszcze silniejsze własności niż rodziny uniwersalne. </p>
+<p><b>Definicja</b><br />
+Niech \(\mathcal{H} \subseteq \{0,\ldots,m-1\}^{U}\).<br />
+Powiemy, że \(\mathcal{H}\) jest rodziną <em>\(k\)-niezależną</em> (lub <em>silnie \(k\)-uniwersalną</em>), gdy po wybraniu losowej funkcji \(h \in \mathcal{H}\), dla dowolnych parami różnych \(x_1, x_2, \ldots, x_k \in U\) i dowolnych \(y_1, y_2, \ldots , y_k \in \{0,\ldots,m-1\}\) zachodzi<br />
+$$<br />
+\mathbb{P}[h(x_1) = y_1 \wedge  h(x_2) = y_2 \wedge \ldots \wedge h(x_k) = y_k] = \frac{1}{m^{k}}.<br />
+$$<br />
+Równoważnie możemy to wyrazić jako koniunkcję dwóch warunków (ćwiczenie: pokaż równoważność):</p>
+<ul>
+<li> <b>(\(k\)-niezależność zmiennych)</b> dla dowolnych parami różnych \(x_1, \ldots, x_k \in U\) zmienne losowe \(h(x_1), \ldots, h(x_k)\) są \(k\)-niezależne
+</li>
+<li> <b>(jednostajność)</b> \(\mathcal{H}\) jest jednostajna.
+</li>
+</ul>
+<p>Zauważmy, że \(k\)-niezależność implikuje  \(k\)-uniwersalność (zachęcamy Czytelnika do zweryfikowania tego faktu). </p>
+<p>Podamy teraz konkretne przykłady rodzin \((\alpha,k)\)-uniwersalnych i \(k\)-niezależnych. Zauważmy, że rozważana w przykładzie 1 rodzina wszystkich funkcji jest \(k\)-uniwersalna, a nawet \(k\)-niezależna dla dowolnego \(k\). Przykłady, które za chwilę poznamy, będą jednak bardziej praktyczne, w szczególności będą umożliwiały szybkie wylosowanie funkcji, oraz szybkie obliczenie jej wartości w danym elemencie \(U\).</p>
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Haszowanie tabulacyjne</legend><br />
+<div class="collapse-text-text collapsed-text">
+<p>W tym rozdziale rozważamy bardzo praktyczną sytuację.  Niech \(U = \{0, \ldots, 2^{cr} - 1\}\), dla pewnych \(c,r\in \mathbb{N}\), \(c&gt;1\).  Innymi słowy, uniwersum \(U\) składa się z liczb \((cr)\)-bitowych. Każdą taką liczbę \(x\) będziemy reprezentować jako krotkę \((x_1, x_2, \ldots, x_c)\) liczb r-bitowych. W typowych zastosowaniach \(U\) składa się z 32- lub 64-bitowych liczb naturalnych, natomiast \(r=8\), czyli krotka to kolejne bajty liczby \(x\).</p>
+<p>Ponadto zakładamy, że długość tablicy haszującej \(m\) jest potęgą dwójki, \(m = 2^k\). To założenie nie jest zbyt restrykcyjne, gdyż w najgorszym razie tablica haszująca będzie mniej niż 2 razy większa niż potrzeba.</p>
+<p>Oznaczmy \([\ell] = \{0,\ldots, \ell-1\}\). Rozważmy następującą rodzinę funkcji haszujących postaci \(h:U\rightarrow [m]\):</p>
+<p>\[\mathcal{H} = \{ x \mapsto T_1 (x_1) \oplus T_2 (x_2) \oplus \ldots \oplus T_c (x_c)\ |\ T_1,...,T_c : [2^r] \rightarrow [m] \},\]</p>
+<p>gdzie \(\oplus\) oznacza operację xor, np \(6 \oplus 3 = (110)_2 \oplus (011)_2 = (101)_2 = 5.\)</p>
+<p><a name="tab"> <b>Przykład 3</b> </a><br />
+ Załóżmy że \(U=\{0,\ldots,2^{32}-1\}\) oraz \(m=2^{16}=65536\). Wybierzmy \(c=4\) (wówczas \(r=8\)). Wówczas każda funkcja \(h\) z rodziny \(\mathcal{H}\) jest reprezentowana za pomocą czterech tablic \(T_1, T_2, T_3, T_4\), z których każda zawiera \(2^8=256\) liczb z przedziału \(\{0,\ldots,m-1\}\). Sumarycznie, do reprezentowania \(h\) potrzebujemy \(4\cdot 256\cdot 2=1024\) bajty. Aby obliczyć wartość \(h(x)\) dla danego \(x\), wykonywane są 3 operacje \(\oplus\) na 4 liczbach odczytanych z tablic. Zajmuje to czas stały, ale warto dodatkowo zwrócić uwagę, że wykonywane operacje są bardzo proste, więc obliczenie wartości \(h(x)\) będzie bardzo szybkie (dodatkowo część obliczeń zostanie zrównoleglonych na współczesnych procesorach). Aby wylosować funkcję z rodziny \(\mathcal{H}\), losujemy 512 liczb z zakresu \(\{0,\ldots, m\}\) i umieszczamy w tablicach \(T_1,\ldots,T_4\).</p>
+<p><b>Twierdzenie 4</b><br />
+Rodzina \(\mathcal{H}\) jest \(2\)-niezależna.</p>
+<p><i>Dowód</i><br />
+Na początek sprawdźmy, że \(\mathcal{H}\) jest jednostajna, tzn.\ dla każdego \(x\in U\) i \(a\in [m]\), \(\mathbb{P}[h(x)=a]=\frac{1}{m}\). Jest to prawda, gdyż po wylosowaniu \(T_1(x_1),\ldots,T_{c-1}(x_{c-1})\), niezależnie od wyników tych losowań, otrzymamy \(h(x)=a\) gdy \(T_c(x_c)=a\oplus T_1 (x_1) \oplus T_2 (x_2) \oplus \ldots \oplus T_{c-1} (x_{c-1})\), a to zdarzenie ma prawdopodobieństwo \(\frac{1}{m}\). (Formalnie możemy przeprowadzić to rozumowanie korzystając ze wzrou na prawdopodobieństwo całkowite.)</p>
+<p>Rozważmy teraz dwa różne elemety uniwersum \(x,y \in U\), oraz dowolne \(a,b\in[m]\). Z powodu symetrii, bez straty ogólności możemy przyjąć, że \(x_1\ne y_1\). Po wylosowaniu \(T_2(x_2),\ldots,T_c(x_c)\) oraz \(T_2(y_2),\ldots,T_c(y_c)\), niezależnie od wyników tych losowań, otrzymamy \(h(x)=a\) i \(h(y)=b\) wtw gdy \(T_1(x_1)=a\oplus T_2(x_2)\oplus\ldots\oplus T_c(x_c)\) oraz \(T_1(y_1)=b\oplus T_2(y_2)\oplus\ldots\oplus T_c(y_c)\). Ponieważ \(x_1\ne y_1\) te dwa zdarzenia są niezależne, czyli:</p>
+<p>\[\begin{align}<br />
+ &amp; \mathbb{P}[h(x)=a \wedge h(y)=b]  =\\<br />
+ &amp; \mathbb{P}[T_1(x_1)=a\oplus T_2(x_2)\oplus\ldots\oplus T_c(x_c) \wedge T_1(y_1)=b\oplus T_2(y_2)\oplus\ldots\oplus T_c(y_c)]=\\<br />
+                           &amp; \mathbb{P}[T_1(x_1)=a\oplus T_2(x_2)\oplus\ldots\oplus T_c(x_c)] \cdot \mathbb{P}[T_1(y_1)=b\oplus T_2(y_2)\oplus\ldots\oplus T_c(y_c)]=\\<br />
+                           &amp; \frac{1}{m}\cdot\frac{1}{m} = \frac{1}{m^2}.<br />
+\end{align}<br />
+\]<br />
+&diams;</p>
+<p><b> Zadanie </b><br />
+ Udowodnij, że rodzina \(\mathcal{H}\) jest \(3\)-niezależna dla dowolnego \(c\ge 1\), ale nie jest \(4\)-niezależna gdy \(c\ge 2\).
+</div>
+<p></fieldset><br />
+<fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Rodzina funkcji liniowych</legend><br />
+<div class="collapse-text-text collapsed-text">
+<p><a name="linear"></a></p>
+<p>Niech \(p\) będzie dowolną liczbą pierwszą większą od \(|U|\). Rozważmy następującą rodzinę.<br />
+$$<br />
+\mathcal{H} = \{ x \mapsto \left( (ax+b)\bmod p\right)\bmod m\ |\ a \in \{0,\ldots,p-1\}, b \in \{0,\ldots,p-1\}\}.<br />
+$$</p>
+<p>Zauważmy, że każda funkcja z \(\mathcal{H}\) jest reprezentowana przez zaledwie dwie liczby \(O(\log|U|)\)-bitowe \(a\) i \(b\). Z praktycznego punktu widzenia wygląda to bardziej atrakcyjnie niż reprezentacje funkcji z rodzin tabulacyjnych (np. 1024 bajty w funkcji z przykładu <a>3</a>). Ta rodzina ma jednak znacznie mniejsze znaczenie praktyczne ze względu na czas obliczania wartości funkcji. Chociaż pozostaje on stały w sensie asymptotycznym, podczas obliczania wartości funkcji wykonywane są kosztowne operacje mnożenia i obliczania reszty z dzielenia przez \(p\) i przez \(m\) (można ten efekt ograniczyć, przyjmując jako \(m\) potęgę dwójki, natomiast jako \(p\) wziąć liczbę pierwszą szczególnej postaci, mimo wszystko eksperymenty pokazują jednak, że obliczanie wartości w haszowaniu tabulacyjnym jest istotnie szybsze).</p>
+<p><b>Twierdzenie 5 </b><br />
+Rodzina \(\mathcal{H}\) jest \(2\)-uniwersalna.</p>
+<p><i>Dowód</i><br />
+Weźmy \(x_1 \neq x_2\) należące do \(U\). Oznaczmy<br />
+\[<br />
+\begin{align*}<br />
+x_1' &amp;:= (ax_1 + b) \bmod p\\<br />
+x_2' &amp;:= (ax_2 + b) \bmod p<br />
+\end{align*}<br />
+\]<br />
+Dzięki temu, że \(p\) jest pierwsza, \(\mathbb{Z}_p\) jest ciałem, a w ciele:<br />
+$$<br />
+ax_1+b = ax_2 + b \iff x_1 = x_2,<br />
+$$<br />
+czyli \(x_1' \neq x_2'\).</p>
+<p>Pokażemy teraz, że dla dowolnych \(i \neq j\) ze zbioru \(\{0,\ldots,p-1\}\) zachodzi (*)<br />
+\[<br />
+\mathbb{P}[x_1' = i \wedge x_2' = j] = \frac{1}{p(p-1)},<br />
+\]<br />
+a więc, że para \((x_1',x_2')\) jest losową parą uporządkowaną różnych liczb z \(\mathbb{Z}_p\).</p>
+<p>Zbiór funkcji haszujących \(\mathcal{H}\) rozmiaru \(p(p-1)\) jest naszą przestrzenią probabilistyczną. Ile jest zdarzeń elementarnych (funkcji haszujących \(h \in \mathcal{H}\), czyli par \((a,b)\)), takich że \(x_1'=i\) oraz \(x_2'=j\)? Każda taka para \((a,b)\) jest wyznaczona przez układ równań<br />
+\[<br />
+\left\{ \begin{array}{ll} ax_1 + b = i \\ ax_2+b = j.\end{array} \right.<br />
+\]<br />
+Ten układ ma jednoznaczne rozwiązanie, ponieważ<br />
+\[\det\left[ \begin{array}{ll} x_1 &amp; 1 \\ x_2 &amp; 1\end{array} \right] \neq 0.\]<br />
+Zatem istnieje dokładnie jedna para spośród \(p(p-1)\), która spełnia układ równań, zatem (*) jest udowodnione.</p>
+<p>Teraz pokażemy, że (**)<br />
+\[\mathbb{P}[x_1' \equiv x_2' \pmod m] \leq \frac{1}m.\]<br />
+Jeśli to zdarzenie zachodzi, to dla pewnych \(k,l\)<br />
+\[<br />
+\left\{ \begin{array}{ll} x_1' = km + r \\ x_2' = lm + r.\end{array} \right.<br />
+\]<br />
+Dla ustalonego \(x_1'\) istnieje co najwyżej \(\lceil\frac{p}m\rceil -1\) liczb \(l\ne k\), które dadzą nam taki \(x_2'\) (odejmujemy 1 bo wiemy, że \(x_1'\ne x_2'\)), zatem sumując po wszystkich \(p\) możliwych wartościach \(x_1'\) dostajemy<br />
+\[\mathbb{P}[x_1' \equiv x_2' \pmod m] \leq p \frac{\lceil\frac{p}m\rceil-1}{p(p-1)} \leq  \frac{\frac{p+m-1}m-1}{p-1} = \frac{p-1} {m(p-1)} = \frac{1}m<br />
+\]<br />
+Z (**) wynika, że rodzina~\(\mathcal{H}\) jest rzeczywiście 2-uniwersalna. &diams;</p>
+<p>Można pokazać (do czego zachęcamy czytelnika), że rodzina \(\mathcal{H}\) nie jest 2-niezależna.
+</div>
+<p></fieldset><br />
+<fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Rodzina wielomianów</legend><br />
+<div class="collapse-text-text collapsed-text">
+<p>W tym punkcie rozważamy uogólnienie rodziny z poprzedniego punktu.<br />
+$$<br />
+\mathcal{H}^m = \{ x \mapsto \left( (a_0 + a_1x + \ldots + a_{k-1}x^{k-1})\bmod p\right)\bmod m\ |\ a_i \in \{0,\ldots,p-1\}\}.<br />
+$$</p>
+<p>Zauważmy, że tym razem każdy ze współczynników \(a_1,\ldots,a_{k-1}\) może być równy 0, a więc \(\mathcal{H}^m\) zawiera funkcje stałe, które w kontekście zastosowań słownikowych zachowują się fatalnie! Taka definicja pozwala jednak uprościć rozumowania (zauważmy ponadto, że prawdopodobieństwo wylosowania funkcji stałej jest bardzo małe).</p>
+<p>Pokażemy, że \(\mathcal{H}^m\) jest \((O(1),k)\)-uniwersalna, a nawet że bardzo niewiele brakuje jej, aby być \(k\)-niezależną (spełniony jest warunek niezależności zmiennych, natomiast rozkład zmiennej \(h(x)\) jest <em>niemal</em> jednostajny), szczególnie jeśli \(p \gg m\).</p>
+<p>Rozważmy parami różne zmienne \(x_1, \ldots, x_k\). Podobnie jak poprzednio niech \(x_i':= \sum_{j} a_jx_i^j \bmod p\) (a więc \(h(x_i) = x_i' \bmod m\)).</p>
+<p>Pokażemy najpierw, że dla dowolnych \(y'_1,\ldots,y'_k \in \{0,\ldots,p-1\}\) zachodzi (***)<br />
+\[\mathbb{P}[\bigcap_{i=1}^k x_i' = y'_i] = \frac{1}{p^k}.\]<br />
+To zdarzenie odpowiada układowi równań w ciele \(\mathbb{Z}_p\):<br />
+\[\left\{ \begin{array}{ccl}<br />
+a_0 + a_1x_1 + \ldots + a_{k-1}x_1^{k-1}&amp; \equiv &amp;y'_1 \pmod p\\<br />
+a_0 + a_1x_2 + \ldots + a_{k-1}x_2^{k-1}&amp; \equiv &amp;y'_2 \pmod p\\<br />
+\vdots&amp;\vdots&amp;\\<br />
+a_0 + a_1x_k + \ldots + a_{k-1}x_k^{k-1}&amp; \equiv &amp;y'_k \pmod p<br />
+\end{array} \right.<br />
+\]<br />
+Macierz<br />
+\[\left[ \begin{array}{cccc}<br />
+1 &amp; x_1 &amp; \ldots &amp; x_1^{k-1}  \\<br />
+1 &amp; x_2 &amp; \ldots &amp; x_2^{k-1}  \\<br />
+\vdots&amp;\vdots&amp; &amp;\vdots\\<br />
+1 &amp; x_k &amp; \ldots &amp; x_k^{k-1}  \\<br />
+\end{array} \right]<br />
+\]<br />
+tego układu jest <a href="http://pl.wikipedia.org/wiki/Macierz_Vandermonde%27a">macierzą Vandermonde'a</a>, a ta ma niezerowy wyznacznik dla parami różnych \(x_1,\ldots,x_k\). Zatem istnieje dokładnie jedno rozwiązanie \((a_0,\ldots,a_{k-1})\) tego układu, a więc równość (***) jest udowodniona.</p>
+<p>W tej chwili zauważmy, że właśnie pokazaliśmy następujący wniosek.</p>
+<p><b>Wniosek 6</b><br />
+Rodzina \(\mathcal{H}^p = \{ x \mapsto  (a_0 + a_1x + \ldots + a_{k-1}x^{k-1})\bmod p\ |\ a_i \in \{0,\ldots,p-1\}\}\) jest rodziną \(k\)-niezależną. </p>
+<p>W szczególności powyższy fakt implikuje, że jeśli \(h\) wylosowano z \(\mathcal{H}^p\) to zmienne losowe \(h(x)\) dla \(x\in U\) są \(k\)-niezależne. Z tego łatwo wynika (zachęcamy czytelnika do sprawdzenia), że:</p>
+<p><b>Wniosek 7</b><br />
+Jeśli \(h\) wylosowano z \(\mathcal{H}^m\) to zmienne losowe \(h(x)\) dla \(x\in U\) są \(k\)-niezależne. </p>
+<p>Aby <em>rodzina</em> \(\mathcal{H}^m\) była \(k\)-niezależna, potrzeba jednak jeszcze, żeby funkcja \(h\) była jednostajna, a to nie do końca jest prawdą.</p>
+<p>Analogicznie jak w poprzednim punkcie, dla ustalonych \(y_1,\ldots,y_k \in \{0,\ldots,m-1\}\) mamy<br />
+\[<br />
+\mathbb{P}[\bigcap_{i=1}^k h(x_i) = y_i] = \mathbb{P}[\bigcap_{i=1}^k x'_i \equiv y_i \pmod m] \leq {\left\lceil \frac{p}m\right\rceil}^k \frac{1}{p^k},<br />
+\]<br />
+ponieważ dla każdego \(y_i\) istnieje co najwyżej \(\lceil \frac{p}m\rceil\) wartości \(x'_i\), że \(x'_i \equiv y_i \mod m\), a każda konkretna krotka jest losowana z prawdopodobieństwem \(\frac{1}{p^k}\) na mocy równości (***).</p>
+<p>Widzimy, że nie dostaliśmy tu oszacowania przez \(\frac{1}{m^k}\), którego wymaga defnicja rodziny \(k\)-niezależnej, jednakże zwykle \(m \ll p\) a więc \({\left\lceil \frac{p}m\right\rceil}^k \frac{1}{p^k}\) jest bardzo bliskie \(\frac{1}{m^k}\). Jeśli np. dobierzemy \(p\) tak, aby \(\frac{m-1}{p} \leq \frac{1}k\), to<br />
+$$<br />
+{\left\lceil \frac{p}m\right\rceil}^k \frac{1}{p^k} \leq \left( \frac{p+m-1}{pm}\right)^k =  \left( \frac{1+\frac{m-1}p}{m}\right)^k &lt; \frac{e}{m^k}.<br />
+$$<br />
+Wtedy \(\mathcal{H}^m\) jest \((e,k)\)-uniwersalna.
+</div>
+<p></fieldset><br />
+<fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Bardziej praktyczna rodzina funkcji liniowych</legend><br />
+<div class="collapse-text-text collapsed-text">
+<p>W praktyce rozmiar uniwersum i \(m\) są potęgami dwójki: \(U = \{0,\ldots,2^k-1\}\), \(m=2^l\). Wtedy \(h: \{0,\ldots,2^k-1\} \longrightarrow \{0,\ldots,2^l-1\}\). Dietzfelbinger zaproponował następującą rodzinę funkcji haszujących:<br />
+$$<br />
+\mathcal{H}_{k,l} = \{ x \mapsto (ax \bmod 2^k) \mbox{ div } 2^{k-l}\ |\ a \in \{0,\ldots,2^k-1\} \wedge a \mbox{ nieparzyste} \}.<br />
+$$<br />
+Operacja \(\mbox{div }2^{k-l}\) bierze \(l\) pierwszych (najbardziej znaczących) bitów. Implementacja funkcji z powyższej rodziny jest bardzo łatwa, gdy liczby typu <span class="geshifilter"><code class="text geshifilter-text">int</code></span> są z przedziału \(\{0,\ldots,2^k-1\}\). Odpowiedni kod w języku C wyglądałby następująco: </p>
+<div class="geshifilter">
+<pre class="geshifilter-c"><span style="color: #993333;">int</span> <span style="color: #000000; font-weight: bold;">function</span> h<span style="color: #66cc66;">&#40;</span><span style="color: #993333;">int</span> x<span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span>
+  <span style="color: #b1b100;">return</span> <span style="color: #66cc66;">&#40;</span>a*x<span style="color: #66cc66;">&#41;</span> &gt;&gt; <span style="color: #66cc66;">&#40;</span>k-l<span style="color: #66cc66;">&#41;</span>;
+<span style="color: #66cc66;">&#125;</span></pre></div>
+<p>Funkcje te są często stosowane w praktyce, ponieważ obliczanie ich wartości jest bardzo szybkie (znaczenie szybsze niż w przypadku funkcji liniowych opisanych wcześniej, choć również istotnie wolniejsze niż w przypadku funkcji z rodziny tabulacyjnej), natomiast same funkcje są bardzo proste w implementacji. </p>
+<p><b>Twierdzenie 8</b><br />
+Rodzina \(\mathcal{H}_{k,l}\) jest \((2,2)\)-uniwersalna.</p>
+<p><i>Dowód</i><br />
+Niech \(x,y \in \{0,\ldots,2^k-1\}\). Załóżmy, że \(x &gt; y\) i niech \(h_a\) będzie funkcją wybraną losowo z \(\mathcal{H}_{k,l}\). Chcemy pokazać, że<br />
+\[<br />
+\mathbb{P}[h_a(x) = h_a(y)] \leq \frac{1}{2^{l-1}}.<br />
+\]<br />
+Policzmy, ile jest takich \(a\), dla których \(h_a(x) = h_a(y)\). Ta równość jest równoważna nierówności<br />
+\[<br />
+| ax \bmod 2^k - ay \bmod 2^k| &lt; 2^{k-l}.<br />
+\]<br />
+Niech \(z = x - y\), wtedy powyższą nierówność możemy zapisać jako (#)<br />
+\[<br />
+| az \bmod 2^k | &lt; 2^{k-l}.<br />
+\]<br />
+Z założenia \(z \not\equiv 0 \pmod{2^k}\) oraz \(a\) jest nieparzyste, zatem (##)<br />
+\[<br />
+az \not\equiv 0 \pmod {2^k}<br />
+\]<br />
+Warunki (#) i (##) zachodzą, gdy (###)<br />
+\[<br />
+az \bmod 2^k \in \{1,\ldots,2^{k-l}-1\} \cup \{2^k - 2^l+1, \ldots, 2^k-1\}<br />
+\]<br />
+Niech \(z = 2^s\cdot z'\), gdzie \(z'\) jest nieparzyste. Zbiór \(A = \{ 1, 3, 5, \ldots, 2^k-1\}\) jest grupą z mnożeniem modulo \({2^k}\). Wówczas \(\{z'\cdot a\ |\ a \in A\} = A\), a więc ilość liczb \(a \in A\) spełniających (###) jest równa ilości liczb \(a\), dla których<br />
+\[a\cdot 2^s \bmod 2^k\in \{1,\ldots,2^{k-l}-1\} \cup \{2^k - 2^l+1, \ldots, 2^k-1\}.\]<br />
+Pierwszy zbiór jest postaci \(\underbrace{0\ldots 0}_{l \text{ bitów}}\underbrace{\underline{\text{coś}\;\neq 0}}_{k-l\text{ bitów}}\) lub \(\underbrace{1\ldots 1}_{l \text{ bitów}}\underbrace{\underline{\text{coś}\;\neq 0}}_{k-l\text{ bitów}}\). Jeśli \(s \geq k-l\), to końcówka będzie zerowa, więc nie ma takich liczb \(a\). Jeśli \(s &lt; k-l\), to \(a\) zaczyna się od samych \(1\) lub samych \(0\), potem wybieramy \(k-l\) bitów, z których ostatni musi być równy \(1\), zatem \(a\) można wybrać na \(2\cdot 2^{k-l-1} = 2^{k-l}\) sposobów, co daje ostatecznie, że \(\mathbb{P}[h_a(x) = h_a(y)] \leq \frac{2^{k-l}}{2^{k-1}} = \frac{1}{2^{l-1}}=\frac{2}{m}.\) Stąd, rodzina \(\mathcal{H}_{k,l}\) jest \((2,2)\)-uniwersalna. &diams;
+</div>
+<p></fieldset></p>
+</div>
+</form>
+  <div id="book-navigation-1100" class="book-navigation">
+    
+        <div class="page-links clear-block">
+              <a href="/node/1147" class="page-previous" title="Przejdź do poprzedniej strony">‹ Algorytmy aproksymacyjne 2: algorytmy oparte na programowaniu liniowym</a>
+                    <a href="/zaawansowane_algorytmy" class="page-up" title="Wyświetla stronę nadrzędną">w górę</a>
+                    <a href="/node/1116" class="page-next" title="Przejdź do następnej strony">Haszowanie 2: haszowanie doskonałe i kukułkowe ›</a>
+          </div>
+    
+  </div>
+  </div>
+
+  <div class="clear-block">
+    <div class="meta">
+        </div>
+
+          <div class="links"><ul class="links inline"><li class="book_printer first last"><a href="/book/export/html/1149" title="Wyświetla wszystkie strony książki w wersji przygotowanej do wydruku.">Wersja do wydruku</a></li>
+</ul></div>
+      </div>
+
+</div>
+          </div>
+                    <div id="footer"></div>
+      </div></div></div></div> <!-- /.left-corner, /.right-corner, /#squeeze, /#center -->
+
+      
+    </div> <!-- /container -->
+  </div>
+<!-- /layout -->
+
+    </body>
+</html>

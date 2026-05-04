@@ -1,0 +1,395 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="pl" lang="pl" dir="ltr">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="prev" href="/node/1122" />
+<link rel="up" href="/zaawansowane_algorytmy" />
+<link rel="next" href="/node/1126" />
+<link rel="shortcut icon" href="/misc/favicon.ico" type="image/x-icon" />
+    <title>Programowanie liniowe 3: Dualność | Informatyka MIMUW</title>
+    <link type="text/css" rel="stylesheet" media="all" href="/modules/book/book.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/node/node.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/defaults.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system-menus.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/user/user.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/modules/geshifilter/geshifilter.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/modules/img_assist/img_assist.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/modules/views/css/views.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/default/files/color/garland-0431760f/style.css?G" />
+<link type="text/css" rel="stylesheet" media="print" href="/themes/garland/print.css?G" />
+    <script type="text/javascript" src="/misc/jquery.js?G"></script>
+<script type="text/javascript" src="/misc/drupal.js?G"></script>
+<script type="text/javascript" src="/sites/default/files/languages/pl_7618cc674030d51495c9d1ac3aae9126.js?G"></script>
+<script type="text/javascript" src="/misc/collapse.js?G"></script>
+<script type="text/javascript" src="/sites/all/modules/img_assist/img_assist.js?G"></script>
+<script type="text/javascript">
+<!--//--><![CDATA[//><!--
+jQuery.extend(Drupal.settings, { "basePath": "/" });
+//--><!]]>
+</script>
+    <!--[if lt IE 7]>
+      <link type="text/css" rel="stylesheet" media="all" href="/themes/garland/fix-ie.css" />    <![endif]-->
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+  </head>
+  <body>
+
+<!-- Layout -->
+  <div id="header-region" class="clear-block"></div>
+
+    <div id="wrapper">
+    <div id="container" class="clear-block">
+
+      <div id="header">
+        <div id="logo-floater">
+        <h1><a href="/" title="Informatyka MIMUW"><span>Informatyka MIMUW</span></a></h1>        </div>
+
+                  <ul class="links primary-links"><li class="menu-126 first last"><a href="/node/3" title="Materiały">Materiały</a></li>
+</ul>                                  
+      </div> <!-- /header -->
+
+      
+      <div id="center"><div id="squeeze"><div class="right-corner"><div class="left-corner">
+          <div class="breadcrumb"><a href="/">Strona główna</a> › <a href="/zaawansowane_algorytmy">Zaawansowane algorytmy i struktury danych</a></div>                              <h2>Programowanie liniowe 3: Dualność</h2>                                                  <div class="clear-block">
+            <div id="node-1124" class="node">
+
+
+
+      <span class="submitted">śr., 06/29/2011 - 12:10 — kowalik</span>
+  
+  <div class="content clear-block">
+    <form action="/book/export/html/1100"  accept-charset="UTF-8" method="post" id="collapse-text-dynamic-form-number-3">
+<div>
+<div class="collapse-text-text collapsed-text">
+<h2>Motywacja: certyfikat optymalności</h2>
+<p>Dla niektórych problemów znane są algorytmy, które wraz z rozwiązaniem generują tzw. certyfikat poprawności, czyli dodatkową informację z pomocą której możemy łatwo (tzn. algorytmem, który jest nie tylko wielomianowy, ale również istotnie prostszy od algorytmu generującego rozwiązanie) sprawdzić, czy<br />
+zwrócone rozwiązanie jest poprawne (lub optymalne w przypadku problemów optymalizacyjnych). Algorytmy te określane są mianem <em>algorytmów certyfikujących</em>. Oto kilka przykładów: </p>
+<ul>
+<li> Algorytm sprawdzający, czy dany graf jest dwudzielny może zwracać 2-kolorowanie takiego grafu lub cykl nieparzysty.
+</li>
+<li> Algorytm znajdowania maksymalnego przepływu wraz z przepływem może zwracać minimalny przekrój.
+</li>
+<li> Istnieje algorytm testujący planarność grafów, który zwraca rysunek na płaszczyźnie bez przecięć krawędzi lub podgraf homeomorficzny z \(K_{3,3}\) lub \(K_5\).
+</li>
+</ul>
+<p>Algorytmy certyfikujące oprócz znaczenia teoretycznego (aby generować takie certyfikaty należy dobrze zrozumieć problem) mają dużą wartość praktyczną: pomyślmy choćby o testowaniu poprawności kodu.</p>
+<p>Czy dla programowania liniowego istnieją certyfikaty poprawności? Rozważmy decyzyjną wersję problemu programowania liniowego: mając dany (minimalizacyjny) PL i liczbę \(\delta\) rozstrzygnąć, czy istnieje dopuszczalny \(\mathbf{x}\) taki, że \(\mathbf{c}^T\mathbf{x} \le \delta\). Załóżmy dla uproszczenia, że nasz program jest ograniczony. Wraz z odpowiedzią TAK algorytm certyfikujący może zwrócić współrzędne \(\mathbf{x}\) (można nawet pokazać, że te współrzędne można reprezentować w pamięci wielomianowej względem rozmiaru danych). A więc istnieje certyfikat pozytywny. Z punktu widzenia teorii złożoności, dowodzi to, że problem jest w klasie NP. W dodatku algorytm weryfikacji certyfikatu jest banalny: po prostu sprawdzamy odpowiednie nierówności. Czy możemy podać certyfikat negatywny, tzn. certyfikat poprawności dla odpowiedzi NIE? Gdyby ten certyfikat był również krótki, mielibyśmy dowód, że programowanie liniowe jest w klasie co-NP.</p>
+<p>W tym rozdziale przedstawimy pojęcie dualności programowania liniowego, które dostarcza odpowiedzi na powyższe pytania. Jak zobaczymy w kolejnych wykładach, dualność programowania liniowego ma dużo więcej konsekwencji w matematyce i informatyce.</p>
+<h2>Poszukiwanie ograniczenia na wartość rozwiązania optymalnego</h2>
+<p>Rozważmy następujący PL w postaci standardowej:</p>
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Program (P1)</legend><br />
+<div class="collapse-text-text collapsed-text">
+\[<br />
+       \begin{array}{ll}<br />
+       \textrm{zmaksymalizuj}           &amp; 3x_1 - x_2 + 2x_3  \\<br />
+       \textrm{z zachowaniem warunków} &amp; x_1 - x_2 + \frac{1}{2}x_3  \le  4 \\<br />
+                                       &amp; 4x_1 + 2x_2 + 3x_3 \le 20\\<br />
+                                       &amp; x_1,x_2,x_3\ge 0<br />
+       \end{array}<br />
+\]
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+<p>Łatwo sprawdzić, że punkt \((x_1=2,x_2=0,x_3=4)\) jest rozwiązaniem dopuszczalnym o wartości funkcji celu \(14\).</p>
+<p>Zauważmy, że skoro \(x_1,x_2,x_3\ge 0\), to \(3x_1 \le 4x_1\), a także \(-x_2 \le 2x_2\) oraz \(2x_3 \le 3x_3\). Stąd, \(3x_1 - x_2 + 2x_3 \le 4x_1 + 2x_2 + 3x_3 \le 20\). Dostaliśmy górne ograniczenie! W tym przypadku możemy zauważyć nawet więcej. Ponieważ \(3 \le 1+\frac{1}{2}\cdot 4\), \(-1 \le -1+\frac{1}{2}\cdot 2\) oraz \(2 \le \frac{1}{2}+\frac{1}{2}\cdot 3\), więc<br />
+\[<br />
+\begin{split}<br />
+\nonumber<br />
+3x_1 - x_2 + 2x_3 \le&amp;\; x_1 - x_2 + \frac{1}{2}x_3  \; + \\<br />
+                     &amp;\; \frac{1}{2}\cdot (4x_1 + 2x_2 + 3x_3) \le 4+\frac{1}{2}\cdot 20 = 14.<br />
+\end{split}<br />
+\]</p>
+<p>Udowodniliśmy (choć, trzeba przyznać, dość fartownie), że wartość funkcji celu nigdy nie przekracza \(14\), a więc mamy certyfikat optymalności, w dodatku bardzo krotki (kilka nierówności) i prosty do sprawdzenia.<br />
+Możemy to rozumowanie uogólnić: można brać dowolne kombinacje liniowe nierówności t.ż.:</p>
+<ul>
+<li> współczynniki kombinacji liniowej są nieujemne (bo inaczej odwrócą się kierunki nierówności),
+ </li>
+<li> dla dowolnego \(i\), współczynnik funkcji celu przy \(x_i\) jest ograniczony z góry przez odpowiednią kombinację liniową współczynników przy \(x_i\) w nierównościach.
+</li>
+</ul>
+<p>Można to zapisać za pomocą programu liniowego:</p>
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Program (D1)</legend><br />
+<div class="collapse-text-text collapsed-text">
+\[<br />
+       \begin{array}{ll}<br />
+       \textrm{zminimalizuj}          &amp; 4y_1 + 20y_2  \\<br />
+       \textrm{z zachowaniem warunków} &amp; y_1 + 4y_2 \ge 3 \\<br />
+                                       &amp; -y_1 + 2y_2 \ge -1\\<br />
+                                       &amp; \frac{1}{2}y_1+3y_2\ge 2\\<br />
+                                       &amp; y_1, y_2 \ge 0.<br />
+       \end{array}<br />
+\]
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+<p>Powyższy program będziemy nazywać <em>programem dualnym</em> do programu (P1). Ogólnie, dla programu (będziemy go nazywać programem <em>prymalnym</em>)</p>
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Program (P2)</legend><br />
+<div class="collapse-text-text collapsed-text">
+\[<br />
+       \begin{array}{ll@{\hspace{15mm}}l}<br />
+       \textrm{zmaksymalizuj}           &amp; \sum_{j=1}^n c_jx_j &amp;  \\<br />
+       \textrm{z zachowaniem warunków} &amp; \sum_{j=1}^n a_{ij}x_j \le b_i&amp; i=1,\ldots,m\\<br />
+                                       &amp; x_j \ge 0&amp;j=1,\ldots,n<br />
+       \end{array}<br />
+\]
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+<p>program dualny ma postać:</p>
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Program (D2)</legend><br />
+<div class="collapse-text-text collapsed-text">
+\[<br />
+       \begin{array}{ll@{\hspace{15mm}}l}<br />
+       \textrm{zminimalizuj}           &amp; \sum_{i=1}^m b_iy_i &amp;  \\<br />
+       \textrm{z zachowaniem warunków} &amp; \sum_{i=1}^m a_{ij}y_i \ge c_j&amp; j=1,\ldots,n\\<br />
+                                       &amp; y_i \ge 0&amp;i=1,\ldots,m.<br />
+       \end{array}<br />
+\]
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+<p>Zauważmy, że macierz współczynników ograniczeń programu (D2) jest transpozycją macierzy dla programu (P2) (porównaj też dla programów (P1) i (D1)). Daje to niezwykle prosty, mechaniczny sposób konstruowania programu dualnego. Mianowicie dla programu </p>
+<p>\[<br />
+       \begin{array}{ll@{\hspace{15mm}}l}<br />
+       \textrm{zmaksymalizuj}           &amp; \mathbf{c}^T\mathbf{x} &amp;  \\<br />
+       \textrm{z zachowaniem warunków} &amp; \mathbf{A}\mathbf{x} \le \mathbf{b}&amp;\\<br />
+                                       &amp; \mathbf{x} \ge \mathbf{0}&amp;<br />
+       \end{array}<br />
+\]</p>
+<p>program dualny ma postać:</p>
+<p>\[<br />
+       \begin{array}{ll@{\hspace{15mm}}l}<br />
+       \textrm{zminimalizuj}           &amp; \mathbf{b}^T\mathbf{y} &amp;  \\<br />
+       \textrm{z zachowaniem warunków} &amp; \mathbf{A}^T\mathbf{y} \ge \mathbf{c} \\<br />
+                                       &amp; \mathbf{y}\ge\mathbf{0}<br />
+       \end{array}<br />
+\]</p>
+<p>Dualność jest relacją symetryczną, tzn. mówimy także, że (P2) jest dualny do (D2). Innymi słowy, program dualny do programu dualnego to program prymalny. </p>
+<h2>Słaba dualność i komplementarne warunki swobody</h2>
+<p>Pozostańmy przy programach w postaci standardowej. Z konstrukcji programu dualnego wynika następujący fakt (dla porządku podamy jednak dowód).</p>
+<p><b>Twierdzenie 1 [o słabej dualności]</b><br />
+Niech \(\mathbf{x}\) i \(\mathbf{y}\) będą dowolnymi rozwiązaniami dopuszczalnymi odpowiednio programów (P2) i (D2). Wówczas \(\mathbf{c}^T \mathbf{x} \le \mathbf{b}^T \mathbf{y}\).</p>
+<p><i>Dowód</i><br />
+Ponieważ dla każdego \(j=1,\ldots,n\), mamy \(x_j\ge 0\) oraz \(\sum_{i=1}^m a_{ij}y_i \ge c_j\), więc<br />
+\[(*)\quad\quad \quad\quad \quad\quad c_j x_j \le \left(\sum_{i=1}^m a_{ij}y_i\right) x_j \quad\quad \forall j=1,\ldots,n.\]<br />
+Podobnie, ponieważ dla każdego \(i=1,\ldots,m\), mamy \(y_i\ge 0\) oraz \(\sum_{j=1}^n a_{ij}x_j \le b_i\), więc<br />
+\[(**)\quad\quad \quad\quad \quad\quad\left(\sum_{j=1}^n a_{ij}x_j\right) y_i \le b_i y_i \quad\quad \forall i=1,\ldots,m.\]<br />
+Stąd,<br />
+\[(***)\quad\quad \quad\quad \quad\quad\mathbf{c}^T\mathbf{x}=\sum_{j=1}^n c_jx_j\le \sum_{j=1}^n\left(\sum_{i=1}^m a_{ij}y_i\right) x_j=\sum_{i=1}^m\left(\sum_{j=1}^n a_{ij}x_j\right) y_i\le\sum_{i=1}^m b_i y_i = \mathbf{b}^T\mathbf{y}.<br />
+\] &diams;</p>
+<p>Zastanówmy się, kiedy rozwiązania optymalne programu prymalnego (P2) i dualnego (D2) spotykają się, czyli \(\mathbf{c}^T\mathbf{x}=\mathbf{b}^T\mathbf{y}\). Z dowodu twierdzenia o słabej dualności widzimy, że jest tak wtedy i tylko wtedy gdy obie nierówności w (***) są równościami. Tak może się wydarzyć tylko wtedy, gdy gdy wszystkie nierówności w (*) i (**) są równościami. To dowodzi następującego twierdzenia:</p>
+<p><b>Twierdzenie (o komplementarnych warunkach swobody)</b><br />
+Niech \(\mathbf{x}\) i \(\mathbf{y}\) będą rozwiązaniami dopuszczalnymi odpowiednio dla zadania prymalnego i dualnego w postaci standardowej. Rozwiązania \(\mathbf{x}\) i \(\mathbf{y}\) są oba optymalne wtedy i tylko wtedy gdy </p>
+<ul>
+<li> <b>prymalne komplementarne warunki swobody:</b> dla każdego \(j=1,\ldots,n\) albo \(x_j=0\) albo \(\sum_{i=1}^m a_{ij}y_i=c_j\).<br />
+(tzn. albo \(x_j=0\) albo \(j\)-ta nierówność programu dualnego jest spełniona z równością.)
+</li>
+<li> <b>dualne komplementarne warunki swobody</b> dla każdego \(i=1,\ldots,m\) albo \(y_i=0\) albo \(\sum_{j=1}^n a_{ij}x_j=b_i\).<br />
+(tzn. albo \(y_i=0\) albo \(i\)-ta nierówność programu prymalnego jest spełniona z równością.)
+</li>
+</ul>
+<h2>Programy dualne do ogólnych programów liniowych</h2>
+<p>Nawet gdy program nie jest w postaci standardowej możemy napisać program dualny, kierując się tą samą zasadą: poszukujemy jak najlepszego górnego ograniczenia na wartość funkcji celu. Zobaczmy np. co się dzieje, gdy program zawiera równość:</p>
+<p>\[<br />
+\label{eq:primal11}<br />
+       \begin{array}{ll}<br />
+       \textrm{zmaksymalizuj}           &amp; 3x_1 - x_2 + 2x_3  \\<br />
+       \textrm{z zachowaniem warunków} &amp; x_1 - x_2 + \frac{1}{2}x_3  \le  4 \\<br />
+                                       &amp; - 4x_1 - 2x_2 - 3x_3 = -20\\<br />
+                                       &amp; x_1,x_2,x_3\ge 0<br />
+       \end{array}<br />
+\]</p>
+<p>Podobnie jak poprzednio, dodając pierwszy warunek pomnożony przez \(y_1 = 1\) do drugiego warunku pomnożonego przez \(y_2=-\frac{1}{2}\) dostajemy ograniczenie górne równe \(14\). Zauważmy, że w kombinacji liniowej warunków, współczynniki dla nierówności muszą być nieujemne, natomiast dla równości mogą być dowolne (w tym przypadku wybraliśmy ujemny). Program dualny wygląda następująco:</p>
+<p>\[<br />
+\label{eq:dual11}<br />
+       \begin{array}{ll}<br />
+       \textrm{zminimalizuj}          &amp; 4y_1 + 20y_2  \\<br />
+       \textrm{z zachowaniem warunków} &amp; y_1 + 4y_2 \ge 3 \\<br />
+                                       &amp; -y_1 + 2y_2 \ge -1\\<br />
+                                       &amp; \frac{1}{2}y_1+3y_2\ge 2\\<br />
+                                       &amp; y_1\ge 0.<br />
+       \end{array}<br />
+\]</p>
+<p>A co by się stało, gdyby w programie prymalnym dodatkowo mogły się pojawiać zmienne bez warunku nieujemności? Rozważmy np.</p>
+<p>\[<br />
+\label{eq:primal112}<br />
+       \begin{array}{ll}<br />
+       \textrm{zmaksymalizuj}           &amp; 3x_1 - x_2 + 2x_3  \\<br />
+       \textrm{z zachowaniem warunków} &amp; x_1 - x_2 + \frac{1}{2}x_3  \le  4 \\<br />
+                                       &amp; 4x_1 + 2x_2 + 3x_3 = 20\\<br />
+                                       &amp; x_1,x_3\ge 0<br />
+       \end{array}<br />
+\]<br />
+ Wówczas nie możemy już napisać, że \(3x_1 - x_2 + 2x_3 \le 4x_1 + 2x_2 + 3x_3\), gdyż niekoniecznie \(-x_2 \le 2x_2\). Jeśli jednak pomnożymy pierwszą nierówność przez 3 i dodamy do drugiej, dostaniemy:</p>
+<p>\[<br />
+\begin{split}<br />
+\nonumber<br />
+3x_1 - x_2 + 2x_3 \le&amp;\; 3 (x_1 - x_2 + \frac{1}{2}x_3)  \; + \\<br />
+                     &amp;\; 4x_1 + 2x_2 + 3x_3 \le 12+20 = 32,<br />
+\end{split}<br />
+\]<br />
+gdyż \(3x_1 \le 7x_1\), \(-x_2 = -x_2\) oraz \(2x_3\le 3x_3\). Znalezienie najlepszej kombinacji liniowej warunków odpowiada programowi:</p>
+<p>\[<br />
+\label{eq:dual111}<br />
+       \begin{array}{ll}<br />
+       \textrm{zminimalizuj}          &amp; 4y_1 + 20y_2  \\<br />
+       \textrm{z zachowaniem warunków} &amp; y_1 + 4y_2 \ge 3 \\<br />
+                                       &amp; -y_1 + 2y_2 = -1\\<br />
+                                       &amp; \frac{1}{2}y_1+3y_2\ge 2\\<br />
+                                       &amp; y_1\ge 0.<br />
+       \end{array}<br />
+\]</p>
+<p>Ogólnie, program dualny konstruujemy zgodnie z poniższą zasadą:</p>
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Tworzenie programów dualnych</legend><br />
+<div class="collapse-text-text collapsed-text">
+<span class="inline inline-left"><img src="http://smurf.mimuw.edu.pl/sites/default/files/images/tabelka-dualny.png" alt="" title=""  class="image image-_original " width="575" height="144" /></span>
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+<p>Można łatwo sprawdzić, że program dualny zbudowany zgodnie z powyższymi wytycznymi również spełnia twierdzenie o słabej dualności (a także twierdzenie o silnej dualności, które udowodnimy w kolejnym punkcie). </p>
+<h2>Silna dualność</h2>
+<p>Twierdzenie o słabej dualności można również wyrazić w następujący sposób:</p>
+<p><b>Wniosek</b><br />
+Jeśli \(z\) jest wartością funkcji celu rozwiązania optymalnego prymalnego minimalizacyjnego PL, natomiast \(w\) jest wartością funkcji celu rozwiązania optymalnego  programu dualnego, to \(z \ge w\).</p>
+<p>Wynika stąd w szczególności, że gdy \(z=w\), to rozwiązanie optymalne programu dualnego jest certyfikatem optymalności naszego rozwiązania programu prymalnego. Okazuje się, że tak jest <em>zawsze</em>! </p>
+<p><b>Twierdzenie (o silnej dualności)</b><br />
+Jeśli \(z\) jest wartością funkcji celu rozwiązania optymalnego prymalnego PL, natomiast \(w\) jest wartością funkcji celu rozwiązania optymalnego  programu dualnego, to \(z = w\).</p>
+<p><i>Dowód</i><br />
+Dla uproszczenia przeprowadzimy dowód dla przypadku programu w maksymalizacyjnej postaci standardowej (dowód dla ogólnej postaci jest analogiczny). Oto program prymalny:</p>
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Program (P3)</legend><br />
+<div class="collapse-text-text collapsed-text">
+\[<br />
+\label{eq:st-primal-proof}<br />
+       \begin{array}{ll@{\hspace{15mm}}l}<br />
+       \textrm{zmaksymalizuj}           &amp; \mathbf{c}^T\mathbf{x} &amp;  \\<br />
+       \textrm{z zachowaniem warunków} &amp; \mathbf{A}\mathbf{x} \le \mathbf{b}&amp;\\<br />
+                                       &amp; \mathbf{x} \ge \mathbf{0},&amp;<br />
+       \end{array}<br />
+\]
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+<p>oraz program dualny:</p>
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Program (D3)</legend><br />
+<div class="collapse-text-text collapsed-text">
+\[<br />
+\label{eq:st-dual-proof}<br />
+       \begin{array}{ll@{\hspace{15mm}}l}<br />
+       \textrm{zminimalizuj}           &amp; \mathbf{b}^T\mathbf{y} &amp;  \\<br />
+       \textrm{z zachowaniem warunków} &amp; \mathbf{A}^T\mathbf{y} \ge \mathbf{c} \\<br />
+                                       &amp; \mathbf{y}\ge\mathbf{0}.<br />
+       \end{array}<br />
+\]
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+<p>Niech \(\mathbf{x}^*\) będzie rozwiązaniem optymalnym programu prymalnego (P3). Ze słabej dualności, wystarczy pokazać rozwiązanie dopuszczalne \(\mathbf{y}\) programu dualnego (D3) t.ż. \(\mathbf{c}^T \mathbf{x}^* = \mathbf{b}^T \mathbf{y}\). Uruchamiamy algorytm simplex (patrz poprzedni <a href="http://smurf.mimuw.edu.pl/drupal6/node/1122">wykład</a>) na programie (P3).<br />
+W pierwszej iteracji algorytm simplex buduje program</p>
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Program (P3-start)</legend><br />
+<div class="collapse-text-text collapsed-text">
+\[<br />
+\label{eq:P_0}<br />
+       \begin{array}{ll@{\hspace{15mm}}l}<br />
+       \textrm{zmaksymalizuj}           &amp; z &amp;  \\<br />
+       \textrm{z zachowaniem warunków} &amp; z = \sum_{j=1}^n c_jx_j &amp; \\<br />
+                                       &amp; x_{n+i}=b_i - \sum_{j=1}^n a_{ij}x_j &amp; i=1,\ldots,m\\<br />
+                                       &amp; x_j \ge 0&amp;j=1,\ldots,n+m.<br />
+       \end{array}<br />
+\]
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+<p>Rozważmy program z ostatniej iteracji algorytmu simplex.
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Program (P3-stop)</legend><br />
+<div class="collapse-text-text collapsed-text">
+\[<br />
+\label{eq:P'}<br />
+       \begin{array}{ll@{\hspace{15mm}}l}<br />
+       \textrm{zmaksymalizuj}           &amp; z &amp;  \\<br />
+       \textrm{z zachowaniem warunków} &amp; z = v + \sum_{j\in N} c'_jx_j &amp; \\<br />
+                                       &amp; x_i=b'_i-\sum_{j\in N} a'_{ij}x_j&amp; i\in B\\<br />
+                                       &amp; x_j \ge 0&amp;j=1,\ldots,n+m.<br />
+       \end{array}<br />
+\]
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+<p>Ponieważ program prymalny jest ograniczony, więc dla każdego \(j\in N\), \(c'_j \le 0\) oraz algorytm simplex zwraca rozwiązanie optymalne \(\mathbf{x}^*\) takie, że<br />
+\[<br />
+x^*_i = \left\{ \begin{array}{cl}<br />
+                  0 &amp; \text{gdy \(i\in N\)} \\<br />
+                  b'_i &amp; \text{gdy \(i\in B\).}<br />
+                 \end{array} \right.<br />
+\]</p>
+<p>Określimy teraz pewne rozwiązanie programu dualnego (D3):<br />
+\[<br />
+y_i := \left\{ \begin{array}{cl}<br />
+                  -c'_{n+i} &amp; \text{gdy \(n+i\in N\)} \\<br />
+                  0 &amp; \text{w p. p.}<br />
+                 \end{array} \right.<br />
+\]</p>
+<p>Pokażemy teraz, że \(\mathbf{y}\) jest dopuszczalny o wartości funkcji celu równej \(\mathbf{c}^T\mathbf{x}^*\). Określamy \(c'_j:=0\) dla \(j\in B\). Wówczas pierwszy warunek programu (P3-stop) możemy zapisać jako \(z = v + \sum_{j=1}^{n+m} c'_jx_j\).</p>
+<p>Weźmy <b>dowolne</b> \((x_1,\ldots,x_n)\in \mathbb{R}^n\). Określmy \(x_{n+i} = b_i - \sum_{i=1}^n a_{ij}x_j\) oraz \(z=\sum_{i=1}^n a_{ij}x_j\). Wówczas \((z,x_1,\ldots,x_{n+m})\) jest rozwiązaniem dopuszczalnym programu (P3-start). Ponieważ program (P3-stop) jest równoważny (P3-start), tzn. powstaje z  (P3-start) na drodze ciągu operacji elementarnych, więc \((z,x_1,\ldots,x_{n+m})\) jest również rozwiązaniem dopuszczalnym programu (P3-stop). Z faktu, iż w obu programach spełnione są warunki zawierające zmienną \(z\) mamy, iż:<br />
+\[<br />
+\begin{array}{rcl}<br />
+\sum_{j=1}^n c_jx_j &amp; = &amp; v + \sum_{j=1}^{n+m} c'_jx_j \\<br />
+                    &amp; = &amp; v + \sum_{j=1}^{n} c'_jx_j + \sum_{i=1}^{m} c'_{n+i}x_{n+i} \\<br />
+                    &amp; = &amp; v + \sum_{j=1}^{n} c'_jx_j + \sum_{i=1}^{m} (-y_i)(b_i - \sum_{j=1}^n a_{ij}x_j).<br />
+\end{array}<br />
+\]<br />
+Po przegrupowaniu dostajemy, że dla dowolnego \((x_1,\ldots,x_n)\in \mathbb{R}^n\),<br />
+\[<br />
+                    \sum_{j=1}^n c_jx_j = \left(v - \sum_{i=1}^{m} y_i b_i\right) + \sum_{j=1}^n \left(c'_j + \sum_{i=1}^m y_i a_{ij}\right) x_j.<br />
+\]</p>
+<p>Podstawiamy \((x_1,\ldots,x_n) = (0,\ldots,0)\) i mamy \(v = \sum_{i=1}^{m} y_i b_i\). Ponieważ \(\mathbf{c}^T\mathbf{x}^* = v\), więc \(\mathbf{c}^T\mathbf{x}^* = \mathbf{b}^T \mathbf{y}\). Pozostaje pokazać dopuszczalność \(\mathbf{y}\). W tym celu rozważmy dowolne \(k\in\{1,\ldots, n\}\). Podstawiamy \(x_j=[j=k]\) dla każdego \(j=1,\ldots,n\). Otrzymujemy<br />
+\[<br />
+ c_k = \underbrace{(v - \sum_{i=1}^{m} y_i b_i)}_{=0} + \underbrace{\quad c'_k\quad}_{\le 0} + \sum_{i=1}^m y_i a_{ik},<br />
+\]<br />
+co implikuje \(\sum_{i=1}^m y_i a_{ik} \ge c_k\) dla każdego \(k\), czyli \(\mathbf{A}^T \mathbf{y} \ge \mathbf{c}\). Zauważmy, że ponieważ \(c'_j\le 0\) dla każdego \(j\), więc \(\mathbf{y} \ge 0\). Pokazaliśmy zatem, że \(\mathbf{y}\) jest rozwiązaniem dopuszczalnym programu (D3) o wartości funkcji celu \(\mathbf{c}^T\mathbf{x}^*\), co kończy dowód. &diams;</p>
+<p>Z powyższego dowodu wynika, że algorytm simplex znajduje równocześnie rozwiązania optymalne programu prymalnego i dualnego. W niektórych sytuacjach możemy uzyskać skrócenie czasu działania algorytmu stosując tzw. dualny algorytm simplex, tzn. uruchamiać algorytm simplex dla programu dualnego.</div>
+</div>
+</form>
+<div class="image-clear"></div>  <div id="book-navigation-1100" class="book-navigation">
+    
+        <div class="page-links clear-block">
+              <a href="/node/1122" class="page-previous" title="Przejdź do poprzedniej strony">‹ Programowanie liniowe 2: Algorytm simplex i informacja o algorytmach wielomianowych</a>
+                    <a href="/zaawansowane_algorytmy" class="page-up" title="Wyświetla stronę nadrzędną">w górę</a>
+                    <a href="/node/1126" class="page-next" title="Przejdź do następnej strony">Programowanie liniowe 4: Programy całkowitoliczbowe i kilka zastosowań dualności ›</a>
+          </div>
+    
+  </div>
+  </div>
+
+  <div class="clear-block">
+    <div class="meta">
+        </div>
+
+          <div class="links"><ul class="links inline"><li class="book_printer first last"><a href="/book/export/html/1124" title="Wyświetla wszystkie strony książki w wersji przygotowanej do wydruku.">Wersja do wydruku</a></li>
+</ul></div>
+      </div>
+
+</div>
+          </div>
+                    <div id="footer"></div>
+      </div></div></div></div> <!-- /.left-corner, /.right-corner, /#squeeze, /#center -->
+
+      
+    </div> <!-- /container -->
+  </div>
+<!-- /layout -->
+
+    </body>
+</html>

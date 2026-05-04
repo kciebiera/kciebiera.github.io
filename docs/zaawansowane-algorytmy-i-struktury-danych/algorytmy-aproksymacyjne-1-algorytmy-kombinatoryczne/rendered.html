@@ -1,0 +1,231 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="pl" lang="pl" dir="ltr">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="prev" href="/node/1126" />
+<link rel="up" href="/zaawansowane_algorytmy" />
+<link rel="next" href="/node/1147" />
+<link rel="shortcut icon" href="/misc/favicon.ico" type="image/x-icon" />
+    <title>Algorytmy aproksymacyjne 1: algorytmy kombinatoryczne | Informatyka MIMUW</title>
+    <link type="text/css" rel="stylesheet" media="all" href="/modules/book/book.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/node/node.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/defaults.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system-menus.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/user/user.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/modules/geshifilter/geshifilter.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/modules/img_assist/img_assist.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/modules/views/css/views.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/default/files/color/garland-0431760f/style.css?G" />
+<link type="text/css" rel="stylesheet" media="print" href="/themes/garland/print.css?G" />
+    <script type="text/javascript" src="/misc/jquery.js?G"></script>
+<script type="text/javascript" src="/misc/drupal.js?G"></script>
+<script type="text/javascript" src="/sites/default/files/languages/pl_7618cc674030d51495c9d1ac3aae9126.js?G"></script>
+<script type="text/javascript" src="/misc/collapse.js?G"></script>
+<script type="text/javascript" src="/sites/all/modules/img_assist/img_assist.js?G"></script>
+<script type="text/javascript">
+<!--//--><![CDATA[//><!--
+jQuery.extend(Drupal.settings, { "basePath": "/" });
+//--><!]]>
+</script>
+    <!--[if lt IE 7]>
+      <link type="text/css" rel="stylesheet" media="all" href="/themes/garland/fix-ie.css" />    <![endif]-->
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+  </head>
+  <body>
+
+<!-- Layout -->
+  <div id="header-region" class="clear-block"></div>
+
+    <div id="wrapper">
+    <div id="container" class="clear-block">
+
+      <div id="header">
+        <div id="logo-floater">
+        <h1><a href="/" title="Informatyka MIMUW"><span>Informatyka MIMUW</span></a></h1>        </div>
+
+                  <ul class="links primary-links"><li class="menu-126 first last"><a href="/node/3" title="Materiały">Materiały</a></li>
+</ul>                                  
+      </div> <!-- /header -->
+
+      
+      <div id="center"><div id="squeeze"><div class="right-corner"><div class="left-corner">
+          <div class="breadcrumb"><a href="/">Strona główna</a> › <a href="/zaawansowane_algorytmy">Zaawansowane algorytmy i struktury danych</a></div>                              <h2>Algorytmy aproksymacyjne 1: algorytmy kombinatoryczne</h2>                                                  <div class="clear-block">
+            <div id="node-1142" class="node">
+
+
+
+      <span class="submitted">pon., 10/17/2011 - 15:03 — kowalik</span>
+  
+  <div class="content clear-block">
+    <form action="/book/export/html/1100"  accept-charset="UTF-8" method="post" id="collapse-text-dynamic-form-number-5">
+<div>
+<div class="collapse-text-text collapsed-text">Wiele naturalnych problemów algorytmicznych to problemy optymalizacyjne, np:</p>
+<ul>
+<li> <b> maksymalny przepływ</b> Dana jest sieć przepływowa. Znaleźć przepływ o maksymalnej wartości.
+</li>
+<li> <b>problem plecakowy</b> Dane jest \(n\) przedmiotów o wartościach \(v_1,\ldots,v_n\) i rozmiarach \(s_1,\ldots,s_n\) oraz rozmiar plecaka \(B\). Które przedmioty należy włożyć do plecaka aby miały one sumarycznie największą możliwą wartość?
+</li>
+<li> <b>minimalne pokrycie wierzchołkowe</b> Dany graf nieskierowany \(G=(V,E)\). Znaleźć najmniejsze pokrycie wierzchołkowe \(G\), tzn. podzbiór wierzchołków \(S\), który dotyka każdej krawędzi.
+</li>
+<li> <b>problem komiwojażera</b> Dany pełny graf \(n\)-wierzchołkowy z nieujemnymi wagami na krawędziach. Znaleźć cykl Hamiltona o najmniejszej wadze (tzn. sumie wag krawędzi).
+</li>
+</ul>
+<p>W problemach tych dla danego egzemplarza problemu (sieć przepływowa, wartości i rozmiary przedmiotów wraz z wielkością plecaka, graf nieskierowany, tablica \({n \choose 2}\) liczb) jest określony pewien zbiór rozwiązań dopuszczalnych (przepływ, wybór przedmiotów mieszczących się w plecaku, pokrycie wierzchołkowe, cykl Hamiltona). Interesuje nas jednak nie dowolne rozwiązanie dopuszczalne ale rozwiązanie w jakimś sensie najlepsze. Dokładniej, na zbiorze rozwiązań dopuszczalnych mamy określoną pewną funkcję celu (o wartościach nieujemnych) i szukamy rozwiązania dopuszczalnego, dla którego wartość funkcji celu (wartość przepływu, sumaryczna wartość przedmiotów w plecaku, liczba wierzchołków w pokryciu, waga cyklu Hamiltona) jest optymalna (maksymalna dla dwóch pierwszych problemów, minimalna dla dwóch pozostałych). Wartość funkcji celu będziemy nazywać krótko <em>kosztem</em> rozwiązania (choć słowo to pasuje przede wszystkim do problemów minimalizacyjnych, w przypadku maksymalizacji lepszym słowem byłaby <em>wartość</em>).</p>
+<p>Z wcześniejszych wykładów wiemy, że problem maksymalnego przepływu można rozwiązać efektywnie, tj. w czasie wielomianowym. Jest to jednak sytuacja dość wyjątkowa: większość naturalnych problemów optymalizacyjnych jest NP-trudnych (dokładniej: NP-trudne są ich wersje decyzyjne). Jest tak np. w przypadku trzech ostatnich problemów z powyższej listy. Zamiast bezradnie rozkładać ręce, możemy jednak spytać co można w takiej sytuacji zrobić. Dotąd rozważaliśmy jedynie rozwiązania szybkie (wielomianowe), optymalne i działające dla dowolnych danych. Możemy pójść na kompromis i ograniczyć jedno (lub więcej) z tych wymagań. Współczesna algorytmika w przeważającej części zajmuje się badaniem efektów takich właśnie kompromisów. W tym wykładzie zajmiemy się prawdopodobnie najszerzej badaną wersją: rezygnujemy jedynie z optymalności rozwiązania. Mimo to, będziemy chcieli kontrolować jakość rozwiązań dopuszczalnych zwracanych przez nasze algorytmy. Będą nas interesowały wyniki typu "algorytm <b>zawsze</b> zwraca rozwiązanie gorsze od optymalnego o nie więcej niż 50%". Podamy teraz formalną definicję.</p>
+<p><b>Definicja</b><br />
+Rozważmy wielomianowy algorytm, który dla każdego egzemplarza \(I\) pewnego problemu minimalizacyjnego zwraca rozwiązanie dopuszczalne o koszcie \({\rm ALG}(I)\). Niech \({\rm OPT}(I)\) oznacza koszt optymalnego rozwiązania dla egzemplarza \(I\). Powiemy, że taki algorytm jest \(\alpha\)-<em>aproksymacyjny</em>,  gdy dla każdego egzemplarza \(I\),<br />
+\[\frac{{\rm ALG}(I)}{{\rm OPT}(I)} \le \alpha.\]</p>
+<p>Dla problemów maksymalizacji definicja jest analogiczna, zmienia się jedynie znak nierówności: </p>
+<p>\[\frac{{\rm ALG}(I)}{{\rm OPT}(I)} \ge \alpha.\]</p>
+<p>Liczba \(\alpha\) jest nazywana <em>współczynnikiem aproksymacji</em> lub <em>ilorazem aproksymacji</em>. Zauważmy w szczególności, że w problemach minimalizacji \(\alpha \ge 1\), natomiast w problemach maksymalizacji \(\alpha \in [0,1]\). Czasem rozszerzamy powyższą definicję tak, że współczynnik aproksymacji \(\alpha\) nie jest stałą tylko pewną funkcją, z reguły zależną od rozmiaru danych: rozważane są np. algorytmy \(\log n<br />
+\)-aproksymacyjne czy \(\sqrt{n}\)-aproksymacyjne.</p>
+<p>W dalszych rozważaniach będziemy pisać krótko \({\rm OPT}\) zamiast \({\rm OPT}(I)\), gdyż z reguły będzie jasne z kontekstu o jaki egzemplarz problemu chodzi.</p>
+<h3> 2-aproksymacyjny algorytm dla problemu minimalnego pokrycia wierzchołkowego </h3>
+<p>Podamy teraz bardzo prosty algorytm aproksymacyjny, jednak nawet na tym elementarnym przykładzie widoczne będą pewne cechy obecne w bardziej zaawansowanych algorytmach. Przypomnijmy, że <em>pokryciem wierzchołkowym</em> nieskierowanego grafu \(G=(V,E)\) nazywamy dowolny zbiór wierzchołków \(S \subseteq V\) taki, że dla każdej krawędzi \(uv\in E\) zachodzi \(\{u,v\} \cap S \neq \emptyset\). Zajmiemy się następującym, klasycznym problemem. </p>
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Problem pokrycia wierzchołkowego</legend><br />
+<div class="collapse-text-text collapsed-text">
+<b>Dane:</b> Graf nieskierowany \(G=(V,E)\).<br />
+<b>Problem:</b> Znaleźć najliczniejsze pokrycie wierzchołkowe grafu \(G\).
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+<p>Nasz algorytm będzie następujący:</p>
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Algorytm 2-aproksymacyjny</legend><br />
+<div class="collapse-text-text collapsed-text">
+<ol>
+<li> Znajdź dowolne maksymalne ze względu na zawieranie skojarzenie \(M\) w grafie \(G\).
+</li>
+<li> Zwróć jako rozwiązanie zbiór wierzchołków skojarzonych \(V(M)\).
+</li>
+</ol>
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+<span class="inline inline-center"><img src="http://smurf.mimuw.edu.pl/sites/default/files/images/vc.png" alt="Przykład: optymalne pokrycie i pokrycie wygenerowane przez algorytm" title="Przykład: optymalne pokrycie i pokrycie wygenerowane przez algorytm"  class="image image-_original " width="284" height="300" /><span class="caption"><strong>Przykład: optymalne pokrycie i pokrycie wygenerowane przez algorytm</strong></span></span></p>
+<p>Zauważmy, że w punkcie 1. wymagane jest jedynie skojarzenie maksymalne ze względu na zawieranie, a nie najliczniejsze skojarzenie. Takie skojarzenie łatwo jest znaleźć algorytmem zachłannym w czasie liniowym (po prostu dopóki istnieje krawędź, której oba końce nie są skojarzone, dodajemy ją do skojarzenia). Cały algorytm działa więc w czasie liniowym.  </p>
+<p><b>Twierdzenie 1</b> Powyższy algorytm jest poprawnym 2-aproksymacyjnym algorytmem dla problemu pokrycia wierzchołkowego</p>
+<p><i>Dowód</i><br />
+Oznaczmy przez \(C\) zbiór wierzchołków zwracany przez algorytm. Najpierw pokażemy, że \(C\) jest pokryciem. Istotnie, gdyby istniała krawędź \(uv\) taka, że \(\{u,v\}\cap C = \emptyset\), oznaczałoby to, że ani \(u\) ani \(v\) nie jest skojarzony, a więc \(M \cup \{uv\}\) byłoby skojarzeniem zawierającym \(M\), a to jest niemożliwe.</p>
+<p>Teraz zajmiemy się współczynnikiem aproksymacji. Rozważmy dowolne pokrycie wierzchołkowe \(S\). Ponieważ każda krawędź skojarzenia musi mieć koniec w pokryciu, a z definicji skojarzenia te końce są parami różne więc \(|S| \ge |M|\). W szczególności jest to prawda dla pokrycia optymalnego, zatem:<br />
+\[{\rm OPT} \ge |M|.\]<br />
+Ponieważ \(|C|=2|M|\), więc \(|C| \le 2 {\rm OPT}\), co kończy dowód. &diams;</p>
+<p>Zastanówmy się przez chwilę co tak naprawdę wydarzyło się w naszym algorytmie. Pojawia się tam trzech bohaterów: \(C\) -- czyli rozwiązanie zwrócone przez algorytm, \({\rm OPT}\) -- rozwiązanie optymalne (tu i w dalszej części wykładu używamy tego samego oznaczenia dla pewnego rozwiązania optymalnego i jego kosztu), oraz \(M\) -- skojarzenie maksymalne znalezione przez algorytm. Zastanówmy się jaka jest rola tego ostatniego bohatera, który pojawił się w naszej historii dość niespodziewanie. Skojarzenie \(M\) ma dwie kluczowe cechy: możemy je znaleźć w czasie wielomianowym oraz daje oszacowanie dolne na \({\rm OPT}\): w tym przypadku oszacowanie \({\rm OPT} \ge |M|\). Otrzymujemy więc obiekt, który w sensie naszej miary kosztu rozwiązania (mocy zbioru) jest <em>lepszy</em> niż \({\rm OPT}\) , ale nie jest rozwiązaniem dopuszczalnym. W punkcie 2. algorytmu przekształcamy ten obiekt w rozwiązanie dopuszczalne, tracąc przy tym (dwukrotnie) na koszcie. Skoro nasze rozwiązanie \(C\) jest dwukrotnie gorsze niż \(M\), a \(M\) było lepsze niż   \({\rm OPT}\), to \(C\) jest co najwyżej 2 razy gorsze niż \({\rm OPT}\).</p>
+<p>Skojarzenie \(M\) jest tu swego rodzaju <em>pośrednikiem</em> między rozwiązaniem \(C\) a  \({\rm OPT}\): umiemy porównać \(C\) z \(M\) oraz \(M\) z  \({\rm OPT}\), razem dostajemy oszacowanie na \(C\) względem  \({\rm OPT}\). Często projektując algorytm aproksymacyjny <em>zaczynamy</em> od wskazania takiego właśnie pośrednika, a następnie zastanawiamy się, jak z jego pomocą zbudować rozwiązanie dopuszczalne, tracąc możliwie mało na koszcie. Ten schemat pojawi się w kilku kolejnych przykładach. </p>
+<h3> Problem komiwojażera i trudność aproksymacji </h3>
+<p>W poprzednim przykładzie stosunkowo łatwo dostaliśmy algorytm aproksymacyjny ze współczynnikiem aproksymacji ograniczonym przez niewielką stałą (2). Pojawia się naturalne pytanie: czy jest to możliwe dla każdego problemu optymalizacyjnego (powiedzmy, takiego, którego wersja decyzyjna jest w klasie NP)? Oczywiście nie pokażemy tu twierdzenia w rodzaju "dla problemu X nie istnieje algorytm 10-aproksymacyjny", gdyż implikowałoby to, że \({\rm P}\ne {\rm NP}\), a jak wiemy jest to słynny problem otwarty. Podobnie, nie jesteśmy w stanie udowodnić że problem SAT nie posiada algorytmu wielomianowego. Zamiast tego, dowodzi się, że SAT jest NP-trudny. Zrobimy dokładnie tak samo: pokażemy, że aproksymacja pewnego problemu jest NP-trudna (tzn. gdybyśmy potrafili aproksymować, to rozwiązalibyśmy w czasie wielomianowym wszystkie problemy z NP). Rozważymy tu słynny problem komiwojażera.</p>
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Problem komiwojażera (Traveling Salesman Problem, TSP)</legend><br />
+<div class="collapse-text-text collapsed-text">
+<b>Dane:</b> Graf pełny nieskierowany \(G=(V,E)\) oraz funkcja wagowa \(w := E \rightarrow \mathbb{N}\).<br />
+<b>Problem:</b> Znaleźć cykl Hamiltona w \(G\) o najmniejszej całkowitej wadze (waga cyklu \(C\) to \(w(C)=\sum_{e\in E(C)}w(e)\)).
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+<p>Przez \(n\) będziemy oznaczać liczbę wierzchołków grafu \(G\).</p>
+<p><b>Twierdzenie 2</b><br />
+Dla dowolnej funkcji \(\alpha : \mathbb{N}\rightarrow \mathbb{N}\) obliczalnej w czasie wielomianowym (np. \(\alpha(n)=100\), \(\alpha(n)=\log n\), \(\alpha(n)=n^5\), \(\alpha(n)=2^n\), ale \(\alpha(n)=2^{2^n}\) już nie), nie istnieje algorytm \(\alpha(n)\)-aproksymacyjny dla problemu komiwojażera, o ile  \({\rm P}\ne {\rm NP}\).</p>
+<p><i>Dowód</i><br />
+Załóżmy, że algorytm o którym mowa istnieje (nazwijmy go ,,algorytm \(A\)''). Pokażemy, że \(A\) mógłby zostać użyty do rozwiązania problemu <a href="http://wazniak.mimuw.edu.pl/index.php?title=Z%C5%82o%C5%BCono%C5%9B%C4%87_obliczeniowa/Wyk%C5%82ad_5:_Problemy_NP-zupe%C5%82ne#Cykl_i_.C5.9Bcie.C5.BCka_Hamiltona">cyklu Hamiltona</a> w czasie wielomianowym. W problemie cyklu Hamiltona na wejściu pojawia się graf nieskierowany \(G=(V,E)\). Zbudujemy na tej podstawie egzemplarz problemu komiwojażera: będzie to graf pełny \(G'\) o zbiorze wierzchołków \(V\). Pozostaje określić funkcję \(w\):<br />
+\[ w(uv) = \left\{ \begin{array}{ll} 1&amp; \mbox{gdy } uv \in E \\  n\cdot\alpha(n) &amp; \mbox{w p. p. }\end{array} \right. \]<br />
+Zauważmy, że funkcję \(w\) możemy reprezentować w pamięci wielomianowej względem rozmiaru \(G\). Na tak określonym egzemplarzu uruchamiamy algorytm \(A\).</p>
+<p>Wówczas, jeśli \(G\) ma cykl Hamiltona to w naszym egzemplarzu problemu komiwojażera \({\rm OPT} = n\), a więc \(A\) zwróci rozwiązanie o koszcie co najwyżej \(\alpha(n) \cdot n\). Jeśli natomiast \(G\) nie zawiera cyklu Hamiltona to każdy cykl Hamiltona w \(G'\) zawiera krawędź o wadze \(n\cdot\alpha(n)\), a więc cały taki cykl ma wagę większą niż \(n\cdot\alpha(n)\), czyli \(A\) zwróci rozwiązanie o koszcie większym niż \(n\cdot\alpha(n)\). </p>
+<p>Powyżej udowodniliśmy, że \(G\) ma cykl Hamiltona wtedy i tylko wtedy gdy \(A\) zwróci rozwiązanie o koszcie co najwyżej \(\alpha(n) \cdot n\), a to możemy sprawdzić w czasie wielomianowym. Ponieważ problem cyklu Hamiltona jest NP-zupełny, więc \({\rm P}= {\rm NP}\), sprzeczność z założeniem.  &diams;</p>
+<h3> Metryczny problem komiwojażera: 2-aproksymacja</h3>
+<p>Pokazując trudność problemu komiwojażera, nie zakładaliśmy niczego o funkcji wagowej \(w\). Tymczasem w wielu zastosowaniach, w szczególności np. jeśli myślimy o podróżowaniu komiwojażera między "prawdziwymi" miastami na powierzchni ziemi, funkcja \(w\) spełnia nierówność trójkąta, tzn. dla dowolnej trójki wierzchołków \(a\), \(b\), \(c\), mamy<br />
+\[w(ab) \le w(ac) + w(cb).\]<br />
+Rozważymy teraz wariant problemu komiwojażera, w którym zakładamy, że \(w\) spełnia nierówność trójkąta (innymi słowy \(w\), określona na parach wierzchołków zamiast na krawędziach, jest <a href="http://wazniak.mimuw.edu.pl/index.php?title=Analiza_matematyczna_1/Wyk%C5%82ad_3:_Odleg%C5%82o%C5%9B%C4%87_i_ci%C4%85gi#Odleg.C5.82o.C5.9B.C4.87_i_ci.C4.85gi">metryką</a>).  </p>
+<p>Łatwo sprawdzić, że funkcja skonstruowana w dowodzie twierdzenia 2 nie jest metryką, a więc dla takich egzemplarzy nie wykluczyliśmy algorytmów aproksymacyjnych. Okazuje się, że stosunkowo prosto można otrzymać 2-aproksymację. W algorytmie będziemy korzystali z następującego, dobrze znanego, twierdzenia. (Dowód możemy znaleźć np. <a href="http://wazniak.mimuw.edu.pl/index.php?title=Matematyka_dyskretna_1/Wyk%C5%82ad_13:_Grafy_II">w wykładzie z matematyki dyskretnej</a>; czytelnik może sprawdzić, że algorytm wynikający z dowodu można zaimplementować w czasie liniowym.)</p>
+<p><b>Twierdzenie</b><br />
+W spójnym multigrafie istnieje cykl Eulera wtedy i tylko wtedy, gdy stopień każdego wierzchołka jest parzysty. Co więcej, jeśli cykl Eulera istnieje, można go znaleźć w czasie liniowym. </p>
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Algorytm 2-aproksymacyjny</legend><br />
+<div class="collapse-text-text collapsed-text">
+<ol>
+<li> Znajdź minimalne drzewo rozpinające \(T\)  grafu \(G\), np. <a href="http://pl.wikipedia.org/wiki/Algorytm_Kruskala">algorytmem Kruskala</a>
+</li>
+<li> Zastąp każdą krawędź \(T\) parą krawędzi: otrzymujemy spójny multigraf \(T_2\) o parzystych stopniach wierzchołków.
+</li>
+<li> Znajdź cykl Eulera \(\mathcal{E}=v_1v_2\ldots v_{|E(T_2)|}v_1\) w grafie \(T_2\).
+</li>
+<li> Wypisz wierzchołki grafu \(G\) w kolejności ich pierwszych wystąpień w ciągu \(v_1,v_2,\ldots,v_{|E(T_2)|}\)
+</li>
+</ol>
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+<p>Przypomnijmy, że algorytm Kruskala w naszym grafie zadziała w czasie \(O(|E(G)| \log |E(G)|) = O(n^2 \log n)\), natomiast cykl Eulera można znaleźć w czasie liniowym. Całkowita złożoność algorytmu wynosi więc \(O(n^2 \log n)\), a więc jest wielomianowa. </p>
+<p><b>Twierdzenie</b> Powyższy algorytm jest 2-aproksymacyjny.<br />
+<i>Dowód</i> W ostatnim kroku algorytmu wypisywana jest pewna permutacja wierzchołków. Ponieważ \(G\) jest grafem pełnym, więc ta permutacja wyznacza kolejne wierzchołki pewnego cyklu Hamiltona \(C\) w \(G\), a więc algorytm zawsze zwraca rozwiązanie dopuszczalne. </p>
+<p>Rozważmy dowolne rozwiązanie optymalne OPT. Jest to cykl Hamiltona, a więc w szczególności spójny podgraf rozpinający grafu \(G\) (podgraf rozpinający grafu \(G\) to taki, który zawiera wszystkie wierzchołki \(G\)). Nie jest więc lżejszy niż najlżejszy spójny podgraf rozpinający (który musi być drzewem), a więc:</p>
+<p>\[w(T) \le OPT.\]</p>
+<p>Stąd \(w(\mathcal{E})=w(T_2)=2w(T) \le 2OPT\). Nasz algorytm dzieli \(\mathcal{E}\) na krawędziowo rozłączne marszruty, o końcach w kolejnych wypisywanych w ostatnim kroku wierzchołkach. Każdej takiej marszrucie \(v_{i_1}\ldots v_{i_j}\) odpowiada krawędź  \(v_{i_1}v_{i_j}\) w zwracanym w ostatnim kroku algorytmu cyklu Hamiltona \(C\). Z nierówności trójkąta \(w(v_{i_1} v_{i_j}) \le \sum_{k=1}^{j-1}w(v_{i_k} v_{i_{k+1}})\), więc \(w(C) \le w(\mathcal{E}) \le 2OPT \).&diams;</p>
+<p>Zauważmy, że w tym algorytmie, podobnie jak to miało miejsce w przypadku pokrycia wierzchołkowego, korzystaliśmy z <em>pośrednika</em>: tym razem było to minimalne drzewo rozpinające. Jest to dość naturalny i często używany sposób uzyskiwania pośredników, zwany <em>relaksacją</em> (rozluźnieniem). Chodzi o to, że rozluźniamy warunki dotyczące poszukiwanego obiektu tak, aby uzyskać problem wielomianowy. W tym przypadku szukamy najlżejszego cyklu Hamiltona, natomiast cykle Hamiltona są szczególnym przypadkiem spójnych grafów rozpinających oraz najlżejszy spójny podgraf rozpinający możemy znaleźć w czasie wielomianowym. Oczywiście jeśli warunki są rozluźnione, to minimalny (względem naszego kosztu) obiekt w szerszym zbiorze będzie miał koszt mniejszy lub równy kosztowi rozwiązania optymalnego oryginalnego problemu: dostaniemy więc obiekt <em>lepszy</em> niż OPT, który następnie (tracąc na koszcie) możemy próbować przekształcić do rozwiązania dopuszczalnego. </p>
+<h3> Metryczny problem komiwojażera: (3/2)-aproksymacja</h3>
+<p>Okazuje się, że zaprezentowany powyżej algorytm 2-aproksymacyjny można stosunkowo łatwo poprawić. Zmodyfikujemy jedynie jeden jego fragment: krok 2. Zauważmy, że celem kroku 2 jest dodanie krawędzi do drzewa rozpinającego \(T\) tak, aby otrzymać graf, w którym wszystkie wierzchołki mają parzyste stopnie. Dodatkowo chcemy, żeby waga dodanych krawędzi była niewielka. Poprzednio, podwajaliśmy stopień każdego wierzchołka w \(T\). Tym razem spróbujmy być bardziej oszczędni: pozostawmy wierzchołki, które już mają parzysty stopień bez zmian. Niech \(N\) będzie zbiorem wierzchołków nieparzystego stopnia w drzewie \(T\). Przypomnijmy treść lematu o uściskach dłoni:</p>
+<p>\[\sum_{v\in V}\deg(v) = 2|E|.\]</p>
+<p>Stąd, stosując powyższą równość do drzewa \(T\), widzimy, że \(|N|\) jest parzyste. Wystarczy więc połączyć wierzchołki zbioru \(N\) w pary, i dla każdej pary dodać do \(T\) łączącą je krawędź. Dodatkowo, chcemy to zrobić najtaniej jak się da: innymi słowy, chcemy znaleźć najlżejsze skojarzenie doskonałe (tzn. łączące wszystkie wierzchołki) w podgrafie grafu \(G\) indukowanym przez zbiór \(N\): taki podgraf oznaczamy przez \(G[N]\). Z pomocą przychodzi nam następujące twierdzenie (w <a href="http://smurf.mimuw.edu.pl/drupal6/node/1119">wykładzie o przepływach</a> udowodniliśmy je w wersji dla grafów dwudzielnych).</p>
+<p><b>Twierdzenie (Edmonds 1965)</b><br />
+Skojarzenie doskonałe o najmniejszym koszcie można znaleźć w czasie wielomianowym.</p>
+<p>W takim razie, krok 2. algorytmu zastępujemy przez:</p>
+</div>
+<p><fieldset class="collapse-text-fieldset collapsed-text-fieldset collapsible"><legend>Modyfikacja algorytmu</legend><br />
+<div class="collapse-text-text collapsed-text">
+2. Znajdź najlżejsze skojarzenie doskonałe \(M\) w grafie \(G[N]\). Niech \(T_2:= T\cup M\).
+</div>
+<p></fieldset></p>
+<div class="collapse-text-text collapsed-text">
+<p>Pozostaje jeszcze pokazać, że skojarzenie \(M\) ma małą wagę <i>względem wagi rozwiązania optymalnego problemu komiwojażera</i>.</p>
+<p><b>Lemat</b><br />
+Niech \(G=(V,E)\) będzie grafem pełnym z funkcją wagową \(w:E\rightarrow\mathbb{R}\) spełniającą nierówność trójkąta. Niech \(X\) będzie dowolnym podzbiorem \(V\) o parzystej mocy oraz niech \(M\) będzie najlżejszym skojarzeniem doskonałym w grafie \(G[X]\). Jeśli \({\rm OPT}\) jest najlżejszym cyklem Hamiltona w \(G\), to<br />
+\[w(M) \le \frac{1}{2} w({\rm OPT}).\]</p>
+<p><i>Dowód</i><br />
+Niech \({\rm OPT}_X\) będzie dowolnym najlżejszym cyklem Hamiltona w \(G[X]\). Ponieważ \({\rm OPT}_X\) ma parzystą długość, więc jest sumą dwóch rozłącznych skojarzeń \({\rm OPT}_X = M_1 \cup M_2\). Stąd \(w({\rm OPT}_X) = w(M_1) + w(M_2) \ge 2 w(M)\), czyli (*)<br />
+\[w(M) \le \frac{1}{2}w({\rm OPT}_X).\]<br />
+Rozważmy teraz cykl Hamiltona \(C=e_1\ldots e_{|X|}\) w \(G[X]\), w którym wierzchołki zbioru \(X\) odwiedzane są w takiej samej kolejności jak w cyklu \({\rm OPT}\). Cykl Hamiltona \({\rm OPT}\) możemy podzielić na rozłączne ścieżki \({\rm OPT}=p_1p_2\ldots p_{|X|}\) tak, że dla każdego \(i=1,\ldots,|X|\) ścieżka \(p_i\) łączy końce krawędzi \(e_i\). Z nierówności trójkąta łatwo pokazać, że \(w(e_i) \le w(p_i)\). Stąd,<br />
+\[w({\rm OPT})=\sum_{i=1}^{|X|}w(p_i) \ge \sum_{i=1}^{|X|}w(e_i) = w(C) \ge w({\rm OPT}_X),\]<br />
+gdzie ostatnia nierówność wynika z tego, że \({\rm OPT}_X\) jest najlżejszym cyklem Hamiltona w \(G[X]\). Otrzymaliśmy więc \(w({\rm OPT}_X)\le w({\rm OPT})\), co razem z (*) daje tezę.<br />
+&diams;</p>
+<p>Na podstawie powyższego lematu otrzymujemy, że \(w(T_2) = w(T) + w(M) \le w({\rm OPT}) + \frac{1}{2}w({\rm OPT}) = \frac{3}{2}w({\rm OPT})\). Jeśli dokończymy analizę tak jak w przypadku algorytmu 2-aproksymacyjnego, dostaniemy poniższe twierdzenie.</p>
+<p><b>Twierdzenie (Christofides 1976)</b><br />
+Istnieje algorytm (3/2)-aproksymacyjny dla metrycznego problemu komiwojażera.</p>
+<p>Warto zaznaczyć, że do dziś (2011r) nie jest znany algorytm o mniejszym współczynniku aproksymacji i stworzenie takiego algorytmu jest jednym z najważniejszych problemów otwartych w dziedzinie algorytmów aproksymacyjnych. W 2010r. udało się uzyskać lepsze algorytmy (aktualny rekord to 13/9=1,(4)) dla szczególnego przypadku, gdy \(w\) jest metryką najkrótszych ścieżek w nieskierowanym grafie bez wag.</div>
+</div>
+</form>
+<div class="image-clear"></div>  <div id="book-navigation-1100" class="book-navigation">
+    
+        <div class="page-links clear-block">
+              <a href="/node/1126" class="page-previous" title="Przejdź do poprzedniej strony">‹ Programowanie liniowe 4: Programy całkowitoliczbowe i kilka zastosowań dualności</a>
+                    <a href="/zaawansowane_algorytmy" class="page-up" title="Wyświetla stronę nadrzędną">w górę</a>
+                    <a href="/node/1147" class="page-next" title="Przejdź do następnej strony">Algorytmy aproksymacyjne 2: algorytmy oparte na programowaniu liniowym ›</a>
+          </div>
+    
+  </div>
+  </div>
+
+  <div class="clear-block">
+    <div class="meta">
+        </div>
+
+          <div class="links"><ul class="links inline"><li class="book_printer first last"><a href="/book/export/html/1142" title="Wyświetla wszystkie strony książki w wersji przygotowanej do wydruku.">Wersja do wydruku</a></li>
+</ul></div>
+      </div>
+
+</div>
+          </div>
+                    <div id="footer"></div>
+      </div></div></div></div> <!-- /.left-corner, /.right-corner, /#squeeze, /#center -->
+
+      
+    </div> <!-- /container -->
+  </div>
+<!-- /layout -->
+
+    </body>
+</html>

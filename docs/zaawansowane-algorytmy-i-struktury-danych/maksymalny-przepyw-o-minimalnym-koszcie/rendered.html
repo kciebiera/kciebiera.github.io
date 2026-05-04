@@ -1,0 +1,198 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="pl" lang="pl" dir="ltr">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="prev" href="/zaawansowane_algorytmy" />
+<link rel="up" href="/zaawansowane_algorytmy" />
+<link rel="next" href="/node/1121" />
+<link rel="shortcut icon" href="/misc/favicon.ico" type="image/x-icon" />
+    <title>Przepływ maksymalny o minimalnym koszcie | Informatyka MIMUW</title>
+    <link type="text/css" rel="stylesheet" media="all" href="/modules/book/book.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/node/node.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/defaults.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/system/system-menus.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/modules/user/user.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/modules/geshifilter/geshifilter.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/modules/img_assist/img_assist.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/all/modules/views/css/views.css?G" />
+<link type="text/css" rel="stylesheet" media="all" href="/sites/default/files/color/garland-0431760f/style.css?G" />
+<link type="text/css" rel="stylesheet" media="print" href="/themes/garland/print.css?G" />
+    <script type="text/javascript" src="/misc/jquery.js?G"></script>
+<script type="text/javascript" src="/misc/drupal.js?G"></script>
+<script type="text/javascript" src="/sites/default/files/languages/pl_7618cc674030d51495c9d1ac3aae9126.js?G"></script>
+<script type="text/javascript" src="/sites/all/modules/img_assist/img_assist.js?G"></script>
+<script type="text/javascript">
+<!--//--><![CDATA[//><!--
+jQuery.extend(Drupal.settings, { "basePath": "/" });
+//--><!]]>
+</script>
+    <!--[if lt IE 7]>
+      <link type="text/css" rel="stylesheet" media="all" href="/themes/garland/fix-ie.css" />    <![endif]-->
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+  </head>
+  <body>
+
+<!-- Layout -->
+  <div id="header-region" class="clear-block"></div>
+
+    <div id="wrapper">
+    <div id="container" class="clear-block">
+
+      <div id="header">
+        <div id="logo-floater">
+        <h1><a href="/" title="Informatyka MIMUW"><span>Informatyka MIMUW</span></a></h1>        </div>
+
+                  <ul class="links primary-links"><li class="menu-126 first last"><a href="/node/3" title="Materiały">Materiały</a></li>
+</ul>                                  
+      </div> <!-- /header -->
+
+      
+      <div id="center"><div id="squeeze"><div class="right-corner"><div class="left-corner">
+          <div class="breadcrumb"><a href="/">Strona główna</a> › <a href="/zaawansowane_algorytmy">Zaawansowane algorytmy i struktury danych</a></div>                              <h2>Przepływ maksymalny o minimalnym koszcie</h2>                                                  <div class="clear-block">
+            <div id="node-1119" class="node">
+
+
+
+      <span class="submitted">pt., 06/24/2011 - 15:11 — kowalik</span>
+  
+  <div class="content clear-block">
+    <h2> Definicja problemu </h2>
+<p>W tym wykładzie wymagamy od Czytelnika znajomości wykładu o maksymalnym przepływie.</p>
+<p>Egzemplarz problemu maksymalnego przepływu o minimalnym koszcie stanowi graf skierowany \(G=(V,E)\), funkcje \(c:E\rightarrow\mathbb{R}_{\ge 0}\) i \(a:E\rightarrow \mathbb{R}\}\) oraz dwa wyróżnione wierzchołki \(s\) i \(t\). Podobnie jak w wykładzie o maksymalnym przepływie, \(c\) nazywamy funkcją przepustowości. Natomiast \(a\) jest funkcją kosztu oraz \(a(e)\) nazywamy kosztem krawędzi \(e\). W grafie \(G\) dopuszczamy możliwość istnienia wielu krawędzi o tym samym początku i końcu. Jest to naturalne założenie, gdyż koszty tych krawędzi mogą się różnić.</p>
+<p><em>Przepływem</em> nazywamy dowolną funkcję \(f:E\rightarrow\mathbb{R}_{\ge 0}\) taką, że:</p>
+<ul>
+<li> <b>(warunek przepustowości)</b> \(0 \le f(e) \le c(e)\) dla każdej krawędzi \(e \in E\).
+</li>
+<li> <b>(warunek zachowania przepływu)</b> \(\sum_{(u,v)\in  E} f(u,v) = \sum_{(v,u)\in E}f(v,u)\) dla każdego wierzchołka \(v \in V\setminus\{s,t\}\).
+</li>
+</ul>
+<p>Zauważmy, że powyższa definicja różni się nieco od definicji przepływu z wykładu o maksymalnym przepływie. Różnica polega na tym, że w tym rozdziale przepływ nie spełnia warunku skośnej symetryczności. Konieczność użycia nowej definicji wynika z faktu istnienia wielu krawędzi o tym samym początku i końcu. Oczywiście obie definicje są równoważne dla grafów, w których dla dowolnych wierzchołków \(u\) i \(v\) jest co najwyżej jedna krawędź spośród krawędzi \((u,v)\), \((v,u)\). Używana w tym rozdziale definicja jest bardziej naturalna i wygodniejsza podczas implementacji algorytmów, choć mniej wygodna przy dowodzeniu. </p>
+<p><em>Kosztem przepływu \(f\)</em> nazywamy liczbę \(cost(f) = \sum_{e\in E} a(e) f(e)\). Zgodnie z tą definicją, wartość \(a(e)\) interpretujemy jako koszt przesłania 1 jednostki przepływu po krawędzi \(e\). W tym rozdziale zajmujemy się następującym problemem optymalizacyjnym.</p>
+<p><b>Problem 1</b><br />
+Znaleźć w sieci \((G,a,c,s,t)\) przepływ maksymalny o minimalnym koszcie (wśród przepływów maksymalnych).</p>
+<p>Oprócz problemu 1, nieco inne zagadnienie wydaje się równie naturalne:</p>
+<p><b>Problem 2</b><br />
+Dla danej sieci \((G,a,c,s,t)\) i liczby \(w \in \mathbb{R_{\ge 0}}\) znaleźć przepływ o minimalnym koszcie wśród przepływów o wartości \(w\).</p>
+<p>Nietrudno dostrzec, że problemy 1 i 2 są równoważne. Oczywiście skoro umiemy wyznaczyć wartość maksymalnego przepływu, to problem 1 sprowadza się do problemu 2. Z drugiej strony, jeśli umiemy rozwiązać problem 1, mając dany egzemplarz \((G,a,c,s,t,w)\) problemu 2 wystarczy rozwiązać problem 1 dla egzemplarza \((G',a,c,s',t)\), gdzie graf \(G'\) powstaje z \(G\) przez dodanie nowego wierzchołka \(s'\) oraz krawędzi \((s',s)\) o koszcie 0 i przepustowości \(w\). W dalszej części wykładu będziemy mówić już wyłącznie o problemie 1.</p>
+<h2> Sieć residualna </h2>
+<p>Wprowadzenie kosztów krawędzi do naszego problemu wymusza nieco inną definicję sieci residualnej, jednak jej rola pozostaje ta sama. Dla danego przepływu \(f\) w sieci \((G=(V,E),a,c,s,t)\), sieć residualna \(G_f\) ma ten sam zbiór wierzchołków \(V\) co sieć \(G\). Krawędzie \(G_f\) chcemy określić w taki sposób, że przesłanie jednostki przepływu w \(G_f\) po krawędzi \(e=(u,v)\) odpowiada powiększeniu \(f\) wzdłuż krawędzi \(e\) o tę jednostkę lub pomniejszeniu \(f\) o tę jednostkę wzdłuż odwrotnej krawędzi, czyli wzdłuż \((v,u)\). </p>
+<p>Zgodnie z powyższą intuicją, dla każdej krawędzi \(e\in E\) takiej, że \(f(e) &lt; c(e)\), w zbiorze \(E_f\) sieci \(G_f\) umieszczamy krawędź \(e\) o przepustowości residualnej \(c_f(e) = c(e)-f(e)\) i koszcie \(a_f(e)=a(e)\). Natomiast dla każdej krawędzi \(e=(u,v)\in E\) takiej, że \(f(e) &gt; 0\), w \(E_f\) umieszczamy krawędź \(\text{rev}(e)=(v,u)\) o przepustowości residualnej \(c_f(\text{rev}(e)) = f(e)\) i koszcie \(a_f(\text{rev}(e))=-a(e)\). </p>
+<p>Jeśli \(f\) jest przepływem w \(G\), natomiast \(g\) jest przepływem w \(G_f\), to \(f+g\) definiujemy jako przepływ w \(G\), gdzie dla \(e\in E\) określamy \((f+g)(e) = f(e) + g(e) - g(\text{rev}(e))\). Łatwo widać, że \(|f+g| = |f|+|g|\) oraz \(cost(f+g)=cost(f)+cost(g)\).</p>
+<p>Podobnie, jeśli \(f\) i \(f'\) są przepływami w \(G\) to \(f'-f\) definiujemy jako następującą funkcję \((f'-f):E_f \rightarrow\mathbb{R}_{\ge 0}\). Dla \(e \in E\), jeśli \(f'(e) &gt; f(e)\), to \((f'-f)(e)=f'(e)-f(e)\), natomiast jeśli \(f'(e) &lt; f(e)\), to \((f'-f)(\text{rev}(e))=f(e)-f'(e)\). Na pozostałych elementach \(E_f\) funkcja \(f'-f\) ma wartość 0. Łatwy dowód poniższego lematu pozostawiamy Czytelnikowi.</p>
+<p><b>Lemat 3</b><br />
+Funkcja \((f'-f)\) jest przepływem w sieci residualnej \(G_f\) o wartości \(|f'-f|=|f'|-|f|\) i koszcie \(cost(f'-f)=cost(f')-cost(f)\). &diams;</p>
+<h2> Algorytm usuwania ujemnych cykli </h2>
+<p>Następujący lemat jest często wykorzystywany w problemach związanych z przepływami.</p>
+<p><b>Lemat 4</b><br />
+Każdy przepływ można rozłożyć na sumę cykli i ścieżek prostych od \(s\) do \(t\).</p>
+<p><i>Dowód</i><br />
+Niech \(f\) będzie dowolnym przepływem. Użyjemy indukcji po liczbie krawędzi \(e\) takich, że \(f(e) &gt; 0\). </p>
+<p>Baza indukcji. Jeśli nie ma takich krawędzi to teza lematu jest prawdziwa (suma pusta). </p>
+<p>Krok indukcyjny. Jeśli istnieje cykl \(C\), którego krawędzie mają dodatni przepływ, to definiujemy przepływ \(g\), który jest zerowy wszędzie poza \(C\), a na wszystkich krawędziach \(C\) ma wartość \(min_{e\in C} f(e)\). Żądaną w tezie rodzinę cykli i ścieżek otrzymujemy rozkładając na podstawie założenia indukcyjnego przepływ \(f-g\) na cykle i ścieżki i dodając do tej rodziny cykl \(C\). </p>
+<p>Załóżmy więc, że nie istnieje opisany wyżej cykl. Niech \(e_0=(v_0,v_1)\) będzie dowolną krawędzią taką, że \(f(e_0)&gt;0\). Wówczas z warunku zachowania przepływu albo \(v_1=t\) albo istnieje krawędź \(e_1=(v_1, v_2)\) taka, że \(f(e_1)&gt;0\). Ponownie, albo \(v_2=t\) albo istnieje krawędź \(e_2=(v_2,v_3)\)... itd. Ponieważ wykluczyliśmy cykle, ta marszruta będzie ścieżką prostą, a więc ponieważ graf jest skończony, musi zakończyć się w \(t\). Podobnie, z warunku zachowania przepływu albo \(v_0=s\) albo istnieje krawędź \(e_{-1}=(v_{-1}, v_0)\) taka, że \(f(e_{-1})&gt;0\). Ponownie, albo \(v_{-1}=s\) albo istnieje krawędź \(e_{-2}=(v_{-2},v_{-1})\)... itd: otrzymujemy ścieżkę prostą od \(s\) do \(v_0\). Suma tych dwóch ścieżek musi być ścieżką prostą od \(s\) do \(t\). Korzystając z założenia indukcyjnego analogicznie jak w przypadku cyklu, dostajemy tezę lematu. &diams;</p>
+<p>Jeśli \(X\) jest zbiorem krawędzi, to kosztem \(X\) nazwiemy \(a(X)=\sum_{e\in X}a(e)\). Przez koszt ścieżki lub cyklu rozumiemy koszt odpowiedniego zbioru krawędzi. </p>
+<p><b>Lemat 5</b><br />
+Niech \(f\) będzie przepływem w \((G,a,c,s,t)\). Wówczas \(f\) jest przepływem o minimalnym koszcie wśród przepływów o wartości \(|f|\) wtw. gdy \(G_f\) nie zawiera cykli o ujemnym koszcie.</p>
+<p><i>Dowód</i><br />
+Implikacja \((\rightarrow)\) jest oczywista, gdyż dodanie do \(f\) cyklu o ujemnym koszcie nie zmienia wartości \(f\), natomiast zmniejsza jego koszt.</p>
+<p>Zajmijmy się implikacją \((\leftarrow)\). Niech \(f'\) będzie dowolnym przepływem o wartości \(|f'|=|f|\). Z lematu 3 \(f'-f\) jest przepływem w \(G_f\) o wartości 0. Z lematu 4 \(f'-f\) rozkłada się na sumę cykli i ścieżek od \(s\) do \(t\). Ponieważ \(|f'-f|=0\), więc w tym rozkładzie nie ma żadnych ścieżek. Z założenia, każdy z pozostałych cykli ma nieujemny koszt. Stąd, \(cost(f'-f) \ge 0\), a więc z lematu 3, \(cost(f')\ge cost(f)\). &diams;</p>
+<p>Korzystając z powyższego lematu dostajemy prosty algorytm znajdowania maksymalnego przepływu o minimalnym koszcie:</p>
+<ol>
+<li> Znajdź maksymalny przepływ \(f\) w \((G,c,s,t)\), np. algorytmem Forda-Fulkersona (patrz odpowiedni <a href="http://wazniak.mimuw.edu.pl/index.php?title=Zaawansowane_algorytmy_i_struktury_danych/Wyk%C5%82ad_9">wykład</a>),
+</li>
+<li> Tak długo, jak \(G_f\) zawiera cykl \(C\) o ujemnym koszcie (taki cykl wykrywamy za pomocą algorytmu Bellmana-Forda -- patrz odpowiedni <a href="http://wazniak.mimuw.edu.pl/index.php?title=Zaawansowane_algorytmy_i_struktury_danych/Wyk%C5%82ad_5">wykład</a>), znajdź taki cykl, i zbuduj przepływ \(g\) w \(G_f\), który dla każdej krawędzi \(e \in E(C)\) ma \(g(e)=\min_{e\in E(C)}c_f(e)\), a poza \(E(C)\) jest zerowy, a następnie wykonaj \(f := f + g\).
+</li>
+</ol>
+<p>Jako ćwiczenie pozostawiamy pokazanie, że algorytm Bellmana-Forda można rozszerzyć tak, aby nie tylko wykrywać istnienie ujemnych cykli, ale także znaleźć pewien taki cykl w czasie \(O(|V|\cdot |E|)\).</p>
+<p>Podobnie jak algorytm Forda-Fulkersona, powyższy algorytm nie ma własności stopu gdy przepustowości są liczbami rzeczywistymi. Jeśli jednak przepustowości i koszty są wymierne, algorytm zatrzyma się, zwracając poprawną odpowiedź. Czas jego działania będzie pseudowielomianowy (tzn. zależy wielomianowo od \(|V|\) oraz \(\max_{e\in E} c(e)\) i \(\max_{e\in E} a(e)\), zakładając że \(c\) i \(a\) są całkowitoliczbowe). W kolejnym rozdziale przedstawimy bardziej efektywny algorytm, działający w szczególnym przypadku, gdy dana na wejściu sieć nie ma cykli o ujemnym koszcie.</p>
+<h2> Algorytm najtańszej ścieżki </h2>
+<p>Załóżmy, że w sieci \((G,a,c,s,t)\) danej na wejściu nie ma cykli o ujemnym koszcie. Wówczas możemy zastosować następujący naturalny algorytm.</p>
+<ol>
+<li> Niech \(f\) będzie przepływem zerowym.
+</li>
+<li> Tak długo, jak \(G_f\) zawiera ścieżkę powiększającą, powiększ \(f\) wzdłuż <b>najtańszej</b> ścieżki powiększającej \(P\): przesyłamy \(\min_{e\in E(P)} c_f(e)\) jednostek przepływu.
+</li>
+</ol>
+<h3> Poprawność algorytmu</h3>
+<p>Zacznijmy od udowodnienia poprawności powyższego algorytmu, zwanego algorytmem najtańszej ścieżki. Z twierdzenia o maksymalnym przepływie i minimalnym przekroju, otrzymujemy że uzyskany po zakończeniu algorytmu przepływ \(f\) faktycznie jest maksymalny (zauważmy, ze nasz algorytm jest po prostu pewną implementacją algorytmu Forda-Fulkersona). Pozostaje pokazać, że \(f\) ma minimalny koszt. Wynika to z następującego niezmiennika pętli w naszym algorytmie:</p>
+<p><b>Niezmiennik 1:</b> \(f\) ma minimalny koszt wśród przepływów o wartości \(|f|\).</p>
+<p>Zauważmy, że niezmiennik 1 jest spełniony na początku algorytmu, dla przepływu zerowego, bowiem dowolny przepływ o wartości 0 z lematu 4 rozkłada się na sumę cykli, a wiemy że cykle te mają nieujemne koszty: stąd, dowolny przepływ zerowy ma nieujemny koszt. Udowodnimy teraz, że niezmiennik 1 pozostaje zachowany po obrocie pętli.</p>
+<p><b>Lemat 6</b><br />
+Niech \(f\) będzie pewnym przepływem o minimalnym koszcie spośród przepływów o wartości \(|f|\).  Niech \(g\) będzie przepływem w sieci residualnej \(G_f\), który jest niezerowy tylko na krawędziach pewnej najtańszej ścieżki \(P\) od \(s\) do \(t\). Wówczas \(f+g\) jest najtańszym przepływem o wartości \(|f+g|\).</p>
+<p><i>Dowód</i><br />
+Niech \(f'\) będzie dowolnym przepływem o wartości \(|f+g|\). Pokażemy, że \(cost(f')\ge cost(f+g)\).</p>
+<p>Z lematu 3, \(f'-f\) jest przepływem w \(G_f\), o wartości \(|f'-f|=|f'|-|f|=|f+g|-|f|=|g|\). Z lematu 4, \(f'-f\) można rozbić na sumę cykli \(C_1,\ldots,C_k\) i ścieżek \(P_1\ldots,P_m\) od \(s\) do \(t\). Ponieważ \(f\) ma minimalny koszt, więc na mocy lematu 5 w \(G_f\) nie ma cykli o ujemnym koszcie, więc każdy z cykli \(C_1,\ldots,C_k\) ma nieujemny koszt. Z kolei dla każdego \(i=1,\ldots,m\) mamy \(a(P_i) \ge a(P)\), gdyż \(P\) jest najtańszą ścieżką. Oznaczmy przez \(|C_i|\) wartość przepływu, który płynie po cyklu \(C_i\), analogicznie definiujemy \(|P_i|\). Razem dostajemy</p>
+<p>\[cost(f'-f) = \sum_{i=1}^k |C_i| a(C_i) + \sum_{i=1}^m |P_i| a(P_i) \ge \sum_{i=1}^m |P_i| a(P_i) \ge a(P) \sum_{i=1}^m |P_i| \ge a(P) |f'-f| = a(P) |g| = cost(g).\]</p>
+<p>Ponieważ z lematu 3, \(cost(f'-f) = cost(f') - cost(f)\), otrzymujemy \(cost(f') \ge cost(f)+cost(g) = cost(f+g)\). &diams;</p>
+<h3> Złożoność algorytmu</h3>
+<p>Złożoność algorytmu zależy od tego, w jaki sposób wyszukujemy najtańszą ścieżkę w grafie. Zauważmy, że w sieci residualnej pojawiają się krawędzie o ujemnym koszcie, nie możemy więc użyć algorytmu Dijkstry. Jeśli skorzystamy z algorytmu Bellmana-Forda otrzymamy złożoność \(O(|f|\cdot|V|\cdot|E|)\).</p>
+<p>Aby poprawić złożoność algorytmu skorzystamy z tricku podobnego jak w algorytmie Johnsona ((patrz odpowiedni <a href="http://wazniak.mimuw.edu.pl/index.php?title=Zaawansowane_algorytmy_i_struktury_danych/Wyk%C5%82ad_6">wykład</a>)).  Przypomnijmy, że jeśli mamy funkcję \(\pi:V\rightarrow\mathbb{R}\) oraz dla każdej krawędzi \(e=(u,v)\) określimy \(a_{\pi}(e) = a(e) + \pi(u) - \pi(v)\) to wówczas najtańsza ścieżka względem wagi \(a_{\pi}\) jest także najtańszą ścieżką względem wagi \(a\) (lemat 8 z powyższego wykładu). Co więcej, jeśli \(\pi\) jest potencjałem, to  \(a_{\pi}(e)\ge 0\) dla każdej krawędzi \(e\). Pomysł polega na tym, żeby najtańsze ścieżki obliczać algorytmem Dijkstry w sieci o wagach \(a_{\pi}\). Początkowy potencjał \(\pi\) wyznaczamy za pomocą algorytmu Bellmana-Forda, podobnie jak to było w algorytmie Johnsona. Okazuje się, że po zakończonej iteracji, potencjał dla nowej sieci residualnej można łatwo obliczyć w czasie liniowym.</p>
+<p>Zmodyfikowany algorytm wygląda następująco.</p>
+<ol>
+<li> Niech \(f\) będzie przepływem zerowym.</li>
+<li> Za pomocą algorytmu Bellmana-Forda, dla każdego wierzchołka oblicz \(\pi(v)\), koszt najtańszej ścieżki od \(s\) do \(v\). </li>
+<li> Tak długo, jak \(G_f\) zawiera ścieżkę powiększającą, wykonuj:
+<ul>
+<li> Uruchom algorytm Dijkstry z wierzchołka \(s\) w grafie \(G_f\) z kosztami krawędzi \(a_{\pi}\). Algorytm ten znajdzie:
+<ul>
+<li> najtańszą ścieżkę powiększającą \(P\) względem kosztów \(a_{\pi}\), oraz</li>
+<li> dla każdego wierzchołka \(v \in V\) obliczy \(\delta_{\pi}(v)\), koszt najtańszej ścieżki od \(s\) do \(v\). </li>
+</ul>
+</li>
+<li> Powiększ \(f\) wzdłuż \(P\) przesyłając \(\min_{e\in E(P)} c_f(e)\) jednostek przepływu.</li>
+<li> Dla każdego wierzchołka \(v \in V\) przypisz \(\pi(v) := \pi(v) + \delta_{\pi}(v)\). </li>
+</ul>
+</li>
+</ol>
+<p>Poprawność algorytmu wynika z następującego niezmiennika.</p>
+<p><b> Niezmiennik 2:</b> \(\pi\) jest potencjałem w grafie \(G_f\).</p>
+<p>Na początku, gdy \(\pi\) jest po prostu funkcją odległości \(\delta\) w grafie, w którym za długość krawędzi przyjmujemy jej koszt, niezmiennik jest oczywisty, gdyż dla każdej krawędzi \(u,v\), mamy \(\delta(v) \le \delta(u) + a(u,v)\).</p>
+<p><i> Dowód, że niezmiennik jest zachowany po obrocie pętli</i><br />
+Niech \(f\) będzie przepływem przed iteracją, \(f'\) przepływem po iteracji. Zakładamy, że \(\pi\) jest potencjałem w \(G_f\) tzn. dla każdej krawędzi \(e=(u,v)\in E_f\) mamy \(a_{\pi}(e)\ge 0\). Pokażemy, że \(\pi'=\pi+\delta\) jest potencjałem w \(G_{f\,^\prime}\), tzn. że dla każdej krawędzi \(e=(u,v)\in E_{f\,'}\) mamy \(a_{\pi'}(e)\ge 0\). Rozważmy dowolną krawędź \(e=(u,v)\in E_{f\,'}\).</p>
+<p>Jeśli \(e \in E_f\), to \(\delta_{\pi}(v) \le \delta_{\pi}(u) + a_{\pi}(e)\). Stąd, \(0 \le a_{\pi}(e) + \delta_{\pi}(u) - \delta_{\pi}(v) = a(e) + \pi(u) - \pi(v) + \delta_{\pi}(u) - \delta_{\pi}(v) = a(e) + \pi'(u) - \pi'(v) = a_{\pi'}(e)\). </p>
+<p>Jeśli natomiast \(e \not \in E_f\), to wiemy, że podczas iteracji przesyłano przepływ po krawędzi \(\text{rev}(e)\in E_f\). Stąd, krawędź \(\text{rev}(e)=(v,u)\) leży na najtańszej ścieżce od \(s\) do \(t\) w \(G_f\) z kosztami \(a_{\pi}\), a więc \(\delta_{\pi}(u)=\delta_{\pi}(v)+a_{\pi}(\text{rev}(e)) = \delta_{\pi}(v) + a(\text{rev}(e)) + \pi(v) - \pi(u)\). Stąd, \(\pi'(v) - \pi'(u) + a(\text{rev}(e)) = 0\). Ponieważ  \( a(\text{rev}(e))=- a(e)\) otrzymujemy \(\pi'(u) - \pi'(v) + a(e) = 0\), czyli \(a_{\pi'}(e)=0\). &diams;</p>
+<p>Jeśli algorytm Dijkstry zaimplementujemy z użyciem kopców Fibonacciego to jedna iteracja naszego algorytmu zajmie czas \(O(|V|\log|V|+|E|)\). Otrzymujemy zatem następujące twierdzenie.</p>
+<p><b>Twierdzenie</b><br />
+W sieci bez cykli o ujemnym koszcie można znaleźć najtańszy maksymalny przepływ \(f\) w czasie \(O(|V|\cdot|E|+|f|(|V|\log|V|+|E|))\).</p>
+<h2> Najcięższe / najlżejsze skojarzenia w grafach dwudzielnych </h2>
+<p>Niech \(G=(V,E)\) będzie grafem skierowanym oraz niech \(w:E \rightarrow \mathbb{R}\) będzie dowolną funkcją wag krawędzi. Wagą skojarzenia \(M\) nazywamy liczbę \(w(M) = \sum_{e\in M} w(e)\). W problemie najlżejszego (najcięższego) skojarzenia należy wyznaczyć skojarzenie doskonałe (tzn. takie, że każdy wierzchołek jest skojarzony) o minimalnej (maksymalnej) wadze. Oczywiście problem najcięższego skojarzenia redukuje się do problemu najlżejszego skojarzenia: wystarczy przemnożyć wagi krawędzi przez \(-1\).</p>
+<p>Łatwo zauważyć, że problem najlżejszego skojarzenia <b>w grafie dwudzielnym</b> \(G=(U,V,E)\) redukuje się do problemu maksymalnego przepływu o minimalnym koszcie. Mianowicie, budujemy sieć o zbiorze wierzchołków \(U \cup V \cup \{s,t\}\). Dla każdego wierzchołka \(u\in U\), umieszczamy w sieci krawędź \((s,u)\) o przepustowości 1 i koszcie 0. Podobnie, dla każdego wierzchołka \(v\in V\), umieszczamy w sieci krawędź \((v,t)\) o przepustowości 1 i koszcie 0. W końcu, dla każdej krawędzi \(uv \in E\) takiej że \(u\in U\) oraz \(v\in V\), umieszczamy w sieci krawędź \((u, v)\) o przepustowości 1 i koszcie \(w(u,v)\). Łatwo sprawdzić, że w takiej sieci nie ma cykli o ujemnym koszcie oraz że dowolny przepływ \(f\) o wartości \(|f|=|U|=|V|\) odpowiada skojarzeniu (jakiemu?) o wadze \(cost(f)\).</p>
+<p><b>Wniosek</b><br />
+Najlżejsze (najcięższe) skojarzenie doskonałe w grafie dwudzielnym o \(n\) wierzchołkach i \(m\) krawędziach można wyznaczyć w czasie \(O(nm+n^2\log n)\).</p>
+<p>Okazuje się, że nawet w dowolnym grafie możliwe jest wyznaczenie najlżejszego skojarzenia doskonałego w czasie wielomianowym. Algorytm ten nie korzysta ze sprowadzenia do przepływów i wykracza poza zakres tego wykładu.</p>
+  <div id="book-navigation-1100" class="book-navigation">
+    
+        <div class="page-links clear-block">
+              <a href="/zaawansowane_algorytmy" class="page-previous" title="Przejdź do poprzedniej strony">‹ Zaawansowane algorytmy i struktury danych</a>
+                    <a href="/zaawansowane_algorytmy" class="page-up" title="Wyświetla stronę nadrzędną">w górę</a>
+                    <a href="/node/1121" class="page-next" title="Przejdź do następnej strony">Programowanie liniowe 1: Podstawowe pojęcia i geometria programów liniowych ›</a>
+          </div>
+    
+  </div>
+  </div>
+
+  <div class="clear-block">
+    <div class="meta">
+        </div>
+
+          <div class="links"><ul class="links inline"><li class="book_printer first last"><a href="/book/export/html/1119" title="Wyświetla wszystkie strony książki w wersji przygotowanej do wydruku.">Wersja do wydruku</a></li>
+</ul></div>
+      </div>
+
+</div>
+          </div>
+                    <div id="footer"></div>
+      </div></div></div></div> <!-- /.left-corner, /.right-corner, /#squeeze, /#center -->
+
+      
+    </div> <!-- /container -->
+  </div>
+<!-- /layout -->
+
+    </body>
+</html>
