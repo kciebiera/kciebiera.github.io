@@ -8,11 +8,11 @@ render_with_liquid: false
 
 ## Introduction
 
-So far your Django app returns HTML pages — full documents for human browsers. But modern frontends (and mobile apps) want raw data that they render themselves. A **REST API** serves data as JSON over the same HTTP protocol you learned in Lab 1.
+So far your Django app returns HTML pages. A **REST API** returns data as JSON so browsers, frontend apps, mobile apps, and scripts can render or process it themselves.
 
-The Goal: Build a JSON API for the blog. Implement endpoints following REST conventions, handle authentication in the API, and consume the API from a plain browser `fetch()` call.
+**Goal:** Build a JSON API for the blog, handle API authentication rules, consume the API with `fetch()`, and compare a hand-written API with Django REST Framework.
 
-### The Theory
+### REST Basics
 
 A **REST API** maps HTTP methods to operations on resources:
 
@@ -31,7 +31,24 @@ The server responds with **JSON** and appropriate HTTP status codes: `200 OK`, `
 
 No new packages required — Django's `JsonResponse` and `View` are sufficient. You will *not* use Django REST Framework in this lab; building it by hand first makes the abstractions meaningful.
 
+Continue in the same Django project from Labs 4-6. This lab uses the `Post` and `Comment` models from Lab 5 and the authentication setup from Lab 6.
+
 Create `blog/api.py` for all API views.
+
+Expected structure by the end of this lab:
+
+```text
+blog/
+    api.py
+    api_urls.py
+    drf_views.py
+    drf_urls.py
+    serializers.py
+pages/
+    templates/
+        pages/
+            api_demo.html
+```
 
 ## Phase 1: The First Endpoint
 
@@ -95,7 +112,7 @@ Include in `mysite/urls.py`:
 path("api/", include("blog.api_urls")),
 ```
 
-🧪 In your terminal:
+**Check:** In your terminal:
 
 ```bash
 curl http://127.0.0.1:8000/api/posts/
@@ -144,17 +161,31 @@ class PostDetailView(View):
         pass
 ```
 
-🧪 Test with curl:
+**Check:** Test public reads with curl:
 
 ```bash
 # Get a single post
 curl http://127.0.0.1:8000/api/posts/1/
 
-# Patch (requires session — use the browser console instead)
-curl -X PATCH http://127.0.0.1:8000/api/posts/1/ \
-     -H "Content-Type: application/json" \
-     -d '{"title": "Updated Title"}'
 ```
+
+To test authenticated `PATCH` and `DELETE`, log in through the browser first, then use DevTools -> Console:
+
+```javascript
+await fetch("/api/posts/1/", {
+  method: "PATCH",
+  headers: {"Content-Type": "application/json"},
+  body: JSON.stringify({title: "Updated Title"})
+}).then(r => r.json())
+```
+
+For `DELETE`, use:
+
+```javascript
+await fetch("/api/posts/1/", {method: "DELETE"}).then(r => r.status)
+```
+
+Only run `DELETE` on a test post you can afford to remove.
 
 ## Phase 3: Comments Endpoint
 
@@ -230,20 +261,11 @@ loadPosts();
 {% endblock %}
 ```
 
-🧪 Visit the page — posts should load without a full page reload. Open DevTools → Network → Fetch/XHR to see the API call.
+**Check:** Visit the page. Posts should load without a full page reload. Open DevTools -> Network -> Fetch/XHR to see the API call.
 
-## Submission
+## Phase 5: Search Query Parameter
 
-Final checks:
-
-1. `GET /api/posts/` returns JSON list.
-2. `GET /api/posts/<id>/` returns one post or `404`.
-3. `POST /api/posts/<id>/comments/` creates a comment and returns `201`.
-4. The API demo page loads posts dynamically via `fetch()`.
-5. `GET /drf/posts/` works via DRF and returns the same data.
-6. `http://127.0.0.1:8000/api/swagger/` opens Swagger UI and shows all endpoints.
-
-**Exploration:** Add a `?search=` query parameter to `PostListView.get()`:
+Add a `?search=` query parameter to `PostListView.get()`:
 
 ```python
 query = request.GET.get("search", "")
@@ -253,11 +275,13 @@ if query:
 
 Test: `curl "http://127.0.0.1:8000/api/posts/?search=django"`
 
-## Phase 5: Django REST Framework, OpenAPI & Swagger
+**Check:** Searching for a word in a post title should return a smaller list. No `search` parameter should still return all posts.
 
-So far you have built the API by hand. **Django REST Framework (DRF)** is the de-facto standard library that handles serialisation, validation, authentication, and routing for you — in a fraction of the code.
+## Phase 6: Django REST Framework, OpenAPI, and Swagger
 
-### Setup
+So far you have built the API by hand. **Django REST Framework (DRF)** handles serialization, validation, authentication, and routing with less repeated code.
+
+### Install DRF
 
 ```bash
 uv add djangorestframework drf-spectacular
@@ -323,7 +347,7 @@ class PostViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 ```
 
-`ModelViewSet` automatically provides `list`, `create`, `retrieve`, `update`, `partial_update`, and `destroy` — all five REST operations.
+`ModelViewSet` automatically provides `list`, `create`, `retrieve`, `update`, `partial_update`, and `destroy`.
 
 ### Router
 
@@ -345,7 +369,7 @@ Include it in `mysite/urls.py`:
 path("drf/", include("blog.drf_urls")),
 ```
 
-🧪 Visit `http://127.0.0.1:8000/drf/` in the browser — DRF renders a **browsable API**: a clickable HTML interface where you can make GET/POST requests without curl.
+**Check:** Visit `http://127.0.0.1:8000/drf/` in the browser. DRF renders a browsable API where you can inspect and test endpoints.
 
 ### OpenAPI Schema
 
@@ -361,9 +385,9 @@ urlpatterns += [
 ]
 ```
 
-🧪 Visit:
-- `http://127.0.0.1:8000/api/schema/` — downloads the raw `openapi.yaml` file.
-- `http://127.0.0.1:8000/api/swagger/` — opens **Swagger UI**: an interactive browser where you can read docs, inspect request/response shapes, and execute real API calls.
+**Check:** Visit:
+- `http://127.0.0.1:8000/api/schema/` to download the raw OpenAPI schema.
+- `http://127.0.0.1:8000/api/swagger/` to open Swagger UI.
 
 You can also generate the schema as a file on disk:
 
@@ -371,19 +395,95 @@ You can also generate the schema as a file on disk:
 uv run python manage.py spectacular --file schema.yaml
 ```
 
-Open `schema.yaml` — it describes every endpoint, method, parameter, and response model in a machine-readable format that other tools (code generators, API clients, testing suites) can consume.
+Open `schema.yaml`. It describes every endpoint, method, parameter, and response model in a machine-readable format.
 
-### Comparing hand-rolled vs DRF
+### Compare Hand-Written API and DRF
 
-| | Hand-rolled (Phases 1–3) | DRF (Phase 5) |
+| | Hand-written API (Phases 1-5) | DRF (Phase 6) |
 |---|---|---|
-| Serialisation | `post_to_dict()` by hand | `ModelSerializer` |
+| Serialization | `post_to_dict()` by hand | `ModelSerializer` |
 | Validation | `if "title" not in data` | `.is_valid()` + field types |
 | 5 CRUD endpoints | ~80 lines | `ModelViewSet` (~5 lines) |
 | Browsable UI | No | Built-in |
 | OpenAPI docs | No | `drf-spectacular` auto-generates |
 
-> **Why learn both?** Writing the raw version first gives you intuition for what DRF does under the hood. In practice, you would use DRF from day one.
+The hand-written version shows the HTTP and JSON mechanics. DRF removes repeated serialization, validation, routing, and documentation code.
+
+## Submission
+
+Submit the complete Django project from Labs 4-7.
+
+Your project must include:
+
+1. A Django project with `manage.py` and the `mysite/` configuration package.
+2. A `pages` app.
+3. A `blog` app.
+4. An `accounts` app.
+5. Templates for pages, blog posts, account views, and API demo page.
+6. Static CSS served through Django's static files system.
+7. Database migrations for blog models.
+
+Lab 4 requirements:
+
+1. Routes `/`, `/about/`, `/greet/<name>/`, `/projects/`, and `/blog/` work.
+2. Pages use `pages/base.html` through template inheritance.
+3. The projects page supports `?q=` search.
+4. Static CSS loads with status 200.
+5. The `blog` app has its own `blog/urls.py` with `app_name = "blog"`.
+6. Blog links use the `blog:` namespace.
+7. `uv run python manage.py test pages` passes.
+
+Lab 5 requirements:
+
+1. `Category`, `Post`, and `Comment` models exist and have migrations.
+2. The admin can create categories, posts, and comments.
+3. `/blog/` lists posts and category filter links.
+4. `/blog/post/<slug>/` shows a post and its active comments.
+5. The comment form uses `POST`, `{% csrf_token %}`, validation, save, and redirect.
+6. Invalid comments re-render the form with inline errors.
+7. The post list query uses `select_related("category")`.
+8. The `Post` model has `view_count`, and the detail view increments it with `F()`.
+
+Lab 6 requirements:
+
+1. Users can register, log in, log out, and view `/accounts/profile/`.
+2. The nav changes based on `user.is_authenticated`.
+3. `/accounts/profile/` requires login.
+4. Staff users can create posts at `/blog/new/`.
+5. Regular users cannot create posts.
+6. GitHub OAuth login works through django-allauth, or the project clearly documents missing local OAuth credentials.
+7. Secrets such as GitHub client secret are not committed.
+
+Lab 7 requirements:
+
+1. `GET /api/posts/` returns a JSON list.
+2. `GET /api/posts/<id>/` returns one post or `404`.
+3. `PATCH /api/posts/<id>/` updates allowed fields for authenticated users.
+4. `DELETE /api/posts/<id>/` deletes a post for authenticated users.
+5. `GET /api/posts/?search=django` filters posts by title.
+6. `GET` and `POST /api/posts/<id>/comments/` work.
+7. The API demo page loads posts with `fetch()`.
+8. `GET /drf/posts/` works through DRF.
+9. `http://127.0.0.1:8000/api/schema/` returns an OpenAPI schema.
+10. `http://127.0.0.1:8000/api/swagger/` opens Swagger UI.
+
+Before submitting, run:
+
+```bash
+uv run python manage.py check
+uv run python manage.py test
+uv run python manage.py runserver
+```
+
+Then manually test the main HTML pages, account flow, blog comment flow, API endpoints, DRF endpoint, and Swagger page.
+
+Common errors:
+
+1. `401 Unauthorized` on write endpoints usually means you are not logged in.
+2. `JSONDecodeError` or `400 Invalid JSON` usually means the request body is not valid JSON.
+3. `TypeError: Object of type ... is not JSON serializable` means `post_to_dict()` is returning a model object or datetime instead of plain JSON-compatible values.
+4. `404` on `/api/posts/` usually means `blog.api_urls` was not included under `path("api/", ...)`.
+5. Swagger not loading usually means `drf_spectacular` is missing from `INSTALLED_APPS` or the schema URLs were not added.
 
 
 

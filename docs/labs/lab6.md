@@ -8,11 +8,11 @@ render_with_liquid: false
 
 ## Introduction
 
-Anyone on the internet can currently post comments and read all content. Production apps need **authentication** (who are you?) and **authorisation** (what are you allowed to do?). Django ships a complete auth system — user accounts, sessions, password hashing, and permissions — all ready to use.
+Anyone can currently post comments and read all content. Most web apps need **authentication** (who are you?) and **authorization** (what are you allowed to do?). Django includes user accounts, sessions, password hashing, and permissions.
 
-The Goal: Protect selected views with authentication, restrict post creation to staff users, and implement registration, login, logout, and a user profile page. Understand how sessions work under the hood.
+**Goal:** Add registration, login, logout, a profile page, staff-only post creation, and GitHub OAuth login.
 
-### The Theory
+### Authentication Basics
 
 When a user logs in, Django:
 
@@ -25,6 +25,8 @@ On every subsequent request, the browser sends the cookie → Django looks up th
 ## Setup
 
 Django's auth system is already installed (`django.contrib.auth` in `INSTALLED_APPS`). Ensure `django.contrib.sessions.middleware.SessionMiddleware` is in `MIDDLEWARE` (it is by default).
+
+Continue in the same Django project from Labs 4 and 5. Do not create a new project.
 
 Create a new `accounts` app:
 
@@ -125,6 +127,20 @@ urlpatterns = [
 ]
 ```
 
+Expected structure after setup:
+
+```text
+accounts/
+    forms.py
+    urls.py
+    views.py
+    templates/
+        accounts/
+            register.html
+            login.html
+            profile.html
+```
+
 Include in `mysite/urls.py`: `path("accounts/", include("accounts.urls"))`.
 
 Create `accounts/templates/accounts/login.html`:
@@ -145,7 +161,7 @@ Create `accounts/templates/accounts/login.html`:
 
 `{{ form.as_p }}` renders each field wrapped in a `<p>` — quick and functional.
 
-## Phase 3: Protecting Views with @login_required
+## Phase 3: Protecting Views with `@login_required`
 
 Add a `profile` view in `accounts/views.py`:
 
@@ -166,7 +182,7 @@ Create `accounts/templates/accounts/profile.html` displaying:
 
 > In Lab 5, comments are anonymous (`author`, `email`, `body`) and are not linked to Django's `User` model yet, so a per-user comment count would require an extra schema change.
 
-🧪 Log out, then visit `/accounts/profile/` directly. You should be redirected to the login page. After login, you return to `/accounts/profile/`.
+**Check:** Log out, then visit `/accounts/profile/` directly. You should be redirected to the login page. After login, you should return to `/accounts/profile/`.
 
 ## Phase 4: Showing User State in the Base Template
 
@@ -180,7 +196,7 @@ Update `pages/templates/pages/base.html` nav to show login state:
     {% if user.is_authenticated %}
         <span>Hello, {{ user.username }}</span>
         <a href="{% url 'profile' %}">Profile</a>
-        <form method="POST" action="{% url 'logout' %}" style="display:inline">
+        <form method="POST" action="{% url 'logout' %}" class="nav-form">
             {% csrf_token %}
             <button type="submit">Logout</button>
         </form>
@@ -195,6 +211,19 @@ Update `pages/templates/pages/base.html` nav to show login state:
 
 ## Phase 5: Restricting Blog Post Creation
 
+Create a model form for staff-created posts:
+
+```python
+# blog/forms.py
+from django import forms
+from .models import Post
+
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ["title", "slug", "body", "category"]
+```
+
 Add a view that allows only staff users to create posts from the browser:
 
 ```python
@@ -204,7 +233,6 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def post_create(request):
-    # TODO: build a PostForm (ModelForm for Post with fields title, slug, body, category)
     # Handle GET (empty form) and POST (save + redirect to blog:post-detail)
     pass
 ```
@@ -215,13 +243,15 @@ Add a URL in `blog/urls.py`:
 path("new/", views.post_create, name="post-create"),
 ```
 
-🧪 Log in as a regular user and try visiting `/blog/new/`. You should get a redirect to the login page (or a 403 if you customise `raise_exception=True` on `user_passes_test`).
+**Check:** Log in as a regular user and try visiting `/blog/new/`. You should be redirected or denied, depending on your `user_passes_test` settings. Log in as a staff user and confirm the form creates a post.
 
 ## Phase 6: GitHub OAuth2 with django-allauth
 
-So far users register with a username and password you manage. **OAuth2** lets you delegate identity verification to GitHub — users prove who they are to GitHub, and GitHub tells you. You never handle their GitHub password.
+So far users register with a username and password stored by your app. **OAuth2** lets GitHub verify the user's identity, then Django logs the user into your site. Your app never sees the GitHub password.
 
-### Install
+GitHub OAuth requires a GitHub account and local OAuth credentials. If you cannot create credentials in your environment, finish the allauth configuration and document that OAuth could not be tested locally.
+
+### Install allauth
 
 ```bash
 uv add django-allauth
@@ -332,7 +362,7 @@ In `pages/templates/pages/base.html`, update the auth part of the nav:
 {% if user.is_authenticated %}
     <span>Hello, {{ user.username }}</span>
     <a href="{% url 'profile' %}">Profile</a>
-    <form method="POST" action="{% url 'account_logout' %}" style="display:inline">
+    <form method="POST" action="{% url 'account_logout' %}" class="nav-form">
         {% csrf_token %}
         <button type="submit">Logout</button>
     </form>
@@ -343,9 +373,9 @@ In `pages/templates/pages/base.html`, update the auth part of the nav:
 {% endif %}
 ```
 
-🧪 Visit `http://127.0.0.1:8000/accounts/github/login/` — you should be redirected to GitHub's authorization page. After approving, you land back on your site as a logged-in user.
+**Check:** Visit `http://127.0.0.1:8000/accounts/github/login/`. You should be redirected to GitHub's authorization page. After approving, you should return to your site as a logged-in user.
 
-### What allauth does for you
+### What allauth Handles
 
 | Step | Manual | allauth |
 |------|--------|---------|
@@ -356,7 +386,7 @@ In `pages/templates/pages/base.html`, update the auth part of the nav:
 | Create/find Django `User` | You write | Automatic |
 | Call `login()` | You write | Automatic |
 
-🧪 After logging in with GitHub, run:
+**Check:** After logging in with GitHub, run:
 
 ```bash
 uv run python manage.py shell
@@ -371,9 +401,7 @@ You should see an entry for `provider="github"` with your GitHub username.
 
 
 
-## Submission
-
-Final checks:
+## Phase 7: Final Checks
 
 1. Registration creates a user, logs them in, and redirects.
 2. The nav dynamically shows Login/Register vs. Hello/Logout.
@@ -387,7 +415,15 @@ u = User.objects.first()
 print(u.password)   # starts with pbkdf2_sha256$ or argon2$
 ```
 
-**Exploration:** Open the browser's DevTools → Application → Cookies. Find the `sessionid` cookie. Copy its value and look it up in the database:
+Common errors:
+
+1. Login redirect loops usually mean `LOGIN_URL`, URL names, or account URLs are mismatched.
+2. `NoReverseMatch` for `profile`, `login`, or `register` means the URL name does not match the template.
+3. Logout failing with 405 usually means the logout link is a plain `<a>` instead of a POST form.
+4. GitHub OAuth `redirect_uri_mismatch` means the callback URL in GitHub does not exactly match `/accounts/github/login/callback/`.
+5. Missing GitHub credentials should not be fixed by committing secrets. Use environment variables or `.env` ignored by git.
+
+Optional: Open the browser's DevTools -> Application -> Cookies. Find the `sessionid` cookie. Copy its value and look it up in the database:
 
 ```bash
 uv run python manage.py shell

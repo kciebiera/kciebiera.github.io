@@ -8,13 +8,13 @@ render_with_liquid: false
 
 ## Introduction
 
-In Labs 1–3 you built a server, structured content, and added style — all by hand. You have experienced exactly the pain that web frameworks exist to solve: routing, templating, static file serving, and request parsing were all written from scratch.
+In Labs 1-3 you built a server, structured content, and added style by hand. Django provides built-in tools for routing, templates, static files, forms, and request handling.
 
-Django is a "batteries-included" Python web framework. In this lab you will recreate what you built in Labs 1–3 in a fraction of the code, and then learn how Django separates layout from content using **template inheritance** — so a change to the `<nav>` updates every page at once.
+Django is a Python web framework. In this lab you will recreate the Lab 1-3 site as a Django project and use **template inheritance** so shared layout lives in one place.
 
-The Goal: A running Django project with multiple URL routes, views rendered from templates, and a shared base layout.
+**Goal:** Build a Django project with multiple routes, views rendered from templates, static CSS, two apps, POST handling, and tests.
 
-### The Theory
+### Django Basics
 
 Django follows the **MVT** pattern (Model–View–Template):
 
@@ -29,13 +29,15 @@ Template inheritance adds one more idea:
 
 ## Setup
 
+Start a new Django project for Labs 4-7. Keep working in this same project for Labs 5, 6, and 7.
+
 ```bash
 uv add django
 uv run django-admin startproject mysite .
 uv run python manage.py runserver
 ```
 
-Open `http://127.0.0.1:8000` — you should see the Django rocket launch page.
+Open `http://127.0.0.1:8000`. You should see Django's default start page.
 
 Key files created:
 
@@ -59,6 +61,20 @@ INSTALLED_APPS = [
     ...
     'pages',   # TODO: add this line
 ]
+```
+
+Expected structure after setup:
+
+```text
+manage.py
+mysite/
+    settings.py
+    urls.py
+pages/
+    views.py
+    urls.py
+    templates/
+        pages/
 ```
 
 ## Phase 1: Your First View
@@ -96,7 +112,7 @@ urlpatterns = [
 ]
 ```
 
-🧪 Visit `http://127.0.0.1:8000/` — you should see your heading.
+**Check:** Visit `http://127.0.0.1:8000/`. You should see your heading.
 
 ## Phase 2: Template Context & URL Parameters
 
@@ -172,7 +188,7 @@ Create `pages/templates/pages/greet.html`:
 <!-- TODO: Add a link back to home using {% url 'home' %} -->
 ```
 
-🧪 Visit `/greet/Alice/` and `/greet/Bob/` — each should show a personalised greeting. Reload the home page — the time should update on every refresh.
+**Check:** Visit `/greet/Alice/` and `/greet/Bob/`. Each page should show the name from the URL. Reload the home page; the time should update on every refresh.
 
 ## Phase 3: Template Inheritance
 
@@ -224,7 +240,7 @@ Refactor `home.html`, `about.html`, and `greet.html` to extend the base:
 {% endblock %}
 ```
 
-🧪 Reload each page. The nav and footer should now appear without being in the child templates. Open DevTools → Elements and confirm the full DOM is present.
+**Check:** Reload each page. The nav and footer should appear even though they are not repeated in the child templates. Open DevTools -> Elements and confirm the full DOM is present.
 
 ## Phase 4: Template Tags, Filters & Static Files
 
@@ -260,7 +276,7 @@ def projects(request):
 - Use `{% for %}` with `{% empty %}` to render the project list.
 - Use `{% if %}` to display ✅ or 🔄 per project.
 - Apply at least two template filters (e.g. `|lower`, `|upper`, `|length`, `{{ project.year|add:1 }}`).
-- Add a search `<form method="GET">` with a text input named `q`. Pre-fill it with the current `q` value from context so the search term persists after submission.
+- Add a search `<form method="GET">` with a text input named `q`. Pre-fill it with the current `q` value from context so the search term persists after the form is sent.
 - If `q` is non-empty, show a line like *Showing results for "python"*.
 
 📖 Refer to [Template tags and filters](https://docs.djangoproject.com/en/stable/ref/templates/builtins/) in the Django docs.
@@ -273,13 +289,13 @@ STATIC_URL = "/static/"
 
 Create `pages/static/pages/style.css` and paste the CSS from your Lab 3 stylesheet. The `{% static %}` tag in `base.html` generates the correct URL automatically.
 
-🧪 Verify in DevTools → Network that `style.css` loads with status 200.
+**Check:** Verify in DevTools -> Network that `style.css` loads with status 200.
 
 ## Phase 5: A Second App & Multi-App Routing
 
 A Django project can host many apps, each owning its own models, views, URLs, and templates. Right now your project has one app (`pages`). In this phase you will add a second app — `blog` — and see how the root URL router delegates to each.
 
-### 5.1 Create the `blog` App
+### Create the `blog` App
 
 ```bash
 uv run python manage.py startapp blog
@@ -295,9 +311,9 @@ INSTALLED_APPS = [
 ]
 ```
 
-### 5.2–5.4 Implement the Blog App
+### Implement the Blog App
 
-Your task is to build the blog app **without copy-pasting** — figure out the details from the Django documentation.
+Build the blog app using the same patterns as the `pages` app.
 
 **Requirements:**
 
@@ -328,7 +344,7 @@ Your task is to build the blog app **without copy-pasting** — figure out the d
 - [URL dispatcher](https://docs.djangoproject.com/en/stable/topics/http/urls/)
 - [URL namespaces](https://docs.djangoproject.com/en/stable/topics/http/urls/#url-namespaces)
 
-### 5.5 Add a Blog Link to the Nav
+### Add a Blog Link to the Nav
 
 In `pages/templates/pages/base.html`, add a link to the blog:
 
@@ -340,9 +356,9 @@ In `pages/templates/pages/base.html`, add a link to the blog:
 </nav>
 ```
 
-🧪 Visit `http://127.0.0.1:8000/blog/` — you should see the post list. Click a title to go to the detail page. The `<nav>` should work on both the `pages` and `blog` templates since they both extend the same `base.html`.
+**Check:** Visit `http://127.0.0.1:8000/blog/`. You should see the post list. Click a title to open the detail page. The nav should work on both `pages` and `blog` templates because both extend `base.html`.
 
-### 5.6 Confirm Namespace Isolation
+### Confirm Namespace Isolation
 
 Open `uv run python manage.py shell` and verify that both namespaces resolve correctly without colliding:
 
@@ -360,7 +376,7 @@ Try `reverse("post-list")` (no namespace) — it will raise `NoReverseMatch` bec
 
 Views can handle both GET and POST. Before models are introduced, `request.POST` and in-memory data are enough to practise the full HTTP request cycle.
 
-### 6.1 Add a Note Form to the Greet Page
+### Add a Note Form to the Greet Page
 
 Modify the `greet` view in `pages/views.py`:
 
@@ -389,9 +405,9 @@ In `pages/templates/pages/greet.html`, add the form inside `{% block content %}`
 
 `{% csrf_token %}` inserts a hidden token Django verifies on every POST. Without it, Django raises a `403 Forbidden` — this is protection against **Cross-Site Request Forgery** attacks, where a malicious site could otherwise submit a form on behalf of an authenticated user.
 
-🧪 Visit `/greet/Alice/`, submit the form, and confirm the message appears. Then temporarily remove `{% csrf_token %}` and observe the 403.
+**Check:** Visit `/greet/Alice/`, submit the form, and confirm the message appears. Then temporarily remove `{% csrf_token %}` and observe the 403. Restore the token afterwards.
 
-### 6.2 Challenge: In-Memory Guestbook
+### In-Memory Guestbook
 
 **Your task (no code provided):** Add a route `/guestbook/` that:
 
@@ -403,7 +419,7 @@ In `pages/templates/pages/greet.html`, add the form inside `{% block content %}`
 
 ## Phase 7: Automated Testing
 
-Django ships with a test client that issues HTTP requests without a real server. Writing tests alongside code is a core engineering discipline.
+Django ships with a test client that issues HTTP requests without a real server. Use it to verify views, templates, context, and response content.
 
 Open `pages/tests.py`:
 
@@ -442,13 +458,11 @@ uv run python manage.py test pages
 
 All tests should pass. If one fails, fix the view or template — never weaken a test to make it green.
 
-🧪 Intentionally remove a skill from the `about` view's list. Re-run the tests and observe the failure message. Then restore it and confirm all tests pass again.
+**Check:** Intentionally remove a skill from the `about` view's list. Re-run the tests and read the failure message. Restore it and confirm all tests pass again.
 
 📖 Refer to: [Writing and running tests](https://docs.djangoproject.com/en/stable/topics/testing/overview/)
 
-## Submission
-
-Final checks:
+## Phase 8: Final Checks
 
 1. Routes `/`, `/about/`, `/greet/<name>/`, and `/projects/` all work.
 2. Every page extends `base.html` — zero duplicated `<html>/<head>/<body>` tags in child templates.
@@ -461,16 +475,23 @@ Final checks:
 9. The `greet` page handles POST and shows the submitted note; `{% csrf_token %}` is present.
 10. `uv run python manage.py test pages` passes all five tests.
 
-**Exploration:** Use `{% include %}` to extract the project table row into a partial file `pages/templates/pages/_project_row.html` and include it from the loop with `{% include "pages/_project_row.html" %}`. The page should render identically.
+Common errors:
 
-**Session State (stretch):** Django sessions let you persist small amounts of per-user data server-side across requests without a database. In any view, read and write `request.session["key"]`:
+1. `ModuleNotFoundError: pages` usually means the app was not created in the project root.
+2. `TemplateDoesNotExist` usually means the template path does not match `pages/templates/pages/...`.
+3. `NoReverseMatch` usually means a URL `name` or namespace does not match the `{% url %}` tag.
+4. Static CSS returning 404 usually means the file is not under `pages/static/pages/` or `{% load static %}` is missing.
+
+Optional: Use `{% include %}` to extract the project row into a partial file `pages/templates/pages/_project_row.html` and include it from the loop with `{% include "pages/_project_row.html" %}`. The page should render the same output.
+
+Optional: Django sessions let you persist small amounts of per-user data server-side across requests without a database. In any view, read and write `request.session["key"]`:
 
 ```python
 count = request.session.get("visit_count", 0) + 1
 request.session["visit_count"] = count
 ```
 
-**Your task:** Add a visit counter to the home page so the heading reads *"Welcome! You have visited this page N time(s) this session."* Navigating away and back should keep incrementing the count; opening an Incognito window should start at 1.
+Add a visit counter to the home page so the heading reads *"Welcome! You have visited this page N time(s) this session."* Navigating away and back should keep incrementing the count; opening an Incognito window should start at 1.
 
 📖 Refer to: [How to use sessions](https://docs.djangoproject.com/en/stable/topics/http/sessions/)
 

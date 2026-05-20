@@ -10,9 +10,9 @@ render_with_liquid: false
 
 So far every piece of data in your site lives in Python code. The moment the server restarts, it is gone. Databases solve this. Django's **ORM** (Object-Relational Mapper) lets you work with a database using Python classes. And once data is stored, you need users to be able to *submit* new data — Django's form system handles validation, rendering, and security in one place.
 
-The Goal: Define database models for a blog, query them in views, and add a comment form with server-side validation.
+**Goal:** Define database models for the blog, query them in views, and add a comment form with server-side validation.
 
-### The Theory
+### Database Basics
 
 A **model** is a Python class that maps to a database table:
 
@@ -27,7 +27,7 @@ class Post(models.Model):          CREATE TABLE blog_post (
 
 Every HTML form that changes data must use `method="POST"`. Django enforces **CSRF protection** by default: a hidden token in the form is checked server-side to prevent cross-site request forgery.
 
-The **Post-Redirect-Get** (PRG) pattern prevents duplicate submissions on browser refresh:
+The **Post-Redirect-Get** (PRG) pattern prevents duplicate POST requests on browser refresh:
 
 ```
 Browser POST /post/slug/  → server validates
@@ -38,6 +38,8 @@ Browser GET /post/slug/   → server sends updated page
 ## Setup
 
 Continue with the `blog` app you created in Lab 4. In this lab you will replace the in-memory `POSTS` data with real database models and switch the detail route to use a slug instead of an integer `pk`.
+
+Do not create a new Django project. Continue in the same project from Lab 4.
 
 If you did not finish Lab 4 Phase 5, create the app now:
 
@@ -54,7 +56,9 @@ INSTALLED_APPS = [
 ]
 ```
 
-## Phase 1: Define Models & Migrations
+Route change for this lab: replace the old integer detail route from Lab 4 with the slug route below. After this change, post detail URLs should look like `/blog/post/my-slug/`, not `/blog/1/`.
+
+## Phase 1: Models and Migrations
 
 Open `blog/models.py`:
 
@@ -105,11 +109,11 @@ uv run python manage.py makemigrations
 uv run python manage.py migrate
 ```
 
-🧪 A new file `blog/migrations/0001_initial.py` should appear. Open it — it contains the SQL-generation instructions Django derived from your model. Run `uv run python manage.py sqlmigrate blog 0001` to see the raw SQL Django generates.
+**Check:** A new file `blog/migrations/0001_initial.py` should appear. Open it; it contains the schema changes Django derived from your model. Run `uv run python manage.py sqlmigrate blog 0001` to see the raw SQL.
 
 ## Phase 2: The Admin Panel
 
-Django ships with a fully functional CRUD admin UI, free.
+Django includes an admin UI for creating, reading, updating, and deleting model records.
 
 Register your models in `blog/admin.py`:
 
@@ -141,7 +145,7 @@ Create a superuser and add sample data:
 uv run python manage.py createsuperuser
 ```
 
-🧪 Visit `http://127.0.0.1:8000/admin/`. Create 2 Categories and 3 Posts (at least one per category).
+**Check:** Visit `http://127.0.0.1:8000/admin/`. Create 2 categories and 3 posts, with at least one post per category.
 
 ## Phase 3: Views, URLs & Templates
 
@@ -191,6 +195,22 @@ urlpatterns = [
 
 Include it in `mysite/urls.py` (same as in Lab 4): `path("blog/", include("blog.urls"))`.
 
+Expected structure by the end of this phase:
+
+```text
+blog/
+    admin.py
+    forms.py
+    models.py
+    urls.py
+    views.py
+    migrations/
+    templates/
+        blog/
+            post_list.html
+            post_detail.html
+```
+
 Create `blog/templates/blog/post_list.html` extending `pages/base.html`:
 
 ```html
@@ -226,7 +246,7 @@ Create `blog/templates/blog/post_list.html` extending `pages/base.html`:
 {% endblock %}
 ```
 
-🧪 In `uv run python manage.py shell`, explore the ORM:
+**Check:** In `uv run python manage.py shell`, explore the ORM:
 
 ```python
 from blog.models import Post
@@ -346,11 +366,11 @@ Create `blog/templates/blog/post_detail.html`:
 {% endblock %}
 ```
 
-🧪 Submit a comment with valid data — it should appear. Try submitting with an empty author — you should see your validation error message.
+**Check:** Submit a comment with valid data. It should appear. Try submitting with an empty author; you should see your validation error message.
 
-## Phase 5: Debug Toolbar & Query Optimisation
+## Phase 5: Debug Toolbar and Query Optimization
 
-### 5.1 Install Django Debug Toolbar
+### Install Django Debug Toolbar
 
 ```bash
 uv add django-debug-toolbar
@@ -376,9 +396,9 @@ if settings.DEBUG:
     ] + urlpatterns
 ```
 
-🧪 Restart the dev server and open `http://127.0.0.1:8000/blog/`. A dark panel should appear on the right side of the page. Click the **SQL** tab — you will see every query fired to render that page, its duration, and a Python stack trace.
+**Check:** Restart the dev server and open `http://127.0.0.1:8000/blog/`. A panel should appear on the page. Click the **SQL** tab to inspect the queries used to render the page.
 
-### 5.2 Spot the N+1 Problem
+### Spot the N+1 Problem
 
 Look at the SQL panel on the post list page. You will see something like:
 
@@ -403,9 +423,9 @@ def post_list(request):
     })
 ```
 
-🧪 Reload the page and check the SQL panel again — the category queries should have disappeared, replaced by a single JOIN.
+**Check:** Reload the page and check the SQL panel again. The per-row category queries should be replaced by one JOIN.
 
-### 5.3 `prefetch_related` for Reverse FK
+### Use `prefetch_related` for Reverse FK
 
 Open the post detail page in the SQL panel. Notice that accessing `post.comments.filter(active=True)` fires a separate query. For the *list* view you might want to show a comment count per post without an extra query per row.
 
@@ -441,9 +461,9 @@ def post_detail(request, slug):
     ...
 ```
 
-🧪 Check the detail page SQL panel before and after — the comment query should remain exactly one query but now scoped to `active=True`.
+**Check:** Check the detail page SQL panel before and after. The comment query should remain one query and should be scoped to `active=True`.
 
-### 5.4 Advanced Filtering Exercises
+### Advanced Filtering Exercises
 
 Open `uv run python manage.py shell` and try the following:
 
@@ -479,9 +499,7 @@ Post.objects.annotate(comment_count=Count("comments")).aggregate(
 
 **TODO:** Add a `view_count = models.PositiveIntegerField(default=0)` field to the `Post` model, run `makemigrations` + `migrate`, and update the `post_detail` view to increment it on every GET request using `F()`.
 
-## Submission
-
-Final checks:
+## Phase 6: Final Checks
 
 1. `/blog/` lists all posts with category filter links.
 2. `/blog/post/<slug>/` shows a full post with its comments.
@@ -490,6 +508,14 @@ Final checks:
 5. The `{% csrf_token %}` tag is present in the POST form.
 6. Django Debug Toolbar is visible on all pages and the SQL panel shows query counts.
 7. The post list view uses `select_related("category")` — verify in the SQL panel that no per-row category queries appear.
+
+Common errors:
+
+1. `no such table: blog_post` means migrations were not applied.
+2. `Reverse for 'post-detail' not found` usually means the URL name or `blog:` namespace does not match the template.
+3. Category links returning 404 usually means `category-posts` was not added to `blog/urls.py`.
+4. Comments saving twice on refresh means the detail view did not redirect after a valid POST.
+5. Debug Toolbar not appearing usually means `debug_toolbar` is missing from `INSTALLED_APPS`, middleware, URLs, or `INTERNAL_IPS`.
 
 
 {% endraw %}
