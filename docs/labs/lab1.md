@@ -1,23 +1,24 @@
-# Lab1: Building a HTTP Server from First Principles
+# Lab 1: Building an HTTP Server from First Principles
 
 ## Introduction
 
-In this lab, you will demystify the World Wide Web. You won't be using frameworks like Flask, Django, or Express. Instead, you will build a web server from scratch using Raw Sockets.
+In this lab, you will build a small web server without Flask, Django, Express, or any other framework. The server will use raw sockets so you can see what HTTP looks like on the wire.
 
-The Goal: Build a server that listens for connections, parses raw HTTP text, and maintains a persistent count of how many times it has been accessed.
+**Goal:** Build a server that listens for connections, parses raw HTTP text, and maintains a persistent count of how many times it has been accessed.
 
 ### The Theory
 
 At its core, the Web is just text sent over a TCP connection.
 
-Client (Browser): Opens a connection and sends a text block (Request).
+Client (browser): Opens a connection and sends a text block (request).
 
-Server (You): Accepts connection, reads text, sends a text block back (Response), and closes the connection.
+Server (you): Accepts the connection, reads text, sends a text block back (response), and closes the connection.
 
 ![img](csarch.png)
+
 ## Setup & Tooling
 
-Using uv (Python Manager)
+### Using uv
 
 We recommend using uv to manage your Python environment. It ensures you are running the correct version without messing up your system Python.
 
@@ -25,24 +26,24 @@ We recommend using uv to manage your Python environment. It ensures you are runn
     ```bash
     curl -LsSf https://astral.sh/uv/install.sh | sh
     ```
-2. Create your file: Create a file named server.py.
-3. Run your code: Instead of python server.py, use:
+2. Create your file: Create a file named `server.py`.
+3. Run your code: Instead of `python server.py`, use:
 
     ```bash
     uv run server.py
     ```
 
-Using nc (Netcat)
+### Using nc (Netcat)
 
-Browsers are "too smart"—they hide errors and retry connections automatically. For this lab, we will use Netcat (nc) to act as a "dumb client." It allows us to manually type HTTP requests and see exactly what your server sends back (bytes and all).
+Browsers automate a lot of connection handling, which can hide useful details while you are learning. For this lab, use Netcat (`nc`) to send exactly what you type and inspect exactly what your server returns.
 
-- Command: nc localhost 8000 (Mac/Linux) or ncat localhost 8000 (Windows).
+- Command: `nc localhost 8000` (Mac/Linux) or `ncat localhost 8000` (Windows).
 
-## Phase 1: The TCP Handshake
+## Phase 1: TCP Listener
 
-Your first task is to establish a "dial tone." We need to bind a socket to a port and listen for incoming signals.
+Your first task is to create a TCP listener. Bind a socket to a port and wait for incoming connections.
 
-Task: Copy the skeleton code below into server.py and fill in the TODOs.
+**Task:** Copy the skeleton code below into `server.py` and fill in the TODOs.
 
 ```python
 # server.py
@@ -67,31 +68,32 @@ def start_server():
         # TODO: Accept a new connection
         # client_connection, client_address = ...
         
-        print(f"Connection received!")
+        print("Connection received!")
 
         # Receive raw bytes (buffer size 1024)
-        request_data = client_connection.recv(1024).decode('utf-8')
+        request_data = client_connection.recv(1024).decode("utf-8")
         print(f"--- Received Request ---\n{request_data}\n------------------------")
 
         # Close connection immediately (for now)
         client_connection.close()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     start_server()
 ```
-🧪 Test It
 
-1. Run the server: uv run server.py
+**Check**
+
+1. Run the server: `uv run server.py`
 2. Open a new terminal window.
-3. Run Netcat: nc localhost 8000
-4. Type Hello and hit Enter.
-5. Observation: Your server should print "Hello" and then exit.
+3. Run Netcat: `nc localhost 8000`
+4. Type `Hello` and hit Enter.
+5. Observation: Your server should print `Hello`, close that client connection, and keep running so it can accept the next connection.
 
-## Phase 2: Dissecting the Request
+## Phase 2: Parsing the Request
 
 When a browser connects, it doesn't just say "Hello". It sends a specific format.
 
-Task: Update your loop to inspect the request. We need to know what the user wants (the Path).
+**Task:** Update your loop to inspect the request. We need to know what the user wants (the path).
 
 1. Restart your server.
 2. Open your web browser and go to http://localhost:8000.
@@ -102,8 +104,7 @@ GET / HTTP/1.1
 Host: localhost:8000
 User-Agent: Mozilla/5.0...
 ```
-Coding Challenge:
-Implement a parse_request function that extracts the Path (e.g., / or /favicon.ico) from the raw string.
+Implement a `parse_request` function that extracts the path (for example, `/` or `/favicon.ico`) from the raw string.
 
 ```python
 def parse_request(request_data):
@@ -111,33 +112,34 @@ def parse_request(request_data):
         return ""
     # TODO: Split the string into lines
     # TODO: Take the first line ("GET / HTTP/1.1")
-    # TODO: Split by spaces and return the middle part ("/")
+    # TODO: Split by spaces
+    # TODO: If there are at least 2 parts, return the middle part ("/")
     return path
 ```
 
-## Phase 3: The Protocol of Politeness (Response)
+## Phase 3: HTTP Responses
 
-If you visit your server in a browser now, it spins forever. Why? Because you never sent a response back. The browser is still waiting for you to say "OK".
+If you visit your server in a browser now, the browser keeps waiting because the server never sends a response.
 
-The Rules of HTTP Response:
+HTTP response format:
 
 1. Status Line: HTTP/1.1 200 OK
 2. Headers: Key-value pairs (like Content-Type).
 3. The Separator: A blank line (\r\n\r\n) must separate headers from the body.
 4. Body: The actual HTML or text.
 
-Task: Implement the generate_response function and use it in your loop.
+**Task:** Implement the `generate_response` function and use it in your loop.
 
 ```python
 def generate_response(content, status_code="200 OK"):
+    body = content.encode("utf-8")
     header = f"HTTP/1.1 {status_code}\r\n"
     header += "Content-Type: text/html\r\n"
-    # TODO: Calculate Content-Length (It is crucial!)
-    # header += f"Content-Length: {???}\r\n"
+    # TODO: Calculate Content-Length from the encoded body (it is crucial!)
+    # header += f"Content-Length: {len(body)}\r\n"
     
-    header += "\r\n" # The blank line
-    response_str = header + content
-    return response_str.encode('utf-8') # Send bytes, not strings
+    header += "\r\n"  # The blank line
+    return header.encode("utf-8") + body  # Send bytes, not strings
 ```
 
 Update your loop:
@@ -151,39 +153,80 @@ Update your loop:
     client_connection.close()
 ```
 
-🧪 Test with nc
+**Check with nc**
 
-Run nc localhost 8000. You won't see anything immediately.
-Type: GET / HTTP/1.1 and hit Enter twice.
+Run `nc localhost 8000`. You won't see anything immediately.
+Type `GET / HTTP/1.1` and hit Enter twice.
 You should see the full headers and HTML returned.
 
-## Phase 4: The Logic (Visitor Counter)
+## Phase 4: Visitor Counter
 
 Now, let's make the server dynamic. We want to display: "This page has been accessed X times."
 
-The Hard Problem:
+Important detail:
 Browsers request /favicon.ico automatically. If you simply increment a counter every time a connection opens, your visitor count will increase by 2 (or more) for every single refresh!
 
-Task:
+**Task:**
 
-1. Create a global variable VISITOR_COUNT = 0.
+1. Create a global variable `VISITOR_COUNT = 0`.
 2. Inside your loop, check the path returned by your parser.
-    - IF path is /: Increment counter, return the HTML with the count.
-    - IF path is /favicon.ico: Return a 404 Not Found status code (do not increment).
-    - ELSE: Return 404.
+    - IF path is `/`: Increment counter, return the HTML with the count.
+    - IF path is `/favicon.ico`: Return a `404 Not Found` status code (do not increment).
+    - ELSE: Return `404 Not Found`.
 
-## Submission
+## Phase 5: Concurrency
 
-Expected Output:
+Expected output:
 
-When I visit localhost:8000 in Chrome:
+When I visit `localhost:8000` in Chrome:
 
 - First refresh: "Accessed 1 times"
 - Second refresh: "Accessed 2 times"
 
-Currently, your server is Single Threaded.
+Currently, your server is single threaded.
 
-1. Add import time and time.sleep(5) inside your handler.
+1. Add `import time` and `time.sleep(5)` inside your handler.
 2. Try to open the page in two tabs at once.
 3. Observe: The second tab won't load until the first one finishes.
 4. Fix: Use the threading library to handle each client in a separate thread so multiple people can visit at once.
+
+### What a Thread Does
+
+A thread is a separate path of execution inside the same Python process. In this server, the main thread should keep accepting new TCP connections. Each client connection can then be handled in its own thread.
+
+Without threads:
+
+1. The server accepts client A.
+2. The server handles client A from start to finish.
+3. Only then can the server accept client B.
+
+With threads:
+
+1. The server accepts client A.
+2. The server starts a thread to handle client A.
+3. The main loop immediately goes back to `accept()` so it can accept client B.
+
+Look up Python's built-in `threading` module, especially `threading.Thread`.
+
+Restructure your code so the per-client work lives in a separate function:
+
+```python
+import threading
+
+def handle_client(client_connection):
+    # TODO: Move the recv(), parse_request(), generate_response(),
+    # sendall(), and close() logic here.
+    pass
+```
+
+Then update the main loop so it starts a thread for each accepted connection:
+
+```python
+while True:
+    client_connection, client_address = server_socket.accept()
+
+    thread = threading.Thread(target=handle_client, args=(client_connection,))
+    thread.start()
+```
+
+Hint: call `client_connection.close()` inside `handle_client`, not in the main loop. The main loop should accept connections and start threads; the handler should deal with one client from beginning to end.
