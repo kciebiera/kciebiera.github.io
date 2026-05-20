@@ -4,9 +4,9 @@
 
 JavaScript is the only language browsers execute natively — but it has no type system. TypeScript adds a static type layer on top: you write `.ts` files, the compiler (`tsc`) checks them, and emits plain `.js` that the browser can run.
 
-The Goal: Learn TypeScript's type system by building interactive pages that compile and run in the browser. See type errors caught before your code ever executes.
+**Goal:** Learn TypeScript's type system by building browser pages that compile from `.ts` to `.js`.
 
-### The Theory
+### TypeScript Basics
 
 TypeScript adds types to JavaScript at **author time**, not run time. The compiled JavaScript has no type information — it is stripped out entirely. TypeScript is a development tool, not a runtime.
 
@@ -17,7 +17,7 @@ tsc emits:   const name = "Alice";
 
 This means TypeScript cannot prevent runtime errors from external data (e.g. a JSON API response). You need to *validate* external data and *assert* its shape — TypeScript ensures you use it consistently after that.
 
-## Setup: The Build Pipeline
+## Setup
 
 A browser cannot execute `.ts` files directly. You need a **pipeline** that transforms your TypeScript into JavaScript the browser can load:
 
@@ -28,7 +28,7 @@ A browser cannot execute `.ts` files directly. You need a **pipeline** that tran
   src/blog.ts             (catches errors)     (one file, browser-ready)
 ```
 
-**Why two tools?** `tsc` is the best type checker but is slow as a bundler. `esbuild` is an extremely fast bundler that also compiles TypeScript — but it does *not* check types. Use both: `tsc` for safety, `esbuild` for output.
+Use both tools: `tsc` checks types, and `esbuild` creates browser-ready JavaScript.
 
 ```bash
 npm init -y
@@ -54,7 +54,7 @@ Open `tsconfig.json` and set:
 
 Notice `"noEmit": true` — `tsc` only checks types; it does not produce output files. `esbuild` handles that.
 
-### npm scripts — the conventional way to run project commands
+### npm Scripts
 
 Open `package.json` and add a `scripts` section:
 
@@ -68,7 +68,7 @@ Open `package.json` and add a `scripts` section:
 }
 ```
 
-Every project defines its commands this way — a new contributor reads `package.json` to learn how to build and run the project.
+Use `package.json` scripts so the build commands are explicit and repeatable.
 
 Create `src/` for TypeScript source, `dist/` for compiled output, and `index.html`:
 
@@ -94,7 +94,23 @@ Create `src/` for TypeScript source, `dist/` for compiled output, and `index.htm
 
 Run `npm run dev` — esbuild watches your `.ts` files and rebuilds `dist/main.js` whenever you save. Open `index.html` in the browser, or serve the folder with any simple static server if the browser blocks module/file access. Refresh the page after each rebuild.
 
-> **Source maps:** The `--sourcemap` flag generates a `.js.map` file. Open DevTools → Sources — you will see your original `.ts` files, with breakpoints and variable inspection. Without source maps, you would debug compiled JavaScript.
+Expected structure:
+
+```text
+index.html
+package.json
+tsconfig.json
+src/
+    main.ts
+    async.ts
+    blog.ts
+    status.ts
+    utils.ts
+dist/
+    main.js
+```
+
+The `--sourcemap` flag generates a `.js.map` file. In DevTools -> Sources, you should see your original `.ts` files.
 
 ## Phase 1: Primitive Types and Functions
 
@@ -128,7 +144,7 @@ show("clamp(-5, 0, 10)", clamp(-5, 0, 10));   // → 0
 
 Save the file — the browser should refresh and display the results.
 
-🧪 Deliberately introduce a type error (pass a string where a number is expected). Run `npm run check` — it should report the error. The `dev` server still compiles (esbuild ignores type errors), but `npm run check` catches them. **Always run `check` before submitting.**
+**Check:** Deliberately introduce a type error by passing a string where a number is expected. Run `npm run check`; it should report the error. The `dev` server may still compile because esbuild does not type-check.
 
 ### Exercise: formatDuration
 
@@ -245,7 +261,7 @@ async function renderTodos(): Promise<void> {
 renderTodos();
 ```
 
-🧪 Change the `Todo` interface (e.g., rename `title` to `name`) — `tsc` should catch every place that accesses the wrong field. This is the core value of TypeScript: **the compiler knows the shape of your data**.
+**Check:** Change the `Todo` interface, for example rename `title` to `name`. `tsc` should catch every place that still accesses `title`.
 
 ### Exercise: fetchWithTimeout
 
@@ -481,13 +497,13 @@ export { PostStatus, HttpMethod, ApiRequest, isPost };
 //   - If it fails, display "❌ Invalid: <reason>"
 ```
 
-> **That was painful, right?** Manually validating every field, including a nested object, produces a lot of repetitive, error-prone code. In practice, developers reach for **schema validation libraries** that do this automatically:
+Manual validation gets repetitive. In real projects, schema validation libraries are commonly used:
 >
 > - **[Zod](https://zod.dev)** — TypeScript-first, infers types from schemas: `z.object({ id: z.number(), title: z.string(), ... })`
 > - **[Valibot](https://valibot.dev)** — similar API, smaller bundle
 > - **[Yup](https://github.com/jquense/yup)** — popular with form libraries (Formik, React Hook Form)
 >
-> These libraries generate both the runtime validator *and* the TypeScript type from a single schema definition. No duplicated logic.
+These libraries can generate both the runtime validator and the TypeScript type from one schema definition.
 
 ## Phase 5: Generics
 
@@ -566,9 +582,7 @@ Render grouped posts as categorised sections in the page — one `<section>` per
 // Use performance.now() to measure.
 ```
 
-## Submission
-
-Final checks:
+## Phase 6: Final Checks
 
 1. `npm run check` — zero errors.
 2. All functions have explicit return types. There are no `any` types.
@@ -577,4 +591,11 @@ Final checks:
 5. The JSON validator (Phase 4) correctly accepts valid posts and rejects invalid ones.
 6. `fetchWithTimeout` (Phase 2) times out on a 1ms deadline.
 
-**Exploration:** Open DevTools → Sources. Set a breakpoint in `fetchTodo`. Reload the page. Step through the code — notice you're stepping through `.ts` files, not compiled `.js`. This is source maps at work.
+Common errors:
+
+1. `Cannot find module` usually means an import path is wrong or the file is missing.
+2. Browser shows old code usually means `npm run dev` is not running or the page was not refreshed.
+3. `document.getElementById(...)` returning `null` usually means the ID in HTML does not match the TypeScript.
+4. `npm run check` passing while the browser fails usually means the runtime data shape does not match the TypeScript interface.
+
+Optional: Open DevTools -> Sources. Set a breakpoint in `fetchTodo`, reload the page, and step through the `.ts` source file.

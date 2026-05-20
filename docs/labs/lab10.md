@@ -2,11 +2,11 @@
 
 ## Introduction
 
-In Lab 9 you called the API with raw `fetch()`. Every endpoint was a one-off call. In a larger app, you would end up repeating the same error-handling, URL-building, and JSON-parsing logic everywhere. This lab refactors that into a typed HTTP client — a reusable module that knows your API's shape.
+In Lab 9 you called the API with raw `fetch()`. Each endpoint was handled separately. In this lab you will move URL building, JSON parsing, error handling, and CSRF handling into a typed API client.
 
-The Goal: Build a `BlogApiClient` class in TypeScript that wraps every endpoint from Lab 7. Use it to build a comment form that posts to the API and updates the page — no full reload.
+**Goal:** Build a `BlogApiClient` class in TypeScript, use it from the blog browser, and update comments without a full page reload.
 
-### The Theory
+### Async Basics
 
 `async/await` is syntactic sugar over Promises. It does not change when the request happens; it changes how the code *reads*.
 
@@ -27,13 +27,26 @@ try {
 }
 ```
 
-Both styles mix freely. You can `await` any Promise.
+Both styles can be used in the same project. You can `await` any Promise.
 
 ## Setup
 
 Continue in the same Django + TypeScript project from Lab 9. Create `pages/static/pages/ts/api.ts` — this is your client module. `main.ts` (and future files) will import from it.
 
 Since you already have `esbuild` configured from Lab 9, imports between files (`import { api } from "./api"`) are resolved automatically during bundling. Update `npm run build` if needed to use `main.ts` as the entry point — esbuild will follow all imports and produce a single `.js` file.
+
+Expected structure:
+
+```text
+pages/
+    static/
+        pages/
+            ts/
+                api.ts
+                main.ts
+            js/
+                main.js
+```
 
 ## Phase 1: The Result Type and CSRF
 
@@ -47,7 +60,7 @@ type Result<T> =
     | { ok: false; error: string; status?: number };
 ```
 
-### Handling CSRF tokens
+### Handling CSRF Tokens
 
 Django protects against Cross-Site Request Forgery by requiring a token on all `POST`/`PUT`/`PATCH`/`DELETE` requests. The token lives in a cookie named `csrftoken`. You must read it and send it as a header:
 
@@ -60,7 +73,7 @@ function getCsrfToken(): string {
 
 Without this, every write request from `fetch()` will receive `403 Forbidden` from Django.
 
-### The generic fetch wrapper
+### Generic Fetch Wrapper
 
 ```typescript
 async function apiFetch<T>(
@@ -108,7 +121,7 @@ async function apiFetch<T>(
 
 ## Phase 2: The API Client and Utility Types
 
-### Utility types for API payloads
+### Utility Types for API Payloads
 
 TypeScript has built-in **utility types** that transform existing types. They are essential when working with APIs where create, update, and read shapes differ:
 
@@ -135,9 +148,9 @@ type CreateCommentPayload = Pick<Comment, "author" | "body">;
 type UpdatePostPayload = Partial<Pick<Post, "title" | "body" | "slug">>;
 ```
 
-🧪 Try assigning `{ author: "Alice", body: "Hi", id: 99 }` to a `CreateCommentPayload` — TypeScript should error because `id` is not in the type.
+**Check:** Try assigning `{ author: "Alice", body: "Hi", id: 99 }` to a `CreateCommentPayload`. TypeScript should error because `id` is not in the type.
 
-### The client class
+### API Client Class
 
 ```typescript
 class BlogApiClient {
@@ -206,9 +219,9 @@ Because `result.ok` is a discriminated union, TypeScript knows:
 - Inside the `if (!result.ok)` branch: `result.error` exists, `result.data` does not.
 - After the block: `result.data` is available and typed as `{ posts: Post[] }`.
 
-🧪 Try accessing `result.data` inside the `if (!result.ok)` block — TypeScript should give a compile error.
+**Check:** Try accessing `result.data` inside the `if (!result.ok)` block. TypeScript should give a compile error.
 
-### Exercise: retry with exponential backoff
+### Exercise: Retry with Exponential Backoff
 
 ```typescript
 // TODO: Write a function that retries failed API calls:
@@ -284,9 +297,9 @@ function renderCommentForm(postId: number, container: HTMLElement): void {
 
 Call `renderCommentForm(post.id, article)` at the end of `renderPost`.
 
-🧪 Submit a comment. It should appear immediately below the form without any page reload. Open DevTools → Network and confirm a single `POST` request was made.
+**Check:** Submit a comment. It should appear immediately below the form without any page reload. Open DevTools -> Network and confirm a single `POST` request was made.
 
-### Exercise: client-side validation
+### Exercise: Client-Side Validation
 
 ```typescript
 // TODO: Add client-side validation before submitting the comment form.
@@ -328,7 +341,7 @@ toggle.addEventListener("click", async () => {
 });
 ```
 
-### Exercise: optimistic delete
+### Exercise: Optimistic Delete
 
 ```typescript
 // TODO: Add a delete button to each rendered comment.
@@ -346,7 +359,35 @@ toggle.addEventListener("click", async () => {
 // to re-insert at the original position.
 ```
 
-### Exercise: real-time polling
+Backend requirement for this exercise: add a comment delete endpoint to the Django API if you do not already have one.
+
+```python
+# blog/api.py
+class CommentDetailView(View):
+    def delete(self, request, post_id, comment_id):
+        if not request.user.is_authenticated:
+            return JsonResponse({"error": "Authentication required."}, status=401)
+        comment = Comment.objects.filter(
+            pk=comment_id,
+            post_id=post_id,
+        ).first()
+        if comment is None:
+            return JsonResponse({"error": "Not found."}, status=404)
+        comment.delete()
+        return JsonResponse({}, status=204)
+```
+
+Add the route:
+
+```python
+path(
+    "posts/<int:post_id>/comments/<int:comment_id>/",
+    api.CommentDetailView.as_view(),
+    name="api-comment-detail",
+)
+```
+
+### Exercise: Real-Time Polling
 
 ```typescript
 // TODO: When a post is expanded, automatically refresh its comments every 10 seconds.
@@ -369,17 +410,71 @@ toggle.addEventListener("click", async () => {
 
 ## Submission
 
-Final checks:
+Submit the complete TypeScript browser work from Labs 8-10.
 
-1. `npm run check` — zero errors, zero `any` types.
-2. The `Result` type is used for all API calls; errors are displayed to the user.
-3. Submitting the comment form validates client-side before sending.
-4. Expanding a post loads and displays its existing comments.
-5. The CSRF token is sent on every `POST` request (verify in DevTools → Network → Headers).
-6. `withRetry` shows retry attempts in the UI and recovers after transient failures.
-7. Deleting a comment is optimistic — the UI updates immediately.
+Required files:
 
-**Exploration:** Type a paginated API response. Many real APIs don't return all results at once — they paginate. Define a generic paginated wrapper:
+1. `package.json`
+2. `tsconfig.json`
+3. Lab 8 standalone files: `index.html`, `src/`, and `dist/main.js`
+4. `pages/static/pages/ts/main.ts`
+5. `pages/static/pages/ts/api.ts`
+6. `pages/static/pages/js/main.js`
+7. `pages/templates/pages/blog_browser.html`
+
+Lab 8 requirements:
+
+1. `npm run check` passes with zero TypeScript errors.
+2. No `any` types are used.
+3. Primitive type exercises render results in the page.
+4. `fetchWithTimeout` succeeds with a normal timeout and fails with a very short timeout.
+5. Interfaces for posts, categories, and comments are used.
+6. Union types, type guards, and generics are implemented.
+7. Source maps allow debugging `.ts` files in DevTools.
+
+Lab 9 requirements:
+
+1. `/browse/` loads the TypeScript bundle from Django static files.
+2. Posts load from `/api/posts/`.
+3. Search uses the API `?search=` query parameter and is debounced.
+4. Sort works for date, title, and category.
+5. Matching search text is highlighted with `<mark>`.
+6. Expand/collapse works with mouse and keyboard.
+7. Arrow-key navigation has a visible focus indicator.
+8. Search and sort preferences persist with `localStorage`.
+
+Lab 10 requirements:
+
+1. `BlogApiClient` wraps all API calls used by the page.
+2. API calls return `Result<T>` instead of throwing errors into UI code.
+3. Errors are displayed to the user.
+4. Comment form data is validated client-side before sending.
+5. Creating a comment sends `POST` through the API client and updates the page without reload.
+6. Expanding a post loads existing comments.
+7. CSRF token is sent on `POST`, `PATCH`, and `DELETE` requests.
+8. `withRetry` shows retry attempts and recovers after transient failures.
+9. Optimistic delete removes a comment immediately and restores it if the request fails.
+10. The Django API includes the comment delete endpoint used by optimistic delete.
+
+Before submitting, run:
+
+```bash
+npm run check
+npm run build
+uv run python manage.py runserver
+```
+
+Then manually test `/browse/`, search, sort, expand/collapse, comment creation, comment loading, and failed API/error states.
+
+Common errors:
+
+1. `403 Forbidden` on writes usually means the CSRF token header is missing.
+2. `result.data` not available usually means TypeScript has not narrowed `Result<T>` with `result.ok`.
+3. Duplicate comments after expand usually means the comments container is appended to repeatedly instead of replaced.
+4. Optimistic delete not restoring usually means the original DOM position was not stored.
+5. `main.js` not changing usually means `npm run build` or `npm run watch` was not run.
+
+Optional: Type a paginated API response. Many APIs do not return all results at once. Define a generic paginated wrapper:
 
 ```typescript
 interface PaginatedResponse<T> {

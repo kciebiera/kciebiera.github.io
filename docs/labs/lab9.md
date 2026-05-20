@@ -2,11 +2,11 @@
 
 ## Introduction
 
-In Lab 7 you wrote raw JavaScript inside a `<script>` tag to load posts from the API. That works, but there is no type safety — you could mistype `post.titel` and only discover the bug in production. TypeScript can type the DOM too.
+In Lab 7 you wrote JavaScript inside a `<script>` tag to load posts from the API. In this lab you will move browser code into TypeScript and compile it into a Django static file.
 
-The Goal: Build an interactive blog browser — filter, search, and expand posts — entirely in TypeScript, compiled to a single `.js` file and served by Django.
+**Goal:** Build an interactive blog browser with TypeScript: search, sort, expand posts, keyboard navigation, and persisted preferences.
 
-### The Theory
+### DOM Basics
 
 The browser exposes the DOM as a JavaScript API. TypeScript ships type definitions for all standard DOM types (`HTMLElement`, `HTMLInputElement`, `Event`, etc.). When you call `document.getElementById("search")`, TypeScript knows the return type is `HTMLElement | null` — it forces you to handle the `null` case.
 
@@ -42,7 +42,7 @@ You should see only posts whose title contains "django". The TypeScript code in 
 
 ## Setup
 
-You already know the build pipeline from Lab 8 — `tsc` checks types, `esbuild` bundles for the browser. Now we point it at Django's static files directory.
+Continue in the same Django project from Labs 4-7. You already used `tsc` and `esbuild` in Lab 8; now point them at Django's static files directory.
 
 In your Django project root:
 
@@ -79,7 +79,22 @@ Add npm scripts to `package.json`:
 }
 ```
 
-Run `npm run watch` in one terminal, `python manage.py runserver` in another.
+Run `npm run watch` in one terminal, `uv run python manage.py runserver` in another.
+
+Expected structure:
+
+```text
+pages/
+    static/
+        pages/
+            ts/
+                main.ts
+            js/
+                main.js
+    templates/
+        pages/
+            blog_browser.html
+```
 
 ## Phase 1: Type-Safe DOM Selection
 
@@ -109,28 +124,28 @@ const statusBar   = getElement<HTMLParagraphElement>("status-bar");
 Create `pages/templates/pages/blog_browser.html`:
 
 ```html
-{ % extends "pages/base.html" %}
-{ % load static %}
-{ % block title %}Browse Posts{ % endblock %}
+{% extends "pages/base.html" %}
+{% load static %}
+{% block title %}Browse Posts{% endblock %}
 
-{ % block content %}
+{% block content %}
 <h1>Browse Posts</h1>
 
 <input type="text" id="search-input" placeholder="Search…" autocomplete="off">
 <p id="status-bar"></p>
 <div id="post-list"></div>
 
-<script src="{ % static 'pages/js/main.js' %}"></script>
-{ % endblock %}
+<script src="{% static 'pages/js/main.js' %}"></script>
+{% endblock %}
 ```
 
-Add a route `path("browse/", views.blog_browser, name="blog-browser")` and a trivial view.
+Add a route `path("browse/", views.blog_browser, name="blog-browser")` and a view that renders `pages/blog_browser.html`.
 
-🧪 Run `npm run build`, then visit `/browse/`. Open DevTools Console — you should see no errors. In Sources tab, confirm you can see `main.ts` (not just `main.js`).
+**Check:** Run `npm run build`, then visit `/browse/`. Open DevTools Console; you should see no errors. In Sources, confirm you can see `main.ts`.
 
 ## Phase 2: Fetching, State, and Rendering
 
-Modern UIs follow a simple pattern: **state → render**. You keep all data in a single state object, and whenever it changes, you re-render the UI from scratch. This is the mental model behind React, Vue, and every modern framework — but you can use it with raw DOM too.
+Use a simple pattern: **state -> render**. Keep page data in one state object. When state changes, render the UI again.
 
 ### The state machine
 
@@ -268,8 +283,7 @@ async function loadPosts(query: string = ""): Promise<void> {
 loadPosts();
 ```
 
-> **Why `{ ...state, status: "loading" }` instead of `state.status = "loading"`?**
-> Creating a new object makes each state transition explicit and traceable. It also prevents accidental partial updates. This is the same pattern React's `setState` and Redux use.
+Creating a new state object with `{ ...state, status: "loading" }` makes each state transition explicit.
 
 ### Exercise: sort control
 
@@ -288,7 +302,7 @@ loadPosts();
 // The page should re-sort posts immediately when the user changes the select.
 ```
 
-🧪 The page should load and display all posts. Open Network tab — confirm the single fetch to `/api/posts/`.
+**Check:** The page should load and display all posts. Open Network and confirm one fetch to `/api/posts/`.
 
 ## Phase 3: Live Search with Debounce
 
@@ -315,7 +329,7 @@ searchInput.addEventListener("input", () => {
 });
 ```
 
-🧪 Type in the search box. Network requests should only fire ~300ms after you stop typing.
+**Check:** Type in the search box. Network requests should only fire after you stop typing for about 300ms.
 
 ### Exercise: highlight matching text
 
@@ -374,7 +388,7 @@ function renderPost(post: Post): HTMLElement {
 }
 ```
 
-🧪 Click "Read more" — the full text should appear. Click "Show less" — it collapses. Tab to a post and press Enter — same behaviour.
+**Check:** Click "Read more"; the full text should appear. Click "Show less"; it should collapse. Tab to a post and press Enter; it should toggle too.
 
 ### Exercise: keyboard navigation
 
@@ -423,11 +437,9 @@ interface PersistedState {
 // write garbage there. Never trust external data without validation.
 ```
 
-🧪 Search for something, change the sort, reload the page — your preferences should be restored.
+**Check:** Search for something, change the sort, and reload the page. Your preferences should be restored.
 
-## Submission
-
-Final checks:
+## Phase 6: Final Checks
 
 1. `npm run check` — zero errors.
 2. No `any` types in `main.ts`.
@@ -437,4 +449,12 @@ Final checks:
 6. Arrow keys navigate between posts with a visible focus indicator.
 7. Sort preference and search query persist across page reloads via `localStorage`.
 
-**Exploration:** Add a `<select>` element for category filtering. Fetch all posts and filter client-side by the selected category using `Array.filter()`. Update `state` with the filtered results and call `render()`. This means the sort, search highlight, and category filter must all compose correctly. Open DevTools → Sources — you can see and set breakpoints in your `.ts` file (source maps).
+Common errors:
+
+1. The page loads but no JavaScript runs: check that `pages/static/pages/js/main.js` exists and the template uses `{% static 'pages/js/main.js' %}`.
+2. Template tags rendering as text usually means `{% ... %}` was typed with spaces inside the braces.
+3. Search returning all posts usually means Lab 7 `?search=` filtering was not implemented.
+4. `Object is possibly null` means TypeScript needs a null check or a helper such as `getElement`.
+5. Preferences not restoring usually means `localStorage` data was not parsed and validated before use.
+
+Optional: Add a `<select>` element for category filtering. Fetch all posts and filter client-side by the selected category using `Array.filter()`. Search, sort, highlight, and category filtering should work together.
